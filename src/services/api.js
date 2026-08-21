@@ -170,6 +170,8 @@ const realApi = {
   },
   getLocation: (id) => fetchAPI(`/locations/${id}`),
   getCharts: () => fetchAPI('/charts'),
+  getAdminDashboard: () => fetchAPI('/admin/dashboard'),
+  reviewAdminItem: (id, decision) => sendAPI(`/admin/reviews/${id}/decision`, { decision }),
 };
 
 // ──────────────────────────────────
@@ -257,6 +259,14 @@ const mockApi = {
   getCharts: async () => {
     const db = await getMockDb();
     return db.getCharts();
+  },
+  getAdminDashboard: async () => {
+    const db = await getMockDb();
+    return db.getAdminDashboard();
+  },
+  reviewAdminItem: async (id, decision) => {
+    const db = await getMockDb();
+    return db.reviewAdminItem(id, decision);
   },
 };
 

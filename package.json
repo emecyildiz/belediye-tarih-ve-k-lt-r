@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "server": "node backend-server.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
-    "test:data": "node --test backend/data/statistics.test.js",
+    "test:data": "node --test backend/data/*.test.js",
     "lint": "eslint src",
     "type-check": "tsc --noEmit"
   },

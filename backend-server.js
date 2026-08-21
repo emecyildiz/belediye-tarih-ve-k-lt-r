@@ -6,6 +6,7 @@ import { buildRoutePreview } from './backend/services/cbs/mockCbsProvider.js';
 import { events, eventCategoryCounts } from './backend/data/events.js';
 import { weather, buildStatistics, buildChartData } from './backend/data/statistics.js';
 import { notifications } from './backend/data/mockDb.js';
+import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDashboard.js';
 
 const app = express();
 app.use(cors());
@@ -185,6 +186,18 @@ app.get('/api/events/categories/counts', (_req, res) => {
 app.get('/api/statistics', (_req, res) => res.json(ok(buildStatistics({ monuments, routes: culturalRoutes, events }))));
 app.get('/api/weather', async (_req, res) => res.json(ok(await fetchAntakyaWeather())));
 app.get('/api/charts', (_req, res) => res.json(ok(buildChartData({ monuments, routes: culturalRoutes, events }))));
+
+app.get('/api/admin/dashboard', (_req, res) => {
+  const statisticsData = buildStatistics({ monuments, routes: culturalRoutes, events });
+  const chartsData = buildChartData({ monuments, routes: culturalRoutes, events });
+  res.json(ok(buildAdminDashboard({ monuments, routes: culturalRoutes, events, statistics: statisticsData, charts: chartsData })));
+});
+
+app.post('/api/admin/reviews/:id/decision', (req, res) => {
+  const reviewed = reviewAdminRecord(req.params.id, req.body?.decision);
+  if (!reviewed) return fail(res, 'Onay kaydı veya karar geçersiz', 400);
+  return res.json(ok(reviewed));
+});
 
 app.get('/api/news', (_req, res) => {
   res.json(ok(events.slice(0, 3).map((e) => ({

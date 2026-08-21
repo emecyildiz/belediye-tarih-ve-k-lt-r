@@ -1,183 +1,115 @@
-import React from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import api from '../services/api';
+import OpenLayersMap from '../components/map/OpenLayersMap';
+import {
+  IconArrow, IconCalendar, IconClock, IconDocument, IconInfo,
+  IconMap, IconMonument, IconPin, IconRoute,
+} from '../components/common/Icons';
 import './AdminPanelPage.css';
 
-const AdminPanelPage = () => {
-  return (
-    <div className="admin-panel-page">
-      <div className="admin-header">
-        <h1>Yönetim Paneli</h1>
-        <p>Sistem istatistiklerini görüntüleyin, içerikleri yönetin ve performansı takip edin.</p>
-      </div>
+const numberFormat = new Intl.NumberFormat('tr-TR');
 
-      <div className="admin-stats-row">
-        <div className="stat-card">
-          <span className="stat-label">Toplam Eser</span>
-          <span className="stat-value">256</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Toplam Rota</span>
-          <span className="stat-value">6</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Yaklaşan Etkinlik</span>
-          <span className="stat-value">14</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Saha Noktası</span>
-          <span className="stat-value">152</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Kullanıcı</span>
-          <span className="stat-value">1.248</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Aktif Saha Ekibi</span>
-          <span className="stat-value">24</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Proje Durumu</span>
-          <span className="stat-value">Açık: 12</span>
-        </div>
-      </div>
-
-      <div className="admin-main-grid">
-        {/* Column 1 */}
-        <div className="admin-col">
-          <div className="admin-card">
-            <h3>Ziyaretçi İstatistikleri</h3>
-            <div className="placeholder-chart">
-              <span>(Grafik Alanı)</span>
-            </div>
-          </div>
-          <div className="admin-card">
-            <h3>Onay Bekleyen İçerikler</h3>
-            <ul className="pending-list">
-              <li>
-                <div className="pending-info">
-                  <span className="pending-title">Kaleiçi Surları Güncelleme</span>
-                  <span className="pending-author">Ahmet Y.</span>
-                </div>
-                <div className="pending-actions">
-                  <button className="btn-accept">✓</button>
-                  <button className="btn-reject">✗</button>
-                </div>
-              </li>
-              <li>
-                <div className="pending-info">
-                  <span className="pending-title">Yeni Rota: Tarihi Çarşılar</span>
-                  <span className="pending-author">Ayşe K.</span>
-                </div>
-                <div className="pending-actions">
-                  <button className="btn-accept">✓</button>
-                  <button className="btn-reject">✗</button>
-                </div>
-              </li>
-              <li>
-                <div className="pending-info">
-                  <span className="pending-title">Etkinlik: Fotoğraf Sergisi</span>
-                  <span className="pending-author">Mehmet T.</span>
-                </div>
-                <div className="pending-actions">
-                  <button className="btn-accept">✓</button>
-                  <button className="btn-reject">✗</button>
-                </div>
-              </li>
-            </ul>
-          </div>
-          <div className="admin-card">
-            <h3>Son İşlemler</h3>
-            <table className="recent-logs-table">
-              <tbody>
-                <tr>
-                  <td>10:45</td>
-                  <td>Eser Eklendi: Saat Kulesi</td>
-                  <td>Admin</td>
-                </tr>
-                <tr>
-                  <td>09:30</td>
-                  <td>Kullanıcı Onayı</td>
-                  <td>Moderatör</td>
-                </tr>
-                <tr>
-                  <td>Dün</td>
-                  <td>Sistem Yedeği Alındı</td>
-                  <td>Sistem</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Column 2 */}
-        <div className="admin-col">
-          <div className="admin-card">
-            <h3>En Çok Görüntülenen İçerik</h3>
-            <ol className="top-content-list">
-              <li>Eski Şehir Merkezi Rotası (1.2k)</li>
-              <li>Tarihi Hamam Restorasyonu (980)</li>
-              <li>Büyük Cami Mimarisi (850)</li>
-              <li>Müze Gece Turu (720)</li>
-              <li>Yerel Lezzetler Festivali (650)</li>
-            </ol>
-          </div>
-          <div className="admin-card">
-            <h3>Sistem Durumu</h3>
-            <div className="sys-status">
-              <div className="status-item healthy">Veritabanı: Sağlıklı</div>
-              <div className="status-item warning">Sunucu Yükü: %75</div>
-              <div className="status-item healthy">API Servisleri: Aktif</div>
-            </div>
-          </div>
-          <div className="admin-card tall-card">
-            <h3>Saha ve İçerik Haritası</h3>
-            <div className="placeholder-map">
-              <span>(Harita Görünümü)</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Column 3 */}
-        <div className="admin-col">
-          <div className="admin-card">
-            <h3>Yaklaşan Etkinlikler</h3>
-            <ul className="events-list">
-              <li>
-                <span className="event-date">15 Eki</span>
-                <span className="event-name">Kültür Mirası Sempozyumu</span>
-              </li>
-              <li>
-                <span className="event-date">20 Eki</span>
-                <span className="event-name">Antik Kent Gezisi</span>
-              </li>
-              <li>
-                <span className="event-date">25 Eki</span>
-                <span className="event-name">Geleneksel El Sanatları Atölyesi</span>
-              </li>
-            </ul>
-          </div>
-          <div className="admin-card">
-            <h3>İçerik Yönetimi Hızlı İşlemler</h3>
-            <div className="quick-actions-grid">
-              <button className="quick-btn">Yeni Eser Ekle</button>
-              <button className="quick-btn">Yeni Rota Ekle</button>
-              <button className="quick-btn">Etkinlik Oluştur</button>
-              <button className="quick-btn">Kullanıcı Yönetimi</button>
-              <button className="quick-btn">Saha Görevi Oluştur</button>
-              <button className="quick-btn">Duyuru Yayınla</button>
-            </div>
-          </div>
-          <div className="admin-card">
-            <h3>Hızlı Raporlar</h3>
-            <div className="quick-reports">
-              <button className="report-btn">Aylık Ziyaretçi Özeti</button>
-              <button className="report-btn">Performans Raporu</button>
-              <button className="report-btn">Sistem Logları</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+const metricIcons = {
+  monuments: IconMonument,
+  routes: IconRoute,
+  events: IconCalendar,
+  visits: IconDocument,
+  pending: IconClock,
+  integrity: IconInfo,
 };
 
-export default AdminPanelPage;
+const sourceLabels = { monument: 'Tarihi Eser', route: 'Kültürel Rota', event: 'Etkinlik' };
+
+function formatDate(value, includeTime = false) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value || '—';
+  return new Intl.DateTimeFormat('tr-TR', includeTime
+    ? { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }
+    : { day: 'numeric', month: 'short' }).format(date);
+}
+
+function AdminTrendChart({ data = [] }) {
+  const width = 620; const height = 150; const padX = 22; const padY = 18;
+  const max = Math.max(...data.map((item) => item.total), 1);
+  const step = data.length > 1 ? (width - padX * 2) / (data.length - 1) : 0;
+  const points = data.map((item, index) => `${padX + index * step},${height - padY - (item.total / max) * (height - padY * 2)}`).join(' ');
+  const area = `${padX},${height-padY} ${points} ${width-padX},${height-padY}`;
+  return <div className="admin-trend-chart"><svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" aria-label="Ziyaret eğilimi grafiği">{[0,1,2,3].map((line) => <line key={line} x1={padX} x2={width-padX} y1={padY+line*((height-padY*2)/3)} y2={padY+line*((height-padY*2)/3)} />)}<polygon points={area} /><polyline points={points} />{data.map((item,index) => <text key={item.label} x={padX+index*step} y={height-3} textAnchor="middle">{item.label}</text>)}</svg></div>;
+}
+
+export default function AdminPanelPage() {
+  const [dashboard, setDashboard] = useState(null);
+  const [geojson, setGeojson] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [processingId, setProcessingId] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([api.getAdminDashboard(), api.getLocations()])
+      .then(([dashboardData, locationData]) => { if (active) { setDashboard(dashboardData); setGeojson(locationData); } })
+      .catch(() => active && setError(true))
+      .finally(() => active && setLoading(false));
+    return () => { active = false; };
+  }, []);
+
+  const review = async (id, decision) => {
+    setProcessingId(id);
+    try {
+      await api.reviewAdminItem(id, decision);
+      setDashboard((current) => ({
+        ...current,
+        pendingReviews: current.pendingReviews.filter((item) => item.id !== id),
+        metrics: current.metrics.map((metric) => metric.key === 'pending' ? { ...metric, value: Math.max(0, metric.value - 1) } : metric),
+      }));
+    } finally { setProcessingId(null); }
+  };
+
+  if (loading) return <div className="admin-dashboard-state"><span /><strong>Yönetim özeti hazırlanıyor…</strong></div>;
+  if (error || !dashboard) return <div className="admin-dashboard-state error"><IconInfo size={34} /><strong>Yönetim verileri yüklenemedi</strong><p>Veri bağlantısını kontrol edip tekrar deneyin.</p></div>;
+
+  return <div className="admin-dashboard-page">
+    <header className="admin-dashboard-header">
+      <div><span><i /> YÖNETİCİ ÇALIŞMA ALANI</span><h1>Yönetim özeti</h1><p>İçerik, CBS ve kullanım verilerinin güncel durumunu tek ekrandan izleyin.</p></div>
+      <div className="admin-header-actions"><small>Son veri güncellemesi<b>{formatDate(dashboard.generatedAt, true)}</b></small><Link to="/raporlar"><IconDocument size={14} /> Raporları aç</Link></div>
+    </header>
+
+    <section className="admin-metric-grid" aria-label="Yönetim istatistikleri">
+      {dashboard.metrics.map((metric) => { const MetricIcon = metricIcons[metric.key] || IconDocument; return <article key={metric.key} className={metric.key === 'integrity' ? 'integrity' : ''}><span><MetricIcon size={18} /></span><div><small>{metric.label}</small><strong>{numberFormat.format(metric.value)}{metric.suffix}</strong><p>{metric.detail}</p></div></article>; })}
+    </section>
+
+    <div className="admin-dashboard-grid">
+      <section className="admin-dashboard-card admin-map-card">
+        <header><div><span>CBS GÖRÜNÜMÜ</span><h2>Saha ve içerik haritası</h2></div><Link to="/harita">Haritayı aç <IconArrow size={12} /></Link></header>
+        <div className="admin-map-frame">{geojson && <OpenLayersMap geojson={geojson} cluster fitToData height="100%" />}<div className="admin-map-overlay"><strong>{geojson?.features?.length || 0}</strong><span>aktif konum</span></div></div>
+      </section>
+
+      <section className="admin-dashboard-card admin-review-card">
+        <header><div><span>İŞ AKIŞI</span><h2>Onay bekleyen kayıtlar</h2></div><b>{dashboard.pendingReviews.length}</b></header>
+        <div className="admin-review-list">{dashboard.pendingReviews.length ? dashboard.pendingReviews.map((item) => <article key={item.id}><div className="admin-review-type"><span>{sourceLabels[item.sourceType]}</span><small>{formatDate(item.submittedAt, true)}</small></div><Link to={item.href}>{item.title}</Link><p>{item.operation} · {item.submittedBy}</p><footer><button type="button" disabled={processingId === item.id} onClick={() => review(item.id, 'rejected')}>Reddet</button><button type="button" disabled={processingId === item.id} onClick={() => review(item.id, 'approved')}>Onayla</button></footer></article>) : <div className="admin-review-empty"><span>✓</span><strong>Bekleyen kayıt yok</strong><p>Tüm içerikler değerlendirilmiş durumda.</p></div>}</div>
+      </section>
+
+      <section className="admin-dashboard-card admin-traffic-card">
+        <header><div><span>KULLANIM</span><h2>Ziyaret eğilimi</h2></div><Link to="/raporlar">Detaylı analiz</Link></header>
+        <AdminTrendChart data={dashboard.trend} />
+      </section>
+
+      <section className="admin-dashboard-card admin-content-card">
+        <header><div><span>İÇERİK</span><h2>En çok görüntülenenler</h2></div><small>Görüntüleme</small></header>
+        <ol>{dashboard.topContent.map((item,index) => <li key={`${item.sourceType}-${item.sourceId}`}><b>{index+1}</b><Link to={item.href}>{item.title}<small>{sourceLabels[item.sourceType]}</small></Link><strong>{numberFormat.format(item.views)}</strong></li>)}</ol>
+      </section>
+
+      <section className="admin-dashboard-card admin-events-card">
+        <header><div><span>TAKVİM</span><h2>Etkinlik kayıtları</h2></div><Link to="/etkinlikler">Tümünü gör</Link></header>
+        <div>{dashboard.eventSchedule.map((item) => <Link to={item.href} key={item.id}><time><b>{formatDate(item.date).split(' ')[0]}</b><small>{formatDate(item.date).split(' ')[1]}</small></time><span><strong>{item.title}</strong><small><IconPin size={10} /> {item.district} · {item.time}</small></span><i>›</i></Link>)}</div>
+      </section>
+
+      <section className="admin-dashboard-card admin-activity-card">
+        <header><div><span>SİSTEM</span><h2>Son işlemler</h2></div></header>
+        <div className="admin-activity-list">{dashboard.activity.map((item) => <article key={item.id}><i /><div><p>{item.action}</p><Link to={item.href}>{item.title}</Link><small>{item.actor} · {formatDate(item.createdAt, true)}</small></div></article>)}</div>
+        <div className="admin-system-status">{dashboard.systemStatus.map((item) => <p key={item.key}><i className={item.status} /><span>{item.label}</span><strong>{item.value}</strong></p>)}</div>
+      </section>
+    </div>
+  </div>;
+}

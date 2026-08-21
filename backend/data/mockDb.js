@@ -3,6 +3,7 @@ import { culturalRoutes } from './routes.js';
 import { events, eventCategoryCounts } from './events.js';
 import { statistics, weather, chartData, buildStatistics, buildChartData } from './statistics.js';
 import { buildRoutePreview } from '../services/cbs/mockCbsProvider.js';
+import { buildAdminDashboard, reviewAdminRecord } from './adminDashboard.js';
 
 export { monuments, events, categoryCounts, eventCategoryCounts, statistics, weather, chartData };
 export const routes = culturalRoutes;
@@ -225,6 +226,16 @@ export function getCharts() {
   return buildChartData({ monuments, routes: culturalRoutes, events });
 }
 
+export function getAdminDashboard() {
+  const statisticsData = getStatistics();
+  const chartsData = getCharts();
+  return buildAdminDashboard({ monuments, routes: culturalRoutes, events, statistics: statisticsData, charts: chartsData });
+}
+
+export function reviewAdminItem(id, decision) {
+  return reviewAdminRecord(id, decision);
+}
+
 export default {
   monuments,
   routes,
@@ -249,4 +260,6 @@ export default {
   getWeather,
   getStatistics,
   getCharts,
+  getAdminDashboard,
+  reviewAdminItem,
 };
