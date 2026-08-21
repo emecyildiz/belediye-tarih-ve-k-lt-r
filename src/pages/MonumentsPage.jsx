@@ -60,7 +60,15 @@ export default function MonumentsPage() {
     });
   }, [monuments, filters, sortBy]);
 
-  const toggleDraftCategory = (category) => setDraftFilters((current) => ({ ...current, categories: current.categories.includes(category) ? current.categories.filter((item) => item !== category) : [...current.categories, category] }));
+  const updateFilter = (key, value) => {
+    setDraftFilters((current) => ({ ...current, [key]: value }));
+    setFilters((current) => ({ ...current, [key]: value }));
+  };
+  const toggleDraftCategory = (category) => {
+    const toggle = (current) => ({ ...current, categories: current.categories.includes(category) ? current.categories.filter((item) => item !== category) : [...current.categories, category] });
+    setDraftFilters(toggle);
+    setFilters(toggle);
+  };
   const applyFilters = () => { setFilters({ ...draftFilters, categories: [...draftFilters.categories] }); setFiltersOpen(false); };
   const clearFilters = () => { setDraftFilters(initialFilters); setFilters(initialFilters); setFiltersOpen(false); };
   const toggleFavorite = (id) => setFavorites((current) => {
@@ -91,14 +99,14 @@ export default function MonumentsPage() {
         {filtersOpen && <button type="button" className="monument-filter-backdrop" aria-label="Filtreleri kapat" onClick={() => setFiltersOpen(false)} />}
         <aside className={`monuments-filters ${filtersOpen ? 'open' : ''}`}>
           <div className="filter-panel-title"><div><IconFilter size={16} /><strong>Filtreler</strong></div><button type="button" onClick={() => setFiltersOpen(false)} aria-label="Filtreleri kapat">×</button></div>
-          <label className="filter-select-group"><span><IconPin size={14} /> İlçe</span><select value={draftFilters.district} onChange={(event) => setDraftFilters((current) => ({ ...current, district: event.target.value }))}><option value="tumu">Tüm İlçeler</option>{districts.map((district) => <option key={district} value={district}>{district}</option>)}</select></label>
+          <label className="filter-select-group"><span><IconPin size={14} /> İlçe</span><select value={draftFilters.district} onChange={(event) => updateFilter('district', event.target.value)}><option value="tumu">Tüm İlçeler</option>{districts.map((district) => <option key={district} value={district}>{district}</option>)}</select></label>
           <fieldset className="filter-category-group">
             <legend><IconMonument size={14} /> Eser Türü</legend>
-            <label className={!draftFilters.categories.length ? 'checked' : ''}><input type="checkbox" checked={!draftFilters.categories.length} onChange={() => setDraftFilters((current) => ({ ...current, categories: [] }))} /><span className="custom-check" /><b>Tüm Eserler</b><small>{monuments.length}</small></label>
+            <label className={!draftFilters.categories.length ? 'checked' : ''}><input type="checkbox" checked={!draftFilters.categories.length} onChange={() => updateFilter('categories', [])} /><span className="custom-check" /><b>Tüm Eserler</b><small>{monuments.length}</small></label>
             {categories.map((category) => <label key={category} className={draftFilters.categories.includes(category) ? 'checked' : ''}><input type="checkbox" checked={draftFilters.categories.includes(category)} onChange={() => toggleDraftCategory(category)} /><span className="custom-check" /><CategoryMarkerIcon category={category} color={categoryColors[category]} size={19} /><b>{categoryLabels[category] || category}</b><small>{categoryCounts[category] || 0}</small></label>)}
           </fieldset>
-          <label className="filter-select-group"><span>Dönem</span><select value={draftFilters.period} onChange={(event) => setDraftFilters((current) => ({ ...current, period: event.target.value }))}><option value="tumu">Tüm Dönemler</option>{periods.map((period) => <option key={period} value={period}>{period}</option>)}</select></label>
-          <label className="filter-select-group"><span>Koruma Durumu</span><select value={draftFilters.registration} onChange={(event) => setDraftFilters((current) => ({ ...current, registration: event.target.value }))}><option value="tumu">Tüm Durumlar</option><option value="Tescilli">Tescilli</option><option value="Aday">Aday</option></select></label>
+          <label className="filter-select-group"><span>Dönem</span><select value={draftFilters.period} onChange={(event) => updateFilter('period', event.target.value)}><option value="tumu">Tüm Dönemler</option>{periods.map((period) => <option key={period} value={period}>{period}</option>)}</select></label>
+          <label className="filter-select-group"><span>Koruma Durumu</span><select value={draftFilters.registration} onChange={(event) => updateFilter('registration', event.target.value)}><option value="tumu">Tüm Durumlar</option><option value="Tescilli">Tescilli</option><option value="Aday">Aday</option></select></label>
           <button type="button" className="apply-filters-btn" onClick={applyFilters}>Filtreleri Uygula</button>
           <button type="button" className="clear-filters-btn" onClick={clearFilters}>Filtreleri Temizle</button>
         </aside>

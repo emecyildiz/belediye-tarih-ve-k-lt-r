@@ -86,7 +86,15 @@ export default function RoutesPage() {
     });
   }, [routes, filters, sortBy]);
 
-  const toggleCategory = (key) => setDraft((current) => ({ ...current, categories: current.categories.includes(key) ? current.categories.filter((item) => item !== key) : [...current.categories, key] }));
+  const updateFilter = (key, value) => {
+    setDraft((current) => ({ ...current, [key]: value }));
+    setFilters((current) => ({ ...current, [key]: value }));
+  };
+  const toggleCategory = (key) => {
+    const toggle = (current) => ({ ...current, categories: current.categories.includes(key) ? current.categories.filter((item) => item !== key) : [...current.categories, key] });
+    setDraft(toggle);
+    setFilters(toggle);
+  };
   const clearFilters = () => { setDraft(initialFilters); setFilters(initialFilters); setFiltersOpen(false); };
   const applyFilters = () => { setFilters({ ...draft, categories: [...draft.categories] }); setFiltersOpen(false); };
   const toggleFavorite = (id) => setFavorites((current) => {
@@ -106,10 +114,10 @@ export default function RoutesPage() {
         {filtersOpen && <button type="button" className="route-filter-backdrop" aria-label="Filtreleri kapat" onClick={() => setFiltersOpen(false)} />}
         <aside className={`cultural-route-filters ${filtersOpen ? 'open' : ''}`}>
           <header><div><IconFilter size={16} /><strong>Filtrele</strong></div><button type="button" onClick={() => setFiltersOpen(false)} aria-label="Filtreleri kapat">×</button></header>
-          <fieldset><legend>Rota Teması</legend><label className={!draft.categories.length ? 'selected' : ''}><input type="checkbox" checked={!draft.categories.length} onChange={() => setDraft((current) => ({ ...current, categories: [] }))} /><i /><b>Tüm Rotalar</b><small>{routes.length}</small></label>{categories.map((item) => <label key={item.key} className={draft.categories.includes(item.key) ? 'selected' : ''}><input type="checkbox" checked={draft.categories.includes(item.key)} onChange={() => toggleCategory(item.key)} /><i /><span className="filter-theme-icon" style={{ color: item.color }}><ThemeIcon category={item.key} /></span><b>{item.label}</b><small>{categoryCounts[item.key] || 0}</small></label>)}</fieldset>
-          <label className="route-filter-select"><span>Süre</span><select value={draft.duration} onChange={(event) => setDraft((current) => ({ ...current, duration: event.target.value }))}><option value="tumu">Tüm Süreler</option><option value="kisa">1–3 Saat</option><option value="yarim">Yarım Gün</option><option value="tam">Tam Gün</option></select></label>
-          <label className="route-filter-select"><span>Zorluk Seviyesi</span><select value={draft.difficulty} onChange={(event) => setDraft((current) => ({ ...current, difficulty: event.target.value }))}><option value="tumu">Tüm Seviyeler</option><option value="kolay">Kolay</option><option value="orta">Orta</option><option value="zor">Zor</option></select></label>
-          <label className="route-filter-select"><span>Başlangıç Noktası</span><select value={draft.district} onChange={(event) => setDraft((current) => ({ ...current, district: event.target.value }))}><option value="tumu">Tüm İlçeler</option>{districts.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
+          <fieldset><legend>Rota Teması</legend><label className={!draft.categories.length ? 'selected' : ''}><input type="checkbox" checked={!draft.categories.length} onChange={() => updateFilter('categories', [])} /><i /><b>Tüm Rotalar</b><small>{routes.length}</small></label>{categories.map((item) => <label key={item.key} className={draft.categories.includes(item.key) ? 'selected' : ''}><input type="checkbox" checked={draft.categories.includes(item.key)} onChange={() => toggleCategory(item.key)} /><i /><span className="filter-theme-icon" style={{ color: item.color }}><ThemeIcon category={item.key} /></span><b>{item.label}</b><small>{categoryCounts[item.key] || 0}</small></label>)}</fieldset>
+          <label className="route-filter-select"><span>Süre</span><select value={draft.duration} onChange={(event) => updateFilter('duration', event.target.value)}><option value="tumu">Tüm Süreler</option><option value="kisa">1–3 Saat</option><option value="yarim">Yarım Gün</option><option value="tam">Tam Gün</option></select></label>
+          <label className="route-filter-select"><span>Zorluk Seviyesi</span><select value={draft.difficulty} onChange={(event) => updateFilter('difficulty', event.target.value)}><option value="tumu">Tüm Seviyeler</option><option value="kolay">Kolay</option><option value="orta">Orta</option><option value="zor">Zor</option></select></label>
+          <label className="route-filter-select"><span>Başlangıç Noktası</span><select value={draft.district} onChange={(event) => updateFilter('district', event.target.value)}><option value="tumu">Tüm İlçeler</option>{districts.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
           <button type="button" className="route-filter-apply" onClick={applyFilters}>Filtreleri Uygula</button><button type="button" className="route-filter-clear" onClick={clearFilters}>Filtreleri Temizle</button>
         </aside>
 
