@@ -144,8 +144,49 @@ export function getEvents(params = {}) {
   ));
 }
 
+const eventCoordinates = {
+  Antakya: [36.2021, 36.1605],
+  Payas: [36.7563, 36.2146],
+  Samandağ: [36.0847, 35.9771],
+  Defne: [36.1735, 36.1386],
+  Arsuz: [36.413, 35.8903],
+  Reyhanlı: [36.2692, 36.5672],
+  İskenderun: [36.5872, 36.1735],
+};
+
+function addHours(time = '10:00', hours = 2) {
+  const [hour, minute] = time.split(':').map(Number);
+  return `${String((hour + hours) % 24).padStart(2, '0')}:${String(minute || 0).padStart(2, '0')}`;
+}
+
+function enrichEvent(item) {
+  if (!item) return null;
+  const endTime = item.endTime || addHours(item.time, item.category === 'festival' ? 4 : 2);
+  return {
+    ...item,
+    slug: item.slug || String(item.id),
+    longDescription: item.longDescription || `${item.description} Hatay'ın kültürel yaşamını görünür kılan bu program; yerel mirası, sanat üretimini ve kent belleğini farklı yaş gruplarıyla buluşturmak amacıyla hazırlanmıştır.`,
+    address: item.address || `${item.venue}, ${item.district} / Hatay`,
+    coordinates: item.coordinates || eventCoordinates[item.district] || eventCoordinates.Antakya,
+    endTime,
+    organizer: item.organizer || 'Hatay Büyükşehir Belediyesi Kültür ve Sosyal İşler Dairesi',
+    contactPhone: item.contactPhone || '444 12 06',
+    contactEmail: item.contactEmail || 'kultur@hatay.bel.tr',
+    entryFee: item.entryFee || 'Ücretsiz',
+    registrationRequired: item.registrationRequired ?? false,
+    capacity: item.capacity || (item.category === 'atolye' ? 30 : 250),
+    accessibility: item.accessibility || 'Erişilebilir alan',
+    audience: item.audience || 'Tüm yaş grupları',
+    program: item.program || [
+      { time: item.time, title: 'Karşılama ve etkinlik başlangıcı' },
+      { time: addHours(item.time, 1), title: item.category === 'gezi' ? 'Rehberli rota ve anlatım' : 'Ana program' },
+      { time: endTime, title: 'Program sonu' },
+    ],
+  };
+}
+
 export function getEvent(idOrSlug) {
-  return events.find((item) => item.id === Number(idOrSlug) || item.slug === String(idOrSlug)) || null;
+  return enrichEvent(events.find((item) => item.id === Number(idOrSlug) || item.slug === String(idOrSlug)));
 }
 
 export function getNotificationCount() {
