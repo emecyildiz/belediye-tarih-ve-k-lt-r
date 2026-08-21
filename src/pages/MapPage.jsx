@@ -128,8 +128,8 @@ export default function MapPage() {
 
         <section className="map-control-section">
           <div className="map-control-heading">
-            <div><h2>Harita Katmanları</h2><span>{filteredGeojson?.features.length || 0} kayıt gösteriliyor</span></div>
-            <button type="button" onClick={() => setActiveLayers(new Set(layers.map((item) => item.key)))}>Tümü</button>
+            <div><h2>Katmanlar</h2><span>{filteredGeojson?.features.length || 0} kayıt gösteriliyor</span></div>
+            <button type="button" onClick={() => setActiveLayers(new Set(layers.map((item) => item.key)))}>Tümünü seç</button>
           </div>
           <div className="map-layer-list">
             {layers.map((layer) => (
@@ -139,9 +139,9 @@ export default function MapPage() {
                   checked={activeLayers.has(layer.key)}
                   onChange={() => toggleLayer(layer.key)}
                 />
-                <span className="layer-icon"><CategoryMarkerIcon category={layer.key} color={layer.color} size={25} /></span>
-                <span className="layer-name"><strong>{layer.label}</strong><small>{layerCounts[layer.key] || 0} kayıt</small></span>
-                <span className="layer-switch"><i /></span>
+                <span className="layer-icon"><CategoryMarkerIcon category={layer.key} color="#153a70" size={18} /></span>
+                <span className="layer-name"><strong>{layer.label}</strong><small>{layerCounts[layer.key] || 0}</small></span>
+                <span className="layer-chevron">⌄</span>
               </label>
             ))}
           </div>
