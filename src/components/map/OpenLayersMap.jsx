@@ -3,6 +3,7 @@ import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
+import HeatmapLayer from 'ol/layer/Heatmap';
 import VectorSource from 'ol/source/Vector';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
@@ -108,6 +109,7 @@ export default function OpenLayersMap({
   cluster = false,
   onFeatureClick,
   routeMode = false,
+  heatmap = false,
   fitToData = false,
   height = '100%',
 }) {
@@ -128,12 +130,10 @@ export default function OpenLayersMap({
       if (clientWidth === 0 || clientHeight === 0) return false;
 
       vectorSourceRef.current = new VectorSource();
-      const vectorLayer = new VectorLayer({
-        source: cluster
-          ? new Cluster({ distance: 40, source: vectorSourceRef.current })
-          : vectorSourceRef.current,
-        style: (f) => routeMode ? getRouteStyle(f) : getPinStyle(f, cluster),
-      });
+      const layerSource = cluster ? new Cluster({ distance: 40, source: vectorSourceRef.current }) : vectorSourceRef.current;
+      const vectorLayer = heatmap
+        ? new HeatmapLayer({ source: layerSource, blur: 22, radius: 16, weight: (feature) => Number(feature.get('weight') || 0.72) })
+        : new VectorLayer({ source: layerSource, style: (f) => routeMode ? getRouteStyle(f) : getPinStyle(f, cluster) });
 
       osmLayerRef.current = new TileLayer({ source: new OSM(), visible: mapType !== 'satellite' });
       satelliteLayerRef.current = new TileLayer({

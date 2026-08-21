@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import HomePage from './pages/HomePage';
 import MapPage from './pages/MapPage';
@@ -48,7 +48,7 @@ function App() {
           <Route path="/yonetim-paneli" element={<AdminPanelPage />} />
           <Route path="/cbs-analitik" element={<GisAnalyticsPage />} />
           <Route path="/bildirimler" element={<NotificationsPage />} />
-          <Route path="/raporlar" element={<Navigate to="/cbs-analitik" replace />} />
+          <Route path="/raporlar" element={<GisAnalyticsPage />} />
           <Route path="/hakkinda" element={<AboutPage />} />
         </Routes>
       </AppLayout>
