@@ -172,6 +172,10 @@ const realApi = {
   getCharts: () => fetchAPI('/charts'),
   getAdminDashboard: () => fetchAPI('/admin/dashboard'),
   reviewAdminItem: (id, decision) => sendAPI(`/admin/reviews/${id}/decision`, { decision }),
+  getFavorites: () => fetchAPI('/user/favorites'),
+  toggleFavorite: (type, id) => sendAPI(`/user/favorites/${type}/${id}/toggle`, {}),
+  getCustomRoutes: () => fetchAPI('/user/routes'),
+  saveCustomRoute: (payload) => sendAPI('/user/routes', payload),
 };
 
 // ──────────────────────────────────
@@ -267,6 +271,22 @@ const mockApi = {
   reviewAdminItem: async (id, decision) => {
     const db = await getMockDb();
     return db.reviewAdminItem(id, decision);
+  },
+  getFavorites: async () => {
+    const db = await getMockDb();
+    return db.getFavorites();
+  },
+  toggleFavorite: async (type, id) => {
+    const db = await getMockDb();
+    return db.toggleFavorite(type, id);
+  },
+  getCustomRoutes: async () => {
+    const db = await getMockDb();
+    return db.getCustomRoutes();
+  },
+  saveCustomRoute: async (payload) => {
+    const db = await getMockDb();
+    return db.saveCustomRoute(payload);
   },
 };
 

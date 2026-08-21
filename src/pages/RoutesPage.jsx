@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
+import useFavoriteIds from '../hooks/useFavoriteIds';
 import { IconArrow, IconClock, IconFilter, IconHeart, IconPin, IconRoute } from '../components/common/Icons';
 import './RoutesPage.css';
 
@@ -52,9 +53,7 @@ export default function RoutesPage() {
   const [sortBy, setSortBy] = useState('recommended');
   const [view, setView] = useState('grid');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [favorites, setFavorites] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tkmbs-favorite-routes') || '[]'); } catch { return []; }
-  });
+  const [favorites, toggleFavorite] = useFavoriteIds('route');
 
   useEffect(() => {
     let active = true;
@@ -93,12 +92,6 @@ export default function RoutesPage() {
     setFilters(toggle);
   };
   const clearFilters = () => { setFilters(initialFilters); setFiltersOpen(false); };
-  const toggleFavorite = (id) => setFavorites((current) => {
-    const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id];
-    localStorage.setItem('tkmbs-favorite-routes', JSON.stringify(next));
-    return next;
-  });
-
   return (
     <div className="cultural-routes-page">
       <header className="cultural-routes-header">

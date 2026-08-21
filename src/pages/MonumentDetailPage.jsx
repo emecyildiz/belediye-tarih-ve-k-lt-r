@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import OpenLayersMap from '../components/map/OpenLayersMap';
 import CategoryMarkerIcon from '../components/map/CategoryMarkerIcon';
+import useFavoriteIds from '../hooks/useFavoriteIds';
 import SafeImage from '../components/common/SafeImage';
 import { api, DEFAULT_IMAGE, getImageUrl } from '../services/api';
 import { CATEGORY_LABELS } from '../constants';
@@ -43,10 +44,7 @@ export default function MonumentDetailPage() {
   const [activeTab, setActiveTab] = useState('tarihce');
   const [expanded, setExpanded] = useState(false);
   const [shareLabel, setShareLabel] = useState('Paylaş');
-  const [favorite, setFavorite] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tkmbs-favorite-monuments') || '[]').includes(Number(slug)); }
-    catch { return false; }
-  });
+  const [favoriteIds, toggleFavoriteId] = useFavoriteIds('monument');
 
   useEffect(() => {
     let active = true;
@@ -60,14 +58,6 @@ export default function MonumentDetailPage() {
     return () => { active = false; };
   }, [slug]);
 
-  useEffect(() => {
-    if (!monument) return;
-    try {
-      const stored = JSON.parse(localStorage.getItem('tkmbs-favorite-monuments') || '[]');
-      setFavorite(stored.includes(monument.id));
-    } catch { setFavorite(false); }
-  }, [monument]);
-
   const geojson = useMemo(() => {
     if (!Array.isArray(monument?.coordinates)) return null;
     return { type: 'FeatureCollection', features: [{ type: 'Feature', id: monument.id, properties: { id: monument.id, name: monument.name, category: monument.category }, geometry: { type: 'Point', coordinates: [monument.coordinates[1], monument.coordinates[0]] } }] };
@@ -78,14 +68,8 @@ export default function MonumentDetailPage() {
     return [...new Set([monument.image, ...(monument.images || [])].filter(Boolean))];
   }, [monument]);
 
-  const toggleFavorite = () => {
-    if (!monument) return;
-    let stored = [];
-    try { stored = JSON.parse(localStorage.getItem('tkmbs-favorite-monuments') || '[]'); } catch { stored = []; }
-    const next = stored.includes(monument.id) ? stored.filter((id) => id !== monument.id) : [...stored, monument.id];
-    localStorage.setItem('tkmbs-favorite-monuments', JSON.stringify(next));
-    setFavorite(next.includes(monument.id));
-  };
+  const favorite = Boolean(monument && favoriteIds.includes(monument.id));
+  const toggleFavorite = () => monument && toggleFavoriteId(monument.id);
 
   const shareMonument = async () => {
     const payload = { title: monument.name, text: monument.description, url: window.location.href };

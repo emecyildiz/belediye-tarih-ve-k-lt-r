@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import api from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
+import useFavoriteIds from '../hooks/useFavoriteIds';
 import CategoryMarkerIcon from '../components/map/CategoryMarkerIcon';
 import { IconHeart, IconPin, IconRoute } from '../components/common/Icons';
 import './MapPage.css';
@@ -29,7 +30,7 @@ export default function MapPage() {
   const [district, setDistrict] = useState('tumu');
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [mapType, setMapType] = useState('map');
-  const [favorites, setFavorites] = useState(new Set());
+  const [favorites, toggleFavoriteId] = useFavoriteIds('monument');
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
@@ -85,15 +86,7 @@ export default function MapPage() {
     setSelectedLocation(fullItem || properties);
   };
 
-  const toggleFavorite = () => {
-    if (!selectedLocation) return;
-    setFavorites((current) => {
-      const next = new Set(current);
-      if (next.has(selectedLocation.id)) next.delete(selectedLocation.id);
-      else next.add(selectedLocation.id);
-      return next;
-    });
-  };
+  const toggleFavorite = () => selectedLocation && toggleFavoriteId(selectedLocation.id);
 
   const resetFilters = () => {
     setActiveLayers(new Set(layers.map((item) => item.key)));
@@ -194,7 +187,7 @@ export default function MapPage() {
             <p className="map-detail-description">{selectedLocation.description}</p>
             <div className="map-detail-actions">
               <button type="button" className="primary" onClick={toggleFavorite}>
-                <IconHeart size={16} /> {favorites.has(selectedLocation.id) ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                <IconHeart size={16} /> {favorites.includes(selectedLocation.id) ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
               </button>
               <button type="button"><IconRoute size={16} /> Rota Oluştur</button>
             </div>

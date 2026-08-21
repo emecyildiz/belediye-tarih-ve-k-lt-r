@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import CategoryMarkerIcon from '../components/map/CategoryMarkerIcon';
+import useFavoriteIds from '../hooks/useFavoriteIds';
 import { IconArrow, IconFilter, IconHeart, IconMonument, IconPin } from '../components/common/Icons';
 import './MonumentsPage.css';
 
@@ -22,10 +23,7 @@ export default function MonumentsPage() {
   const [sortBy, setSortBy] = useState('popular');
   const [view, setView] = useState('grid');
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [favorites, setFavorites] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tkmbs-favorite-monuments') || '[]'); }
-    catch { return []; }
-  });
+  const [favorites, toggleFavorite] = useFavoriteIds('monument');
 
   useEffect(() => {
     let active = true;
@@ -67,12 +65,6 @@ export default function MonumentsPage() {
     setFilters(toggle);
   };
   const clearFilters = () => { setFilters(initialFilters); setFiltersOpen(false); };
-  const toggleFavorite = (id) => setFavorites((current) => {
-    const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id];
-    localStorage.setItem('tkmbs-favorite-monuments', JSON.stringify(next));
-    return next;
-  });
-
   return (
     <div className="monuments-page">
       <header className="monuments-header">

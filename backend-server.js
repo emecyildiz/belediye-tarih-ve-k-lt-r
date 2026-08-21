@@ -7,6 +7,7 @@ import { events, eventCategoryCounts } from './backend/data/events.js';
 import { weather, buildStatistics, buildChartData } from './backend/data/statistics.js';
 import { notifications } from './backend/data/mockDb.js';
 import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDashboard.js';
+import { getUserFavorites, toggleUserFavorite, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
 
 const app = express();
 app.use(cors());
@@ -199,6 +200,19 @@ app.post('/api/admin/reviews/:id/decision', (req, res) => {
   return res.json(ok(reviewed));
 });
 
+app.get('/api/user/favorites', (_req, res) => res.json(ok(getUserFavorites())));
+app.post('/api/user/favorites/:type/:id/toggle', (req, res) => {
+  const result = toggleUserFavorite(req.params.type, req.params.id, { monuments, routes: culturalRoutes, events });
+  if (!result) return fail(res, 'Favori türü veya kayıt geçersiz', 400);
+  return res.json(ok(result));
+});
+app.get('/api/user/routes', (_req, res) => res.json(ok(getUserRoutes())));
+app.post('/api/user/routes', (req, res) => {
+  const route = saveUserRoute(req.body || {}, monuments);
+  if (!route) return fail(res, 'Rota adı ve en az bir geçerli durak gereklidir', 400);
+  return res.status(201).json(ok(route));
+});
+
 app.get('/api/news', (_req, res) => {
   res.json(ok(events.slice(0, 3).map((e) => ({
     id: e.id,
@@ -214,6 +228,18 @@ app.get('/api/notifications/count', (_req, res) => {
 });
 
 app.get('/api/notifications', (_req, res) => {
+  res.json(ok(notifications));
+});
+
+app.post('/api/notifications/:id/read', (req, res) => {
+  const notification = notifications.find((item) => item.id === Number(req.params.id));
+  if (!notification) return fail(res, 'Bildirim bulunamadı', 404);
+  notification.read = true;
+  return res.json(ok(notification));
+});
+
+app.post('/api/notifications/read-all', (_req, res) => {
+  notifications.forEach((item) => { item.read = true; });
   res.json(ok(notifications));
 });
 

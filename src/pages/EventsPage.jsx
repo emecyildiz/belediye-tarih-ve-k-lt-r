@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import SafeImage from '../components/common/SafeImage';
+import useFavoriteIds from '../hooks/useFavoriteIds';
 import { IconArrow, IconCalendar, IconClock, IconFilter, IconHeart, IconPin, IconSearch } from '../components/common/Icons';
 import './EventsPage.css';
 
@@ -78,9 +79,7 @@ export default function EventsPage() {
   const [calendarCursor, setCalendarCursor] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [calendarExpanded, setCalendarExpanded] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
-  const [favorites, setFavorites] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('tkmbs-favorite-events') || '[]'); } catch { return []; }
-  });
+  const [favorites, toggleFavorite] = useFavoriteIds('event');
 
   useEffect(() => {
     let active = true;
@@ -140,11 +139,6 @@ export default function EventsPage() {
     });
   }, [events, filters, query, sortBy]);
 
-  const toggleFavorite = (id) => setFavorites((current) => {
-    const next = current.includes(id) ? current.filter((item) => item !== id) : [...current, id];
-    localStorage.setItem('tkmbs-favorite-events', JSON.stringify(next));
-    return next;
-  });
   const clearFilters = () => { setFilters(initialFilters); setQuery(''); setFiltersOpen(false); };
   const updateFilter = (key, value) => {
     setFilters((current) => ({ ...current, [key]: value }));

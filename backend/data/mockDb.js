@@ -4,6 +4,7 @@ import { events, eventCategoryCounts } from './events.js';
 import { statistics, weather, chartData, buildStatistics, buildChartData } from './statistics.js';
 import { buildRoutePreview } from '../services/cbs/mockCbsProvider.js';
 import { buildAdminDashboard, reviewAdminRecord } from './adminDashboard.js';
+import { getUserFavorites, toggleUserFavorite, getUserRoutes, saveUserRoute } from './userData.js';
 
 export { monuments, events, categoryCounts, eventCategoryCounts, statistics, weather, chartData };
 export const routes = culturalRoutes;
@@ -236,6 +237,22 @@ export function reviewAdminItem(id, decision) {
   return reviewAdminRecord(id, decision);
 }
 
+export function getFavorites() {
+  return getUserFavorites();
+}
+
+export function toggleFavorite(type, id) {
+  return toggleUserFavorite(type, id, { monuments, routes: culturalRoutes, events });
+}
+
+export function getCustomRoutes() {
+  return getUserRoutes();
+}
+
+export function saveCustomRoute(payload) {
+  return saveUserRoute(payload, monuments);
+}
+
 export default {
   monuments,
   routes,
@@ -262,4 +279,8 @@ export default {
   getCharts,
   getAdminDashboard,
   reviewAdminItem,
+  getFavorites,
+  toggleFavorite,
+  getCustomRoutes,
+  saveCustomRoute,
 };

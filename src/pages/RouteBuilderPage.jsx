@@ -71,11 +71,12 @@ export default function RouteBuilderPage() {
     [next[index], next[target]] = [next[target], next[index]];
     return next;
   });
-  const saveRoute = () => {
-    const previous = JSON.parse(localStorage.getItem('tkmbs-custom-routes') || '[]');
-    localStorage.setItem('tkmbs-custom-routes', JSON.stringify([...previous, { id: Date.now(), title, selectedIds, travelMode, visitMinutes, preview, createdAt: new Date().toISOString() }]));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2200);
+  const saveRoute = async () => {
+    const result = await api.saveCustomRoute({ title, selectedIds, travelMode, visitMinutes, preview });
+    if (result) {
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2200);
+    }
   };
   const downloadGeoJSON = () => {
     if (!preview?.geojson) return;

@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
+import useFavoriteIds from '../hooks/useFavoriteIds';
 import { IconArrow, IconCalendar, IconClock, IconHeart, IconInfo, IconPin } from '../components/common/Icons';
 import './EventDetailPage.css';
 
@@ -44,7 +45,7 @@ export default function EventDetailPage() {
   const [relatedEvents, setRelatedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [favorite, setFavorite] = useState(false);
+  const [favoriteIds, toggleFavoriteId] = useFavoriteIds('event');
   const [shareLabel, setShareLabel] = useState('Paylaş');
   const relatedRef = useRef(null);
 
@@ -63,24 +64,13 @@ export default function EventDetailPage() {
     return () => { active = false; };
   }, [slug]);
 
-  useEffect(() => {
-    if (!event) return;
-    try { setFavorite(JSON.parse(localStorage.getItem('tkmbs-favorite-events') || '[]').includes(event.id)); }
-    catch { setFavorite(false); }
-  }, [event]);
-
   const geojson = useMemo(() => {
     if (!Array.isArray(event?.coordinates)) return null;
     return { type: 'FeatureCollection', features: [{ type: 'Feature', id: event.id, properties: { id: event.id, name: event.title, category: event.category }, geometry: { type: 'Point', coordinates: [event.coordinates[1], event.coordinates[0]] } }] };
   }, [event]);
 
-  const toggleFavorite = () => {
-    let stored = [];
-    try { stored = JSON.parse(localStorage.getItem('tkmbs-favorite-events') || '[]'); } catch { stored = []; }
-    const next = stored.includes(event.id) ? stored.filter((id) => id !== event.id) : [...stored, event.id];
-    localStorage.setItem('tkmbs-favorite-events', JSON.stringify(next));
-    setFavorite(next.includes(event.id));
-  };
+  const favorite = Boolean(event && favoriteIds.includes(event.id));
+  const toggleFavorite = () => event && toggleFavoriteId(event.id);
 
   const shareEvent = async () => {
     try {

@@ -5,17 +5,6 @@ import SafeImage from '../components/common/SafeImage';
 import { IconArrow, IconCalendar, IconClock, IconHeart, IconMonument, IconPin, IconRoute, IconSearch } from '../components/common/Icons';
 import './FavoritesPage.css';
 
-const storageKeys = {
-  monument: 'tkmbs-favorite-monuments',
-  route: 'tkmbs-favorite-routes',
-  event: 'tkmbs-favorite-events',
-};
-
-function readFavoriteIds(key) {
-  try { return JSON.parse(localStorage.getItem(key) || '[]').map(Number).filter(Number.isFinite); }
-  catch { return []; }
-}
-
 function dateLabel(item) {
   if (!item.date) return 'Tarih açıklanacak';
   const value = new Date(`${item.date}T${item.time || '12:00'}:00`);
@@ -45,11 +34,7 @@ function FavoriteCard({ item, onRemove }) {
 
 export default function FavoritesPage() {
   const [data, setData] = useState({ monuments: [], routes: [], events: [] });
-  const [favoriteIds, setFavoriteIds] = useState(() => ({
-    monument: readFavoriteIds(storageKeys.monument),
-    route: readFavoriteIds(storageKeys.route),
-    event: readFavoriteIds(storageKeys.event),
-  }));
+  const [favoriteIds, setFavoriteIds] = useState({ monument: [], route: [], event: [] });
   const [activeType, setActiveType] = useState('all');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
@@ -57,8 +42,8 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([api.getMonuments(), api.getRoutes(), api.getEvents()])
-      .then(([monuments, routes, events]) => { if (active) setData({ monuments: monuments || [], routes: routes || [], events: events || [] }); })
+    Promise.all([api.getMonuments(), api.getRoutes(), api.getEvents(), api.getFavorites()])
+      .then(([monuments, routes, events, favorites]) => { if (active) { setData({ monuments: monuments || [], routes: routes || [], events: events || [] }); setFavoriteIds(favorites || { monument: [], route: [], event: [] }); } })
       .catch(() => active && setError(true))
       .finally(() => active && setLoading(false));
     return () => { active = false; };
@@ -78,12 +63,9 @@ export default function FavoritesPage() {
     return source.filter((item) => `${item.name || item.title} ${item.district || ''} ${item.venue || ''}`.toLocaleLowerCase('tr-TR').includes(normalized));
   }, [activeType, allItems, groups, query]);
 
-  const removeFavorite = (type, id) => {
-    setFavoriteIds((current) => {
-      const nextIds = current[type].filter((itemId) => itemId !== Number(id));
-      localStorage.setItem(storageKeys[type], JSON.stringify(nextIds));
-      return { ...current, [type]: nextIds };
-    });
+  const removeFavorite = async (type, id) => {
+    const result = await api.toggleFavorite(type, id);
+    if (result) setFavoriteIds((current) => ({ ...current, [type]: result.ids || [] }));
   };
 
   const tabs = [
