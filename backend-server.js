@@ -4,7 +4,7 @@ import { monuments, categoryCounts, monumentsToGeoJSON } from './backend/data/mo
 import { culturalRoutes } from './backend/data/routes.js';
 import { buildRoutePreview } from './backend/services/cbs/mockCbsProvider.js';
 import { events, eventCategoryCounts } from './backend/data/events.js';
-import { statistics, weather, chartData } from './backend/data/statistics.js';
+import { weather, buildStatistics, buildChartData } from './backend/data/statistics.js';
 import { notifications } from './backend/data/mockDb.js';
 
 const app = express();
@@ -182,9 +182,9 @@ app.get('/api/events/categories/counts', (_req, res) => {
 });
 
 // --- İstatistikler & Yardımcı ---
-app.get('/api/statistics', (_req, res) => res.json(ok(statistics)));
+app.get('/api/statistics', (_req, res) => res.json(ok(buildStatistics({ monuments, routes: culturalRoutes, events }))));
 app.get('/api/weather', async (_req, res) => res.json(ok(await fetchAntakyaWeather())));
-app.get('/api/charts', (_req, res) => res.json(ok(chartData)));
+app.get('/api/charts', (_req, res) => res.json(ok(buildChartData({ monuments, routes: culturalRoutes, events }))));
 
 app.get('/api/news', (_req, res) => {
   res.json(ok(events.slice(0, 3).map((e) => ({

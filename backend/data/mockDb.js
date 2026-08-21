@@ -1,7 +1,7 @@
 import { monuments, categoryCounts } from './monuments.js';
 import { culturalRoutes } from './routes.js';
 import { events, eventCategoryCounts } from './events.js';
-import { statistics, weather, chartData } from './statistics.js';
+import { statistics, weather, chartData, buildStatistics, buildChartData } from './statistics.js';
 import { buildRoutePreview } from '../services/cbs/mockCbsProvider.js';
 
 export { monuments, events, categoryCounts, eventCategoryCounts, statistics, weather, chartData };
@@ -218,7 +218,11 @@ export function getWeather() {
 }
 
 export function getStatistics() {
-  return { ...statistics };
+  return buildStatistics({ monuments, routes: culturalRoutes, events });
+}
+
+export function getCharts() {
+  return buildChartData({ monuments, routes: culturalRoutes, events });
 }
 
 export default {
@@ -244,4 +248,5 @@ export default {
   markAllNotificationsRead,
   getWeather,
   getStatistics,
+  getCharts,
 };

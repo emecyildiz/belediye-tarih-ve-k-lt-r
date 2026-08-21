@@ -256,7 +256,7 @@ const mockApi = {
   },
   getCharts: async () => {
     const db = await getMockDb();
-    return db.chartData;
+    return db.getCharts();
   },
 };
 
