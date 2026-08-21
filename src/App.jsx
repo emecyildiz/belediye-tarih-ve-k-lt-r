@@ -16,6 +16,7 @@ import AboutPage from './pages/AboutPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 import AdminModulePlaceholderPage from './pages/AdminModulePlaceholderPage';
 import GisAnalyticsPage from './pages/GisAnalyticsPage';
+import SearchResultsPage from './pages/SearchResultsPage';
 import './App.css';
 
 function ScrollToTop() {
@@ -52,6 +53,7 @@ function App() {
           <Route path="/bildirimler" element={<NotificationsPage />} />
           <Route path="/raporlar" element={<GisAnalyticsPage />} />
           <Route path="/hakkinda" element={<AboutPage />} />
+          <Route path="/arama" element={<SearchResultsPage />} />
         </Routes>
       </AppLayout>
     </BrowserRouter>

@@ -38,10 +38,14 @@ export default function TopBar({ onMenuClick }) {
     return () => document.removeEventListener('mousedown', closeOnOutsideClick);
   }, []);
 
+  const runSearch = () => {
+    const value = query.trim();
+    navigate(value ? '/arama?q=' + encodeURIComponent(value) : '/arama');
+  };
+
   const submitSearch = (event) => {
     event.preventDefault();
-    const value = query.trim();
-    navigate(value ? '/tarihi-eserler?search=' + encodeURIComponent(value) : '/tarihi-eserler');
+    runSearch();
   };
 
   const openNotification = async (item) => {
@@ -68,6 +72,7 @@ export default function TopBar({ onMenuClick }) {
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); runSearch(); } }}
           placeholder="Tarihi eser, rota veya etkinlik ara..."
           aria-label="Site içinde ara"
         />

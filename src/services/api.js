@@ -140,6 +140,10 @@ async function sendAPI(endpoint, payload) {
 }
 
 const realApi = {
+  search: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return fetchAPI(`/search${q ? `?${q}` : ''}`);
+  },
   getMonuments: (params = {}) => {
     const q = new URLSearchParams(params).toString();
     return fetchAPI(`/monuments${q ? `?${q}` : ''}`);
@@ -208,6 +212,10 @@ async function getMockDb() {
 
 // Mock API - gerçek API ile aynı arayüzü kullanır
 const mockApi = {
+  search: async (params = {}) => {
+    const db = await getMockDb();
+    return db.searchCatalog(params);
+  },
   getMonuments: async (params = {}) => {
     const db = await getMockDb();
     return db.getMonuments(params);

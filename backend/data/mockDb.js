@@ -251,6 +251,30 @@ export function getEventCalendar(params = {}) {
   });
 }
 
+export function searchCatalog(params = {}) {
+  const query = String(params.q || params.search || '').trim().toLocaleLowerCase('tr-TR');
+  const type = String(params.type || 'tumu');
+  if (!query) return paginate([], params, { facets: { monuments: 0, routes: 0, events: 0, totalItems: 0 } });
+
+  const monumentResults = monuments.filter((item) => includesText(`${item.name} ${item.description} ${item.district} ${item.period}`, query)).map((item) => ({
+    id: item.id, kind: 'monument', title: item.name, description: item.description, district: item.district, image: item.image, category: item.category, categoryLabel: item.typeLabel || 'Tarihi Eser', href: `/tarihi-eserler/${item.slug}`,
+  }));
+  const routeResults = culturalRoutes.filter((item) => includesText(`${item.title} ${item.description} ${item.district} ${item.categoryLabel}`, query)).map((item) => ({
+    id: item.id, kind: 'route', title: item.title, description: item.description, district: item.district, image: item.image, category: item.category, categoryLabel: item.categoryLabel || 'Kültürel Rota', href: `/kultur-rotalari/${item.slug}`,
+  }));
+  const eventResults = events.filter((item) => includesText(`${item.title} ${item.description} ${item.district} ${item.venue} ${item.categoryLabel}`, query)).map((item) => ({
+    id: item.id, kind: 'event', title: item.title, description: item.description, district: item.district, image: item.image, category: item.category, categoryLabel: item.categoryLabel || 'Etkinlik', date: item.date, time: item.time, href: `/etkinlikler/${item.slug || item.id}`,
+  }));
+  const byType = { monument: monumentResults, route: routeResults, event: eventResults };
+  const combined = type === 'tumu' ? [...monumentResults, ...routeResults, ...eventResults] : (byType[type] || []);
+  combined.sort((a, b) => {
+    const aStarts = a.title.toLocaleLowerCase('tr-TR').startsWith(query) ? 1 : 0;
+    const bStarts = b.title.toLocaleLowerCase('tr-TR').startsWith(query) ? 1 : 0;
+    return bStarts - aStarts || a.title.localeCompare(b.title, 'tr');
+  });
+  return paginate(combined, params, { facets: { monuments: monumentResults.length, routes: routeResults.length, events: eventResults.length, totalItems: monumentResults.length + routeResults.length + eventResults.length } });
+}
+
 const eventCoordinates = {
   Antakya: [36.2021, 36.1605],
   Payas: [36.7563, 36.2146],
@@ -373,6 +397,7 @@ export default {
   getEvents,
   getEventsPage,
   getEventCalendar,
+  searchCatalog,
   getEvent,
   getNotificationCount,
   getNotifications,

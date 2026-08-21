@@ -14,6 +14,7 @@ import {
   getEvents as queryEvents,
   getEventsPage,
   getEventCalendar,
+  searchCatalog,
 } from './backend/data/mockDb.js';
 import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDashboard.js';
 import { getUserFavorites, toggleUserFavorite, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
@@ -24,6 +25,10 @@ app.use(express.json());
 
 const ok = (data, extra = {}) => ({ success: true, data, ...extra });
 const fail = (res, msg, code = 500) => res.status(code).json({ success: false, error: msg });
+
+app.get('/api/search', (req, res) => {
+  res.json(ok(searchCatalog(req.query)));
+});
 
 const weatherLabels = {
   0: 'Açık', 1: 'Çoğunlukla açık', 2: 'Parçalı bulutlu', 3: 'Kapalı',
