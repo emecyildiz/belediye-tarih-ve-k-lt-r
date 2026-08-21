@@ -14,6 +14,7 @@ import FavoritesPage from './pages/FavoritesPage';
 import NotificationsPage from './pages/NotificationsPage';
 import AboutPage from './pages/AboutPage';
 import AdminPanelPage from './pages/AdminPanelPage';
+import AdminModulePlaceholderPage from './pages/AdminModulePlaceholderPage';
 import GisAnalyticsPage from './pages/GisAnalyticsPage';
 import './App.css';
 
@@ -46,6 +47,7 @@ function App() {
           <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
           <Route path="/favoriler" element={<FavoritesPage />} />
           <Route path="/yonetim-paneli" element={<AdminPanelPage />} />
+          <Route path="/yonetim-paneli/:module" element={<AdminModulePlaceholderPage />} />
           <Route path="/cbs-analitik" element={<GisAnalyticsPage />} />
           <Route path="/bildirimler" element={<NotificationsPage />} />
           <Route path="/raporlar" element={<GisAnalyticsPage />} />

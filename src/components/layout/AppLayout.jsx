@@ -8,7 +8,7 @@ import './AppLayout.css';
 export default function AppLayout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const { pathname } = useLocation();
-  const adminLayout = pathname === '/yonetim-paneli' || pathname === '/raporlar' || pathname === '/cbs-analitik';
+  const adminLayout = pathname.startsWith('/yonetim-paneli') || pathname === '/raporlar' || pathname === '/cbs-analitik';
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 

@@ -19,12 +19,12 @@ function AdminMenuIcon({ name }) {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
 
-const disabledItems = [
-  ['monument', 'Eser Yönetimi'],
-  ['route', 'Rota Yönetimi'],
-  ['calendar', 'Etkinlik Yönetimi'],
-  ['users', 'Kullanıcılar'],
-  ['content', 'İçerik Yönetimi'],
+const moduleItems = [
+  ['monument', 'Eser Yönetimi', 'eser-yonetimi'],
+  ['route', 'Rota Yönetimi', 'rota-yonetimi'],
+  ['calendar', 'Etkinlik Yönetimi', 'etkinlik-yonetimi'],
+  ['users', 'Kullanıcılar', 'kullanicilar'],
+  ['content', 'İçerik Yönetimi', 'icerik-yonetimi'],
 ];
 
 export default function AdminSidebar({ open = false, onNavigate }) {
@@ -39,11 +39,10 @@ export default function AdminSidebar({ open = false, onNavigate }) {
     <div className="admin-sidebar-product"><span>TKMBS</span><strong>Yönetim Paneli</strong></div>
     <nav className="admin-sidebar-nav" aria-label="Yönetim menüsü">
       <NavLink to="/yonetim-paneli" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="dashboard"/><span>Gösterge Paneli</span></NavLink>
-      {disabledItems.map(([icon,label]) => <button type="button" className="admin-sidebar-link" key={label} aria-disabled="true" title="Bu modül proje kapsamı dışında"><AdminMenuIcon name={icon}/><span>{label}</span></button>)}
-      <button type="button" className="admin-sidebar-link" aria-disabled="true" title="Bu modül proje kapsamı dışında"><AdminMenuIcon name="bell"/><span>Bildirimler</span>{unreadCount > 0 && <b>{unreadCount}</b>}</button>
-      <NavLink to="/raporlar" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link report${isActive ? ' active' : ''}`}><AdminMenuIcon name="report"/><span>Raporlar</span><i>⌃</i></NavLink>
-      <div className="admin-report-submenu" aria-label="Rapor bölümleri"><span>Ziyaretçi Analizi</span><span>İçerik Performansı</span><span>Saha Durumu</span></div>
-      <button type="button" className="admin-sidebar-link" aria-disabled="true" title="Bu modül proje kapsamı dışında"><AdminMenuIcon name="backup"/><span>Yedekleme</span></button>
+      {moduleItems.map(([icon, label, path]) => <NavLink to={`/yonetim-paneli/${path}`} onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`} key={path}><AdminMenuIcon name={icon}/><span>{label}</span></NavLink>)}
+      <NavLink to="/yonetim-paneli/bildirimler" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="bell"/><span>Bildirimler</span>{unreadCount > 0 && <b>{unreadCount}</b>}</NavLink>
+      <NavLink to="/raporlar" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link report${isActive ? ' active' : ''}`}><AdminMenuIcon name="report"/><span>Raporlar</span></NavLink>
+      <NavLink to="/yonetim-paneli/yedekleme" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="backup"/><span>Yedekleme</span></NavLink>
     </nav>
     <div className="admin-sidebar-account"><span>Y</span><div><strong>Yönetici</strong><small>Yetkili çalışma alanı</small></div><i>•••</i></div>
   </aside>;
