@@ -12,7 +12,6 @@ const menuItems = [
   { path: '/etkinlikler', icon: 'calendar', label: 'Etkinlikler' },
   { path: '/favoriler', icon: 'heart', label: 'Favoriler' },
   { path: '/bildirimler', icon: 'bell', label: 'Bildirimler', notification: true },
-  { path: '/raporlar', icon: 'document', label: 'Raporlar' },
   { path: '/hakkinda', icon: 'info', label: 'Hakkında' },
 ];
 

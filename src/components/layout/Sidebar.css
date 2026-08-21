@@ -14,7 +14,9 @@
     linear-gradient(165deg, #052654 0%, #00183a 72%, #02152e 100%);
 }
 .sidebar-brand {
+  height: 88px;
   min-height: 88px;
+  flex: 0 0 88px;
   padding: 14px 16px 10px;
   display: flex;
   align-items: center;

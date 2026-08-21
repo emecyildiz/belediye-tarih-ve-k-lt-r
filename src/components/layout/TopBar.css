@@ -2,7 +2,8 @@
   position: sticky;
   top: 0;
   z-index: 60;
-  min-height: 70px;
+  height: 88px;
+  min-height: 88px;
   padding: 11px 18px;
   display: grid;
   grid-template-columns: minmax(40px, 1fr) minmax(320px, 560px) minmax(180px, 1fr);
