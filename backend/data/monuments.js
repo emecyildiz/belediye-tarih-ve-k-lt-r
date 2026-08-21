@@ -114,7 +114,8 @@ export const monuments = [
     rating: 4.9,
     reviewCount: 2100,
     distance: "1.2 km",
-    image: "https://images.unsplash.com/photo-1566127444979-b3d2b654e3a7?w=600&h=400&fit=crop",
+    image: "/assets/monuments/hatay-arkeoloji-muzesi.jpg",
+    images: ["/assets/monuments/hatay-arkeoloji-muzesi.jpg"],
     coordinates: [36.2045, 36.1612],
     highlights: ["Dünyanın en büyük mozaik koleksiyonu"]
   },
@@ -138,7 +139,7 @@ export const monuments = [
     rating: 4.6,
     reviewCount: 890,
     distance: "0.8 km",
-    image: "https://images.unsplash.com/photo-1531058020387-3be344556be6?w=600&h=400&fit=crop",
+    image: "",
     coordinates: [36.2055, 36.1588],
     highlights: ["Geleneksel çarşı kültürü", "Baharat ve el sanatları"]
   },
@@ -162,7 +163,7 @@ export const monuments = [
     rating: 4.5,
     reviewCount: 420,
     distance: "8.2 km",
-    image: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=600&h=400&fit=crop",
+    image: "",
     coordinates: [36.1289, 36.1456],
     highlights: ["Roma dönemi taş köprü"]
   },
@@ -219,76 +220,70 @@ export const monuments = [
   {
     id: 9, name: "Tarihi Antakya Evleri", slug: "tarihi-antakya-evleri", type: "yapi", category: "diger",
     district: "Antakya", route: "Tarihi Antakya Rotası", distance: "0.8 km",
-    image: "https://images.unsplash.com/photo-1596395819057-e37f55a8516b?w=600&h=400&fit=crop", coordinates: [36.2010, 36.1550]
+    image: "", coordinates: [36.2010, 36.1550]
   },
   {
     id: 10, name: "Samandağ Mozaikleri", slug: "samandag-mozaikleri", type: "yapi", category: "muze",
     district: "Samandağ", route: "Kale Rotası", distance: "1.2 km",
-    image: "https://images.unsplash.com/photo-1566127444979-b3d2b654e3a7?w=600&h=400&fit=crop", coordinates: [36.0830, 35.9770]
+    image: "", coordinates: [36.0830, 35.9770]
   },
   {
     id: 11, name: "Darphane-i Amire", slug: "darphane-i-amire", type: "yapi", category: "diger",
     district: "Antakya", route: "Kale ve Savunma Rotası", distance: "1.2 km",
-    image: "https://images.unsplash.com/photo-1542385151-efd9000785a0?w=600&h=400&fit=crop", coordinates: [36.2040, 36.1590]
+    image: "", coordinates: [36.2040, 36.1590]
   },
   {
     id: 12, name: "Harbiye Şelaleleri", slug: "harbiye-selaleleri", type: "doga", category: "doga",
     district: "Antakya", route: "Doğa Rotası", distance: "0.5 km",
-    image: "https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=600&h=400&fit=crop", coordinates: [36.1320, 36.1470]
+    image: "/assets/monuments/harbiye-selaleleri.jpg", images: ["/assets/monuments/harbiye-selaleleri.jpg"], coordinates: [36.1320, 36.1470]
   },
   {
     id: 13, name: "Antakya Kalesi Surları", slug: "antakya-kalesi", type: "yapi", category: "kale",
     district: "Antakya", route: "Kale Rotası", distance: "1.5 km",
-    image: "https://images.unsplash.com/photo-1516483638269-4a936d323403?w=600&h=400&fit=crop", coordinates: [36.2170, 36.1720]
+    image: "", coordinates: [36.2170, 36.1720]
   },
   {
     id: 14, name: "Arsuz Plajı ve Deniz Feneri", slug: "arsuz-deniz-feneri", type: "doga", category: "doga",
     district: "Arsuz", route: "Harbiye Doğa Rotası", distance: "15 km",
-    image: "https://images.unsplash.com/photo-1531058020387-3be344556be6?w=600&h=400&fit=crop", coordinates: [36.4110, 35.8900]
+    image: "", coordinates: [36.4110, 35.8900]
   },
   {
     id: 15, name: "Vespasianus Anıtı", slug: "vespasianus-aniti", type: "anit", category: "diger",
     district: "Samandağ", route: "Arkeoloji Rotası", distance: "12 km",
-    image: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&h=400&fit=crop", coordinates: [36.1680, 36.0810]
+    image: "", coordinates: [36.1680, 36.0810]
   },
   {
     id: 16, name: "Antakya Kurşunlu Han", slug: "antakya-kursunlu-han", type: "yapi", category: "han",
     district: "Antakya", route: "Hatay Lezzet Rotası", distance: "0.9 km",
-    image: "https://images.unsplash.com/photo-1584556819299-a81a4f97a806?w=600&h=400&fit=crop", coordinates: [36.2070, 36.1530]
+    image: "", coordinates: [36.2070, 36.1530]
   },
   {
     id: 17, name: "Eski Belediye Binası", slug: "eski-belediye-binasi", type: "yapi", category: "diger",
     district: "Antakya", route: "Tarihi Antakya Rotası", distance: "0.3 km",
-    image: "https://images.unsplash.com/photo-1564769625905-50d9c1d8e8c8?w=600&h=400&fit=crop", coordinates: [36.2000, 36.1600]
+    image: "", coordinates: [36.2000, 36.1600]
   },
   {
     id: 18, name: "Dor Mabedi Kalıntıları", slug: "dor-mabedi", type: "yapi", category: "diger",
     district: "Samandağ", route: "Arkeoloji Rotası", distance: "13 km",
-    image: "https://images.unsplash.com/photo-1548661710-7f540c9c56d6?w=600&h=400&fit=crop", coordinates: [36.3090, 36.0310]
+    image: "", coordinates: [36.3090, 36.0310]
   },
   {
     id: 19, name: "Cin Kulesi", slug: "cin-kulesi", type: "yapi", category: "kale",
     district: "Payas", route: "Kale ve Savunma Rotası", distance: "45 km",
-    image: "https://images.unsplash.com/photo-1516483638269-4a936d323403?w=600&h=400&fit=crop", coordinates: [36.7550, 36.2160]
+    image: "", coordinates: [36.7550, 36.2160]
   },
   {
     id: 20, name: "Hatay Mutfak Müzesi", slug: "mutfak-muzesi", type: "yapi", category: "muze",
     district: "Antakya", route: "Hatay Lezzet Rotası", distance: "1.1 km",
-    image: "https://images.unsplash.com/photo-1566127444979-b3d2b654e3a7?w=600&h=400&fit=crop", coordinates: [36.2030, 36.1640]
+    image: "", coordinates: [36.2030, 36.1640]
   }
 ];
 
-export const categoryCounts = {
-  tumu: 256,
-  camii: 48,
-  kilise: 32,
-  han: 24,
-  kopru: 18,
-  kale: 16,
-  muze: 16,
-  doga: 28,
-  diger: 76
-};
+export const categoryCounts = monuments.reduce((counts, monument) => {
+  counts.tumu += 1;
+  counts[monument.category] = (counts[monument.category] || 0) + 1;
+  return counts;
+}, { tumu: 0 });
 
 export function monumentsToGeoJSON(items = monuments) {
   return {
