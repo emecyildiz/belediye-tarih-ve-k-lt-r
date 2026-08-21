@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
@@ -24,6 +25,7 @@ const categoryNames = {
 };
 
 export default function MapPage() {
+  const navigate = useNavigate();
   const [allGeojson, setAllGeojson] = useState(null);
   const [monuments, setMonuments] = useState([]);
   const [activeLayers, setActiveLayers] = useState(() => new Set(layers.map((item) => item.key)));
@@ -189,7 +191,7 @@ export default function MapPage() {
               <button type="button" className="primary" onClick={toggleFavorite}>
                 <IconHeart size={16} /> {favorites.includes(selectedLocation.id) ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
               </button>
-              <button type="button"><IconRoute size={16} /> Rota Oluştur</button>
+              <button type="button" onClick={() => navigate(`/rota-olustur?stops=${selectedLocation.id}`)}><IconRoute size={16} /> Rota Oluştur</button>
             </div>
             <section className="map-nearby">
               <h3>Yakındaki Diğer Eserler</h3>

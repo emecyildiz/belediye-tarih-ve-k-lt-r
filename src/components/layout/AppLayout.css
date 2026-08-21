@@ -40,3 +40,8 @@
     background: rgb(1 20 48 / 52%);
   }
 }
+
+@media (max-width: 480px) {
+  .app-content { padding: 8px; }
+  .app-footer { padding: 7px 8px 9px; font-size: 9px; }
+}

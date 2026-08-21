@@ -387,5 +387,9 @@
   .map-legend-card { display: none; }
 }
 @media (max-width: 520px) {
-  .map-detail-panel { width: 100%; }
+  .map-detail-panel { width: 100%; padding: 12px; }
+  .map-detail-image { height: 155px; }
+  .map-detail-title h2 { font-size: 17px; }
+  .map-detail-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .map-nearby { margin-top: 12px; padding-top: 10px; }
 }

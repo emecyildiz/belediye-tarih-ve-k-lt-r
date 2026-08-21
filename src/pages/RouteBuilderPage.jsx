@@ -17,6 +17,7 @@ function formatMinutes(minutes = 0) {
 export default function RouteBuilderPage() {
   const [params] = useSearchParams();
   const sourceRoute = params.get('route');
+  const sourceStops = params.get('stops');
   const [monuments, setMonuments] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [title, setTitle] = useState('Yeni Kültür Rotası');
@@ -38,11 +39,14 @@ export default function RouteBuilderPage() {
           setTitle(`${route.title} - Kopya`);
           setSelectedIds((route.stops || []).map((item) => item.monumentId));
           setTravelMode(route.travelMode || 'walking');
+        } else if (sourceStops) {
+          const requestedIds = [...new Set(sourceStops.split(',').map(Number).filter(Number.isInteger))];
+          setSelectedIds(requestedIds.filter((id) => items.some((item) => item.id === id)));
         }
       })
       .finally(() => active && setLoading(false));
     return () => { active = false; };
-  }, [sourceRoute]);
+  }, [sourceRoute, sourceStops]);
 
   useEffect(() => {
     let active = true;

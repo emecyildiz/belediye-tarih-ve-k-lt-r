@@ -173,3 +173,10 @@
   .portal-search { padding: 0 10px; }
   .portal-search input { font-size: 12px; }
 }
+
+@media (max-width: 480px) {
+  .portal-topbar { padding-right: 8px; padding-left: 8px; gap: 4px; }
+  .portal-search { height: 40px; padding: 0 8px; gap: 7px; }
+  .topbar-actions { gap: 2px; }
+  .notification-dropdown { position: fixed; top: 78px; right: 8px; left: 8px; width: auto; }
+}
