@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
@@ -29,60 +29,42 @@ function ThemeIcon({ category }) {
   return <svg viewBox="0 0 24 24" aria-hidden="true">{paths[category] || paths.tarihi}</svg>;
 }
 
-function durationHours(value = '') {
-  const normalized = value.toLocaleLowerCase('tr-TR');
-  if (normalized.includes('yarım')) return 4;
-  if (normalized.includes('gün')) return 8;
-  const values = normalized.match(/\d+/g)?.map(Number) || [];
-  return values.length > 1 ? (values[0] + values[1]) / 2 : values[0] || 0;
-}
-
-function durationGroup(value) {
-  const hours = durationHours(value);
-  if (hours <= 3) return 'kisa';
-  if (hours < 8) return 'yarim';
-  return 'tam';
-}
-
 export default function RoutesPage() {
   const navigate = useNavigate();
   const [routes, setRoutes] = useState([]);
-  const [monuments, setMonuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [pagination, setPagination] = useState({ page: 1, totalItems: 0, hasNextPage: false });
+  const [facets, setFacets] = useState({ districts: [], categories: {}, totalItems: 0 });
   const [filters, setFilters] = useState(initialFilters);
   const [sortBy, setSortBy] = useState('recommended');
   const [view, setView] = useState('grid');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [favorites, toggleFavorite] = useFavoriteIds('route');
 
+  const requestParams = (page) => ({ page, pageSize: 9, sort: sortBy, categories: filters.categories.join(','), duration: filters.duration, difficulty: filters.difficulty, district: filters.district });
+
+  const loadMore = () => {
+    setLoadingMore(true);
+    api.getRoutesPage(requestParams(pagination.page + 1))
+      .then((data) => { setRoutes((current) => [...current, ...(data.items || [])]); setPagination(data.pagination || {}); setFacets(data.facets || {}); })
+      .catch((error) => console.error('Daha fazla rota yüklenemedi:', error))
+      .finally(() => setLoadingMore(false));
+  };
+
   useEffect(() => {
     let active = true;
-    Promise.all([api.getRoutes(), api.getMonuments()])
-      .then(([routeData, monumentData]) => { if (active) { setRoutes(routeData || []); setMonuments(monumentData || []); } })
+    setLoading(true);
+    api.getRoutesPage(requestParams(1))
+      .then((data) => { if (active) { setRoutes(data.items || []); setPagination(data.pagination || {}); setFacets(data.facets || {}); } })
       .catch((error) => console.error('Rotalar yüklenirken hata:', error))
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, []);
+  }, [filters, sortBy]);
 
-  const monumentIndex = useMemo(() => new Map(monuments.map((item) => [item.id, item])), [monuments]);
-  const districts = useMemo(() => [...new Set(routes.map((item) => item.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr')), [routes]);
-  const categoryCounts = useMemo(() => routes.reduce((result, item) => { result[item.category] = (result[item.category] || 0) + 1; return result; }, {}), [routes]);
-
-  const visibleRoutes = useMemo(() => {
-    const result = routes.filter((route) => (
-      (!filters.categories.length || filters.categories.includes(route.category))
-      && (filters.duration === 'tumu' || durationGroup(route.duration) === filters.duration)
-      && (filters.difficulty === 'tumu' || route.difficulty === filters.difficulty)
-      && (filters.district === 'tumu' || route.district === filters.district)
-    ));
-    return [...result].sort((a, b) => {
-      if (sortBy === 'popular') return (b.stops || 0) - (a.stops || 0);
-      if (sortBy === 'short') return durationHours(a.duration) - durationHours(b.duration);
-      if (sortBy === 'long') return durationHours(b.duration) - durationHours(a.duration);
-      if (sortBy === 'name') return a.title.localeCompare(b.title, 'tr');
-      return a.id - b.id;
-    });
-  }, [routes, filters, sortBy]);
+  const districts = facets.districts || [];
+  const categoryCounts = facets.categories || {};
+  const visibleRoutes = routes;
 
   const updateFilter = (key, value) => {
     setFilters((current) => ({ ...current, [key]: value }));
@@ -96,14 +78,14 @@ export default function RoutesPage() {
     <div className="cultural-routes-page">
       <header className="cultural-routes-header">
         <div><span><IconRoute size={14} /> Tematik gezi rehberi</span><h1>Kültürel Rotalar</h1><p>Hatay’ın tarihini, doğasını ve mutfak kültürünü tematik güzergâhlarla keşfedin.</p></div>
-        <div className="cultural-routes-tools"><strong>{visibleRoutes.length} rota</strong><label><small>Sırala</small><select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="recommended">Önerilen</option><option value="popular">En Popüler</option><option value="short">Süre: Kısa–Uzun</option><option value="long">Süre: Uzun–Kısa</option><option value="name">Ada Göre</option></select></label><div className="route-view-buttons">{['grid', 'list'].map((type) => <button key={type} type="button" className={view === type ? 'active' : ''} onClick={() => setView(type)} aria-label={type === 'grid' ? 'Kart görünümü' : 'Liste görünümü'}><ViewIcon type={type} /></button>)}</div><button type="button" className="mobile-route-filter" onClick={() => setFiltersOpen(true)}><IconFilter size={15} /> Filtrele</button></div>
+        <div className="cultural-routes-tools"><strong>{pagination.totalItems || 0} rota</strong><label><small>Sırala</small><select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="recommended">Önerilen</option><option value="popular">En Popüler</option><option value="short">Süre: Kısa–Uzun</option><option value="long">Süre: Uzun–Kısa</option><option value="name">Ada Göre</option></select></label><div className="route-view-buttons">{['grid', 'list'].map((type) => <button key={type} type="button" className={view === type ? 'active' : ''} onClick={() => setView(type)} aria-label={type === 'grid' ? 'Kart görünümü' : 'Liste görünümü'}><ViewIcon type={type} /></button>)}</div><button type="button" className="mobile-route-filter" onClick={() => setFiltersOpen(true)}><IconFilter size={15} /> Filtrele</button></div>
       </header>
 
       <div className="cultural-routes-layout">
         {filtersOpen && <button type="button" className="route-filter-backdrop" aria-label="Filtreleri kapat" onClick={() => setFiltersOpen(false)} />}
         <aside className={`cultural-route-filters ${filtersOpen ? 'open' : ''}`}>
           <header><div><IconFilter size={16} /><strong>Filtrele</strong></div><button type="button" onClick={() => setFiltersOpen(false)} aria-label="Filtreleri kapat">×</button></header>
-          <fieldset><legend>Rota Teması</legend><label className={!filters.categories.length ? 'selected' : ''}><input type="checkbox" checked={!filters.categories.length} onChange={() => updateFilter('categories', [])} /><i /><b>Tüm Rotalar</b><small>{routes.length}</small></label>{categories.map((item) => <label key={item.key} className={filters.categories.includes(item.key) ? 'selected' : ''}><input type="checkbox" checked={filters.categories.includes(item.key)} onChange={() => toggleCategory(item.key)} /><i /><span className="filter-theme-icon" style={{ color: item.color }}><ThemeIcon category={item.key} /></span><b>{item.label}</b><small>{categoryCounts[item.key] || 0}</small></label>)}</fieldset>
+          <fieldset><legend>Rota Teması</legend><label className={!filters.categories.length ? 'selected' : ''}><input type="checkbox" checked={!filters.categories.length} onChange={() => updateFilter('categories', [])} /><i /><b>Tüm Rotalar</b><small>{facets.totalItems || 0}</small></label>{categories.map((item) => <label key={item.key} className={filters.categories.includes(item.key) ? 'selected' : ''}><input type="checkbox" checked={filters.categories.includes(item.key)} onChange={() => toggleCategory(item.key)} /><i /><span className="filter-theme-icon" style={{ color: item.color }}><ThemeIcon category={item.key} /></span><b>{item.label}</b><small>{categoryCounts[item.key] || 0}</small></label>)}</fieldset>
           <label className="route-filter-select"><span>Süre</span><select value={filters.duration} onChange={(event) => updateFilter('duration', event.target.value)}><option value="tumu">Tüm Süreler</option><option value="kisa">1–3 Saat</option><option value="yarim">Yarım Gün</option><option value="tam">Tam Gün</option></select></label>
           <label className="route-filter-select"><span>Zorluk Seviyesi</span><select value={filters.difficulty} onChange={(event) => updateFilter('difficulty', event.target.value)}><option value="tumu">Tüm Seviyeler</option><option value="kolay">Kolay</option><option value="orta">Orta</option><option value="zor">Zor</option></select></label>
           <label className="route-filter-select"><span>Başlangıç Noktası</span><select value={filters.district} onChange={(event) => updateFilter('district', event.target.value)}><option value="tumu">Tüm İlçeler</option>{districts.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
@@ -113,7 +95,7 @@ export default function RoutesPage() {
         <main className="cultural-route-results">
           {loading ? <div className="route-page-state"><span /><strong>Rotalar yükleniyor</strong></div> : visibleRoutes.length ? <div className={`cultural-route-grid ${view === 'list' ? 'list' : ''}`}>{visibleRoutes.map((route) => {
             const category = categories.find((item) => item.key === route.category) || categories[0];
-            const stopNames = (route.monumentIds || []).map((id) => monumentIndex.get(id)?.name).filter(Boolean);
+            const stopNames = route.stopNames || [];
             const favorite = favorites.includes(route.id);
             const openRoute = (event) => {
               if (event.target.closest('a, button')) return;
@@ -124,6 +106,7 @@ export default function RoutesPage() {
               <div className="cultural-route-content"><div className="route-card-heading"><span>{route.categoryLabel || category.label}</span><small>{route.difficultyLabel || route.difficulty}</small></div><h2>{route.title}</h2><div className="route-stop-names"><IconPin size={13} />{stopNames.length ? stopNames.slice(0, 4).join(' · ') : `${route.district} başlangıç noktası`}</div><p>{route.description}</p><footer><div><span><IconClock size={13} />{route.duration}</span><span><IconRoute size={13} />{route.distance}</span><span>{route.stops || stopNames.length} durak</span></div><Link to={`/kultur-rotalari/${route.slug}`}>Detayları Gör <IconArrow size={13} /></Link></footer></div>
             </article>;
           })}</div> : <div className="route-page-state empty"><IconRoute size={34} /><strong>Bu filtrelere uygun rota bulunamadı</strong><button type="button" onClick={clearFilters}>Filtreleri Temizle</button></div>}
+          {!loading && pagination.hasNextPage && <button type="button" className="page-load-more" disabled={loadingMore} onClick={loadMore}>{loadingMore ? 'Yükleniyor…' : `Daha Fazla Rota Göster (${routes.length}/${pagination.totalItems})`}</button>}
         </main>
       </div>
 

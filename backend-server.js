@@ -5,7 +5,16 @@ import { culturalRoutes } from './backend/data/routes.js';
 import { buildRoutePreview } from './backend/services/cbs/mockCbsProvider.js';
 import { events, eventCategoryCounts } from './backend/data/events.js';
 import { weather, buildStatistics, buildChartData } from './backend/data/statistics.js';
-import { notifications } from './backend/data/mockDb.js';
+import {
+  notifications,
+  getMonuments as queryMonuments,
+  getMonumentsPage,
+  getRoutes as queryRoutes,
+  getRoutesPage,
+  getEvents as queryEvents,
+  getEventsPage,
+  getEventCalendar,
+} from './backend/data/mockDb.js';
 import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDashboard.js';
 import { getUserFavorites, toggleUserFavorite, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
 
@@ -87,17 +96,8 @@ app.get('/api/locations/slug/:slug', (req, res) => {
 
 // --- Tarihi Eserler ---
 app.get('/api/monuments', (req, res) => {
-  const { category, type, district, search } = req.query;
-  let filtered = [...monuments];
-  if (category && category !== 'tumu') filtered = filtered.filter((m) => m.category === category);
-  if (type) filtered = filtered.filter((m) => m.type === type);
-  if (district) filtered = filtered.filter((m) => m.district === district);
-  if (search) {
-    const q = search.toLowerCase();
-    filtered = filtered.filter(
-      (m) => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q)
-    );
-  }
+  if (req.query.page || req.query.pageSize) return res.json(ok(getMonumentsPage(req.query)));
+  const filtered = queryMonuments(req.query);
   res.json(ok(filtered, { count: filtered.length, total: monuments.length }));
 });
 
@@ -117,10 +117,8 @@ app.get('/api/categories', (_req, res) => {
 
 // --- Kültürel Rotalar ---
 app.get('/api/routes', (req, res) => {
-  const { category, district } = req.query;
-  let filtered = [...culturalRoutes];
-  if (category && category !== 'tumu') filtered = filtered.filter((r) => r.category === category);
-  if (district) filtered = filtered.filter((r) => r.district === district);
+  if (req.query.page || req.query.pageSize) return res.json(ok(getRoutesPage(req.query)));
+  const filtered = queryRoutes(req.query);
   res.json(ok(filtered, { count: filtered.length }));
 });
 
@@ -166,10 +164,14 @@ app.get('/api/routes/:id/geojson', (req, res) => {
 });
 
 // --- Etkinlikler ---
+app.get('/api/events/calendar', (req, res) => {
+  const filtered = getEventCalendar(req.query);
+  res.json(ok(filtered, { count: filtered.length }));
+});
+
 app.get('/api/events', (req, res) => {
-  const { category } = req.query;
-  let filtered = [...events];
-  if (category && category !== 'tumu') filtered = filtered.filter((e) => e.category === category);
+  if (req.query.page || req.query.pageSize) return res.json(ok(getEventsPage(req.query)));
+  const filtered = queryEvents(req.query);
   res.json(ok(filtered, { count: filtered.length }));
 });
 

@@ -145,6 +145,29 @@ img { max-width: 100%; display: block; border-radius: var(--radius); }
   border-color: var(--navy);
 }
 
+.page-load-more {
+  display: block;
+  min-width: 220px;
+  margin: 22px auto 4px;
+  padding: 11px 18px;
+  border: 1px solid #b9cce4;
+  border-radius: 10px;
+  background: #fff;
+  color: #07356d;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+
+.page-load-more:hover:not(:disabled) {
+  border-color: #1768b4;
+  background: #f1f7fd;
+  transform: translateY(-1px);
+}
+
+.page-load-more:disabled { cursor: wait; opacity: .65; }
+
 .social-icons { display: flex; gap: 8px; }
 .social-icon {
   width: 32px;

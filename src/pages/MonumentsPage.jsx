@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
@@ -19,43 +19,47 @@ function ViewIcon({ type }) {
 export default function MonumentsPage() {
   const [monuments, setMonuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [pagination, setPagination] = useState({ page: 1, totalItems: 0, hasNextPage: false });
+  const [facets, setFacets] = useState({ districts: [], periods: [], categories: {}, totalItems: 0 });
   const [filters, setFilters] = useState(initialFilters);
   const [sortBy, setSortBy] = useState('popular');
   const [view, setView] = useState('grid');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [favorites, toggleFavorite] = useFavoriteIds('monument');
 
+  const loadPage = (page, append = false) => {
+    if (append) setLoadingMore(true); else setLoading(true);
+    return api.getMonumentsPage({
+      page,
+      pageSize: 9,
+      sort: sortBy,
+      district: filters.district,
+      categories: filters.categories.join(','),
+      period: filters.period,
+      registration: filters.registration,
+    }).then((data) => {
+      setMonuments((current) => (append ? [...current, ...(data.items || [])] : (data.items || [])));
+      setPagination(data.pagination || { page, totalItems: 0, hasNextPage: false });
+      setFacets(data.facets || { districts: [], periods: [], categories: {}, totalItems: 0 });
+    }).finally(() => { setLoading(false); setLoadingMore(false); });
+  };
+
   useEffect(() => {
     let active = true;
-    api.getMonuments()
-      .then((data) => { if (active) setMonuments(data || []); })
+    setLoading(true);
+    api.getMonumentsPage({ page: 1, pageSize: 9, sort: sortBy, district: filters.district, categories: filters.categories.join(','), period: filters.period, registration: filters.registration })
+      .then((data) => { if (active) { setMonuments(data.items || []); setPagination(data.pagination || {}); setFacets(data.facets || {}); } })
       .catch((error) => console.error('Veri yüklenirken hata:', error))
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, []);
+  }, [filters, sortBy]);
 
-  const districts = useMemo(() => [...new Set(monuments.map((item) => item.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr')), [monuments]);
-  const periods = useMemo(() => [...new Set(monuments.map((item) => item.period).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr')), [monuments]);
-  const categories = useMemo(() => [...new Set(monuments.map((item) => item.category).filter(Boolean))], [monuments]);
-  const categoryCounts = useMemo(() => monuments.reduce((result, item) => {
-    result[item.category] = (result[item.category] || 0) + 1;
-    return result;
-  }, {}), [monuments]);
-
-  const visibleMonuments = useMemo(() => {
-    const result = monuments.filter((item) => (
-      (filters.district === 'tumu' || item.district === filters.district)
-      && (!filters.categories.length || filters.categories.includes(item.category))
-      && (filters.period === 'tumu' || item.period === filters.period)
-      && (filters.registration === 'tumu' || item.registrationStatus === filters.registration)
-    ));
-    return [...result].sort((a, b) => {
-      if (sortBy === 'name') return a.name.localeCompare(b.name, 'tr');
-      if (sortBy === 'newest') return b.id - a.id;
-      if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
-      return (b.reviewCount || b.rating || 0) - (a.reviewCount || a.rating || 0);
-    });
-  }, [monuments, filters, sortBy]);
+  const districts = facets.districts || [];
+  const periods = facets.periods || [];
+  const categoryCounts = facets.categories || {};
+  const categories = Object.keys(categoryCounts);
+  const visibleMonuments = monuments;
 
   const updateFilter = (key, value) => {
     setFilters((current) => ({ ...current, [key]: value }));
@@ -74,7 +78,7 @@ export default function MonumentsPage() {
           <p>Hatay’ın binlerce yıllık tarihi ve kültürel mirasını keşfedin.</p>
         </div>
         <div className="monuments-toolbar">
-          <span className="result-count"><strong>{visibleMonuments.length}</strong> eser gösteriliyor</span>
+          <span className="result-count"><strong>{pagination.totalItems || 0}</strong> eser bulundu</span>
           <label className="sort-control"><span>Sırala</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="popular">Popüler</option><option value="newest">En Yeni</option><option value="rating">Puana Göre</option><option value="name">Ada Göre</option></select></label>
           <div className="view-toggles" aria-label="Görünüm seçimi">
             {['grid', 'list'].map((type) => <button key={type} type="button" className={view === type ? 'active' : ''} onClick={() => setView(type)} aria-label={type === 'grid' ? 'Kart görünümü' : 'Liste görünümü'}><ViewIcon type={type} /></button>)}
@@ -90,7 +94,7 @@ export default function MonumentsPage() {
           <label className="filter-select-group"><span><IconPin size={14} /> İlçe</span><select value={filters.district} onChange={(event) => updateFilter('district', event.target.value)}><option value="tumu">Tüm İlçeler</option>{districts.map((district) => <option key={district} value={district}>{district}</option>)}</select></label>
           <fieldset className="filter-category-group">
             <legend><IconMonument size={14} /> Eser Türü</legend>
-            <label className={!filters.categories.length ? 'checked' : ''}><input type="checkbox" checked={!filters.categories.length} onChange={() => updateFilter('categories', [])} /><span className="custom-check" /><b>Tüm Eserler</b><small>{monuments.length}</small></label>
+            <label className={!filters.categories.length ? 'checked' : ''}><input type="checkbox" checked={!filters.categories.length} onChange={() => updateFilter('categories', [])} /><span className="custom-check" /><b>Tüm Eserler</b><small>{facets.totalItems || 0}</small></label>
             {categories.map((category) => <label key={category} className={filters.categories.includes(category) ? 'checked' : ''}><input type="checkbox" checked={filters.categories.includes(category)} onChange={() => toggleDraftCategory(category)} /><span className="custom-check" /><CategoryMarkerIcon category={category} color={categoryColors[category]} size={19} /><b>{categoryLabels[category] || category}</b><small>{categoryCounts[category] || 0}</small></label>)}
           </fieldset>
           <label className="filter-select-group"><span>Dönem</span><select value={filters.period} onChange={(event) => updateFilter('period', event.target.value)}><option value="tumu">Tüm Dönemler</option>{periods.map((period) => <option key={period} value={period}>{period}</option>)}</select></label>
@@ -112,6 +116,7 @@ export default function MonumentsPage() {
               })}
             </div>
           ) : <div className="monuments-state empty"><IconMonument size={34} /><strong>Bu filtrelere uygun eser bulunamadı</strong><p>Filtreleri temizleyerek tüm eserleri yeniden görüntüleyebilirsiniz.</p><button type="button" onClick={clearFilters}>Filtreleri Temizle</button></div>}
+          {!loading && pagination.hasNextPage && <button type="button" className="page-load-more" disabled={loadingMore} onClick={() => loadPage(pagination.page + 1, true).catch((error) => console.error('Daha fazla eser yüklenemedi:', error))}>{loadingMore ? 'Yükleniyor…' : `Daha Fazla Eser Göster (${monuments.length}/${pagination.totalItems})`}</button>}
         </main>
       </div>
     </div>

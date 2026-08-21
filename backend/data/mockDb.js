@@ -24,14 +24,59 @@ function includesText(value, query) {
   return String(value || '').toLocaleLowerCase('tr-TR').includes(query);
 }
 
+function selectedValues(value) {
+  if (Array.isArray(value)) return value.filter(Boolean);
+  return String(value || '').split(',').map((item) => item.trim()).filter(Boolean);
+}
+
+function countBy(items, key) {
+  return items.reduce((result, item) => {
+    const value = item[key];
+    if (value) result[value] = (result[value] || 0) + 1;
+    return result;
+  }, {});
+}
+
+function uniqueValues(items, key) {
+  return [...new Set(items.map((item) => item[key]).filter(Boolean))]
+    .sort((a, b) => String(a).localeCompare(String(b), 'tr'));
+}
+
+export function paginate(items, params = {}, extra = {}) {
+  const pageSize = Math.min(100, Math.max(1, Number.parseInt(params.pageSize, 10) || 9));
+  const requestedPage = Math.max(1, Number.parseInt(params.page, 10) || 1);
+  const totalItems = items.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const page = totalPages ? Math.min(requestedPage, totalPages) : 1;
+  const start = (page - 1) * pageSize;
+  return {
+    items: items.slice(start, start + pageSize),
+    pagination: { page, pageSize, totalItems, totalPages, hasNextPage: page < totalPages, hasPreviousPage: page > 1 && totalPages > 0 },
+    ...extra,
+  };
+}
+
 export function getMonuments(params = {}) {
   const query = String(params.search || '').trim().toLocaleLowerCase('tr-TR');
+  const categories = selectedValues(params.categories || params.category);
   return monuments.filter((item) => (
-    (!params.category || params.category === 'tumu' || item.category === params.category)
+    (!categories.length || categories.includes('tumu') || categories.includes(item.category))
     && (!params.type || params.type === 'tumu' || item.type === params.type)
     && (!params.district || params.district === 'tumu' || item.district === params.district)
+    && (!params.period || params.period === 'tumu' || item.period === params.period)
+    && (!params.registration || params.registration === 'tumu' || item.registrationStatus === params.registration)
     && (!query || includesText(item.name, query) || includesText(item.description, query))
   ));
+}
+
+export function getMonumentsPage(params = {}) {
+  const filtered = [...getMonuments(params)].sort((a, b) => {
+    if (params.sort === 'name') return a.name.localeCompare(b.name, 'tr');
+    if (params.sort === 'newest') return b.id - a.id;
+    if (params.sort === 'rating') return (b.rating || 0) - (a.rating || 0);
+    return (b.reviewCount || b.rating || 0) - (a.reviewCount || a.rating || 0);
+  });
+  return paginate(filtered, params, { facets: { districts: uniqueValues(monuments, 'district'), periods: uniqueValues(monuments, 'period'), categories: countBy(monuments, 'category'), totalItems: monuments.length } });
 }
 
 const architectureByCategory = {
@@ -113,11 +158,41 @@ export function getMonument(idOrSlug) {
 }
 
 export function getRoutes(params = {}) {
+  const categories = selectedValues(params.categories || params.category);
   return culturalRoutes.filter((item) => (
-    (!params.category || params.category === 'tumu' || item.category === params.category)
+    (!categories.length || categories.includes('tumu') || categories.includes(item.category))
     && (!params.difficulty || params.difficulty === 'tumu' || item.difficulty === params.difficulty)
     && (!params.district || params.district === 'tumu' || item.district === params.district)
+    && (!params.duration || params.duration === 'tumu' || durationGroup(item.duration) === params.duration)
+    && (!params.search || includesText(`${item.title} ${item.description}`, String(params.search).trim().toLocaleLowerCase('tr-TR')))
   ));
+}
+
+function durationHours(value = '') {
+  const normalized = String(value).toLocaleLowerCase('tr-TR');
+  if (normalized.includes('yarım')) return 4;
+  if (normalized.includes('gün')) return 8;
+  const values = normalized.match(/\d+/g)?.map(Number) || [];
+  return values.length > 1 ? (values[0] + values[1]) / 2 : values[0] || 0;
+}
+
+function durationGroup(value) {
+  const hours = durationHours(value);
+  if (hours <= 3) return 'kisa';
+  if (hours < 8) return 'yarim';
+  return 'tam';
+}
+
+export function getRoutesPage(params = {}) {
+  const monumentIndex = new Map(monuments.map((item) => [item.id, item]));
+  const filtered = [...getRoutes(params)].sort((a, b) => {
+    if (params.sort === 'popular') return (b.stops || 0) - (a.stops || 0);
+    if (params.sort === 'short') return durationHours(a.duration) - durationHours(b.duration);
+    if (params.sort === 'long') return durationHours(b.duration) - durationHours(a.duration);
+    if (params.sort === 'name') return a.title.localeCompare(b.title, 'tr');
+    return a.id - b.id;
+  }).map((route) => ({ ...route, stopNames: (route.monumentIds || []).map((id) => monumentIndex.get(id)?.name).filter(Boolean) }));
+  return paginate(filtered, params, { facets: { districts: uniqueValues(culturalRoutes, 'district'), categories: countBy(culturalRoutes, 'category'), totalItems: culturalRoutes.length } });
 }
 
 export function getRoute(idOrSlug) {
@@ -145,10 +220,35 @@ export function previewRoute(params = {}) {
 }
 
 export function getEvents(params = {}) {
+  const query = String(params.search || '').trim().toLocaleLowerCase('tr-TR');
+  const now = Date.now();
   return events.filter((item) => (
     (!params.category || params.category === 'tumu' || item.category === params.category)
     && (!params.district || params.district === 'tumu' || item.district === params.district)
+    && (!params.period || params.period === 'tumu' || (params.period === 'yaklasan' ? new Date(`${item.date}T${item.time || '12:00'}:00`).getTime() >= now : new Date(`${item.date}T${item.time || '12:00'}:00`).getTime() < now))
+    && (!query || includesText(`${item.title} ${item.description} ${item.venue} ${item.district}`, query))
   ));
+}
+
+export function getEventsPage(params = {}) {
+  const asTime = (item) => new Date(`${item.date}T${item.time || '12:00'}:00`).getTime() || 0;
+  const filtered = [...getEvents(params)].sort((a, b) => {
+    if (params.sort === 'name') return a.title.localeCompare(b.title, 'tr');
+    if (params.sort === 'district') return a.district.localeCompare(b.district, 'tr');
+    if (params.sort === 'newest') return asTime(b) - asTime(a);
+    return asTime(a) - asTime(b);
+  });
+  const featured = [...events].filter((item) => item.featured).sort((a, b) => asTime(a) - asTime(b)).find((item) => asTime(item) >= Date.now()) || events.find((item) => item.featured) || null;
+  return paginate(filtered, params, { facets: { districts: uniqueValues(events, 'district'), categories: countBy(events, 'category'), categoryLabels: Object.fromEntries(events.map((item) => [item.category, item.categoryLabel || item.category])), totalItems: events.length }, featured });
+}
+
+export function getEventCalendar(params = {}) {
+  const from = params.from ? new Date(`${params.from}T00:00:00`).getTime() : Number.NEGATIVE_INFINITY;
+  const to = params.to ? new Date(`${params.to}T23:59:59`).getTime() : Number.POSITIVE_INFINITY;
+  return events.filter((item) => {
+    const value = new Date(`${item.date}T${item.time || '12:00'}:00`).getTime();
+    return value >= from && value <= to;
+  });
 }
 
 const eventCoordinates = {
@@ -264,11 +364,15 @@ export default {
   weather,
   chartData,
   getMonuments,
+  getMonumentsPage,
   getMonument,
   getRoutes,
+  getRoutesPage,
   getRoute,
   previewRoute,
   getEvents,
+  getEventsPage,
+  getEventCalendar,
   getEvent,
   getNotificationCount,
   getNotifications,

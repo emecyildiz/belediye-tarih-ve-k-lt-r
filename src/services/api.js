@@ -144,16 +144,32 @@ const realApi = {
     const q = new URLSearchParams(params).toString();
     return fetchAPI(`/monuments${q ? `?${q}` : ''}`);
   },
+  getMonumentsPage: (params = {}) => {
+    const q = new URLSearchParams({ ...params, page: params.page || 1, pageSize: params.pageSize || 9 }).toString();
+    return fetchAPI(`/monuments?${q}`);
+  },
   getMonument: (id) => fetchAPI(`/monuments/${id}`),
   getRoutes: (params = {}) => {
     const q = new URLSearchParams(params).toString();
     return fetchAPI(`/routes${q ? `?${q}` : ''}`);
+  },
+  getRoutesPage: (params = {}) => {
+    const q = new URLSearchParams({ ...params, page: params.page || 1, pageSize: params.pageSize || 9 }).toString();
+    return fetchAPI(`/routes?${q}`);
   },
   getRoute: (id) => fetchAPI(`/routes/${id}`),
   previewRoute: (payload) => sendAPI('/routes/preview', payload),
   getEvents: (params = {}) => {
     const q = new URLSearchParams(params).toString();
     return fetchAPI(`/events${q ? `?${q}` : ''}`);
+  },
+  getEventsPage: (params = {}) => {
+    const q = new URLSearchParams({ ...params, page: params.page || 1, pageSize: params.pageSize || 9 }).toString();
+    return fetchAPI(`/events?${q}`);
+  },
+  getEventCalendar: (params = {}) => {
+    const q = new URLSearchParams(params).toString();
+    return fetchAPI(`/events/calendar${q ? `?${q}` : ''}`);
   },
   getEvent: (id) => fetchAPI(`/events/${id}`),
   getNotificationCount: () => fetchAPI('/notifications/count'),
@@ -196,6 +212,10 @@ const mockApi = {
     const db = await getMockDb();
     return db.getMonuments(params);
   },
+  getMonumentsPage: async (params = {}) => {
+    const db = await getMockDb();
+    return db.getMonumentsPage(params);
+  },
   getMonument: async (id) => {
     const db = await getMockDb();
     return db.getMonument(id);
@@ -203,6 +223,10 @@ const mockApi = {
   getRoutes: async (params = {}) => {
     const db = await getMockDb();
     return db.getRoutes(params);
+  },
+  getRoutesPage: async (params = {}) => {
+    const db = await getMockDb();
+    return db.getRoutesPage(params);
   },
   getRoute: async (id) => {
     const db = await getMockDb();
@@ -215,6 +239,14 @@ const mockApi = {
   getEvents: async (params = {}) => {
     const db = await getMockDb();
     return db.getEvents(params);
+  },
+  getEventsPage: async (params = {}) => {
+    const db = await getMockDb();
+    return db.getEventsPage(params);
+  },
+  getEventCalendar: async (params = {}) => {
+    const db = await getMockDb();
+    return db.getEventCalendar(params);
   },
   getEvent: async (id) => {
     const db = await getMockDb();
