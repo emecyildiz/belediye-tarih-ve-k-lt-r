@@ -27,10 +27,10 @@
   z-index: 15;
   top: 14px;
   left: 14px;
-  width: 278px;
+  width: 350px;
   max-height: calc(100% - 28px);
-  padding: 14px;
-  overflow-y: auto;
+  padding: 12px;
+  overflow: hidden;
   border: 1px solid rgb(211 220 231 / 90%);
   border-radius: 16px;
   background: rgb(248 251 255 / 96%);
@@ -54,8 +54,8 @@
   line-height: 1.45;
 }
 .map-control-section {
-  margin-top: 14px;
-  padding-top: 12px;
+  margin-top: 10px;
+  padding-top: 9px;
   border-top: 1px solid #e3e8ef;
 }
 .map-control-section h2 {
@@ -86,15 +86,15 @@
   cursor: pointer;
 }
 .map-control-heading button:hover { background: #eaf2fb; }
-.map-layer-list { margin-top: 10px; display: grid; gap: 6px; }
+.map-layer-list { margin-top: 8px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .map-layer-list label {
   position: relative;
-  min-height: 48px;
-  padding: 6px 8px;
+  min-height: 40px;
+  padding: 4px 6px;
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) 30px;
+  grid-template-columns: 29px minmax(0, 1fr) 27px;
   align-items: center;
-  gap: 9px;
+  gap: 5px;
   color: #304158;
   border: 1px solid #e1e8f1;
   border-radius: 10px;
@@ -107,8 +107,8 @@
 .map-layer-list label.active { border-color: #bfd2e8; background: #eef5fc; }
 .map-layer-list input { position: absolute; opacity: 0; pointer-events: none; }
 .layer-icon {
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   border-radius: 9px;
@@ -121,8 +121,8 @@
 .layer-name small { margin-top: 2px; color: #7a8799; font-size: 8px; }
 .layer-switch {
   position: relative;
-  width: 28px;
-  height: 17px;
+  width: 25px;
+  height: 16px;
   border-radius: 999px;
   background: #c8d2df;
   transition: background .18s ease;
@@ -132,15 +132,15 @@
   position: absolute;
   top: 3px;
   left: 3px;
-  width: 11px;
-  height: 11px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #fff;
   box-shadow: 0 1px 3px rgb(17 33 52 / 25%);
   transition: transform .18s ease;
 }
 .map-layer-list label.active .layer-switch { background: #1764ae; }
-.map-layer-list label.active .layer-switch::after { transform: translateX(11px); }
+.map-layer-list label.active .layer-switch::after { transform: translateX(9px); }
 .map-field {
   margin-top: 8px;
   display: grid;
@@ -363,10 +363,12 @@
     width: min(310px, 88vw);
     height: 100%;
     max-height: none;
+    overflow-y: auto;
     border-radius: 0;
     transform: translateX(-105%);
     transition: transform .22s ease;
   }
+  .map-layer-list { grid-template-columns: 1fr; }
   .map-control-panel.mobile-open { transform: translateX(0); }
   .mobile-filter-toggle {
     position: absolute;
