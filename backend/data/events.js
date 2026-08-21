@@ -8,9 +8,7 @@ const baseEvents = [
     location: "Payas Kalesi, Dörtyol",
     district: "Payas",
     venue: "Payas Kalesi",
-    date: "2025-05-25",
-    dateLabel: "25 Mayıs 2025",
-    day: "Pazar",
+    date: "2026-08-23",
     time: "10:00",
     image: "https://images.unsplash.com/photo-1516483638269-4a936d323403?w=600&h=400&fit=crop",
     featured: true
@@ -24,9 +22,7 @@ const baseEvents = [
     location: "Hatay Arkeoloji Müzesi",
     district: "Antakya",
     venue: "Hatay Arkeoloji Müzesi",
-    date: "2025-06-02",
-    dateLabel: "2 Haziran 2025",
-    day: "Pazartesi",
+    date: "2026-08-27",
     time: "14:00",
     image: "https://images.unsplash.com/photo-1566127444979-b3d2b654e3a7?w=600&h=400&fit=crop"
   },
@@ -39,9 +35,7 @@ const baseEvents = [
     location: "Antakya Merkez",
     district: "Antakya",
     venue: "Habib-i Neccar Meydanı",
-    date: "2025-06-05",
-    dateLabel: "5 Haziran 2025",
-    day: "Perşembe",
+    date: "2026-08-29",
     time: "18:00",
     image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop"
   },
@@ -54,9 +48,7 @@ const baseEvents = [
     location: "St. Pierre Kilisesi",
     district: "Antakya",
     venue: "St. Pierre Kilisesi",
-    date: "2025-06-08",
-    dateLabel: "8 Haziran 2025",
-    day: "Pazar",
+    date: "2026-09-03",
     time: "20:00",
     image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop"
   },
@@ -69,9 +61,7 @@ const baseEvents = [
     location: "Uzun Çarşı",
     district: "Antakya",
     venue: "Uzun Çarşı",
-    date: "2025-05-28",
-    dateLabel: "28 Mayıs 2025",
-    day: "Çarşamba",
+    date: "2026-08-16",
     time: "11:00",
     image: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=600&h=400&fit=crop"
   },
@@ -84,9 +74,7 @@ const baseEvents = [
     location: "Hatay Arkeoloji Müzesi",
     district: "Antakya",
     venue: "Konferans Salonu",
-    date: "2025-06-12",
-    dateLabel: "12 Haziran 2025",
-    day: "Perşembe",
+    date: "2026-08-19",
     time: "15:00",
     image: "https://images.unsplash.com/photo-1566127444979-b3d2b654e3a7?w=600&h=400&fit=crop"
   }
@@ -121,15 +109,21 @@ const generatedEvents = eventTemplates.map(([category, categoryLabel, title, ven
     district,
     venue,
     date: `2026-09-${String(day).padStart(2, '0')}`,
-    dateLabel: `${day} Eylül 2026`,
-    day: 'Etkinlik günü',
     time: `${String(10 + (index % 9)).padStart(2, '0')}:00`,
     image: index % 5 === 0 ? '' : baseEvents[index % baseEvents.length].image,
     featured: index < 3,
   };
 });
 
-export const events = [...baseEvents, ...generatedEvents];
+function formatEventDate(date) {
+  const value = new Date(`${date}T12:00:00+03:00`);
+  return {
+    dateLabel: new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Europe/Istanbul' }).format(value),
+    day: new Intl.DateTimeFormat('tr-TR', { weekday: 'long', timeZone: 'Europe/Istanbul' }).format(value),
+  };
+}
+
+export const events = [...baseEvents, ...generatedEvents].map((event) => ({ ...event, ...formatEventDate(event.date) }));
 
 export const eventCategoryCounts = events.reduce(
   (acc, event) => {

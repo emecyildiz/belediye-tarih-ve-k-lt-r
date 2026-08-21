@@ -53,7 +53,7 @@ function MonumentCard({ item }) {
 
 function RouteCard({ item }) {
   return (
-    <Link className="route-card" to="/kultur-rotalari">
+    <Link className="route-card" to={`/kultur-rotalari/${item.slug || item.id}`}>
       <SafeImage src={item.image} alt={item.title || item.name} />
       <div className="route-card-overlay">
         <strong>{item.title || item.name}</strong>
@@ -67,7 +67,7 @@ function RouteCard({ item }) {
 
 function EventRow({ item }) {
   return (
-    <Link className="home-event-row" to="/etkinlikler">
+    <Link className="home-event-row" to={`/etkinlikler/${item.slug || item.id}`}>
       <SafeImage src={item.image} alt={item.title} />
       <div>
         <strong>{item.title}</strong>
@@ -105,6 +105,9 @@ export default function HomePage() {
 
   if (loading) return <div className="loading">İçerikler hazırlanıyor…</div>;
   const hero = data.monuments[0];
+  const upcomingEvents = data.events
+    .filter((item) => new Date(`${item.date}T23:59:59`).getTime() >= Date.now())
+    .sort((first, second) => new Date(first.date) - new Date(second.date));
 
   return (
     <div className="home-page">
@@ -145,7 +148,7 @@ export default function HomePage() {
           <section className="home-events-card">
             <SimpleSectionTitle to="/etkinlikler" linkText="Tümünü Gör">Yaklaşan Etkinlikler</SimpleSectionTitle>
             <div className="home-event-list" tabIndex="0" aria-label="Kaydırılabilir yaklaşan etkinlikler listesi">
-              {data.events.map((item) => <EventRow key={item.id} item={item} />)}
+              {upcomingEvents.map((item) => <EventRow key={item.id} item={item} />)}
             </div>
           </section>
         </aside>
