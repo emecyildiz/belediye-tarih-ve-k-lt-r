@@ -1,0 +1,42 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  background: var(--surface-subtle);
+}
+
+.app-main {
+  min-width: 0;
+  max-width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1;
+  padding: 14px 18px 8px;
+}
+
+.app-footer {
+  padding: 7px 18px 10px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.sidebar-backdrop { display: none; }
+
+@media (max-width: 900px) {
+  .app-content { padding: 12px; }
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: block;
+    border: 0;
+    background: rgb(1 20 48 / 52%);
+  }
+}

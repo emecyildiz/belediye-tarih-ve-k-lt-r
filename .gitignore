@@ -1,0 +1,25 @@
+# Bağımlılıklar ve derleme çıktıları
+node_modules/
+dist/
+
+# Yerel ayarlar ve gizli bilgiler
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+
+# Geçici dosyalar
+.codex-tmp/
+*.log
+coverage/
+__pycache__/
+*.pyc
+
+# İşletim sistemi / editör
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
