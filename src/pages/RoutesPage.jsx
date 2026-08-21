@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import { IconArrow, IconClock, IconFilter, IconHeart, IconPin, IconRoute } from '../components/common/Icons';
@@ -44,6 +44,7 @@ function durationGroup(value) {
 }
 
 export default function RoutesPage() {
+  const navigate = useNavigate();
   const [routes, setRoutes] = useState([]);
   const [monuments, setMonuments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -117,7 +118,11 @@ export default function RoutesPage() {
             const category = categories.find((item) => item.key === route.category) || categories[0];
             const stopNames = (route.monumentIds || []).map((id) => monumentIndex.get(id)?.name).filter(Boolean);
             const favorite = favorites.includes(route.id);
-            return <article className="cultural-route-card" key={route.id}>
+            const openRoute = (event) => {
+              if (event.target.closest('a, button')) return;
+              navigate(`/kultur-rotalari/${route.slug}`);
+            };
+            return <article className="cultural-route-card" key={route.id} role="link" tabIndex="0" aria-label={`${route.title} rota detayını aç`} onClick={openRoute} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); navigate(`/kultur-rotalari/${route.slug}`); } }}>
               <div className="cultural-route-image"><SafeImage src={getImageUrl(route.image)} alt={route.title} /><span style={{ background: category.color }}><ThemeIcon category={route.category} /></span><button type="button" className={favorite ? 'active' : ''} onClick={() => toggleFavorite(route.id)} aria-label={favorite ? 'Favorilerden çıkar' : 'Favoriye ekle'}><IconHeart size={18} /></button></div>
               <div className="cultural-route-content"><div className="route-card-heading"><span>{route.categoryLabel || category.label}</span><small>{route.difficultyLabel || route.difficulty}</small></div><h2>{route.title}</h2><div className="route-stop-names"><IconPin size={13} />{stopNames.length ? stopNames.slice(0, 4).join(' · ') : `${route.district} başlangıç noktası`}</div><p>{route.description}</p><footer><div><span><IconClock size={13} />{route.duration}</span><span><IconRoute size={13} />{route.distance}</span><span>{route.stops || stopNames.length} durak</span></div><Link to={`/kultur-rotalari/${route.slug}`}>Detayları Gör <IconArrow size={13} /></Link></footer></div>
             </article>;

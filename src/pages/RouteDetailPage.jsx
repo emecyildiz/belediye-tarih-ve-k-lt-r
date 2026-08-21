@@ -16,6 +16,7 @@ function formatMinutes(minutes = 0) {
 export default function RouteDetailPage() {
   const { slug } = useParams();
   const [route, setRoute] = useState(null);
+  const [relatedRoutes, setRelatedRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [mapType, setMapType] = useState('map');
@@ -23,8 +24,19 @@ export default function RouteDetailPage() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    api.getRoute(slug)
-      .then((data) => active && setRoute(data))
+    setError('');
+    Promise.all([api.getRoute(slug), api.getRoutes()])
+      .then(([data, allRoutes]) => {
+        if (!active) return;
+        setRoute(data);
+        setRelatedRoutes((allRoutes || [])
+          .filter((item) => item.slug !== data.slug)
+          .sort((first, second) => (
+            Number(second.category === data.category) + Number(second.district === data.district)
+            - Number(first.category === data.category) - Number(first.district === data.district)
+          ))
+          .slice(0, 3));
+      })
       .catch(() => active && setError('Rota bilgileri yüklenemedi.'))
       .finally(() => active && setLoading(false));
     return () => { active = false; };
@@ -43,20 +55,28 @@ export default function RouteDetailPage() {
       </header>
 
       <section className="route-detail-summary">
-        <div className="route-detail-hero"><SafeImage src={getImageUrl(route.image)} alt={route.title} /></div>
-        <div className="route-detail-metrics">
-          <article><IconRoute size={19} /><div><small>Toplam mesafe</small><strong>{route.distanceKm} km</strong></div></article>
-          <article><IconClock size={19} /><div><small>Tahmini süre</small><strong>{formatMinutes(route.durationMinutes)}</strong></div></article>
-          <article><IconPin size={19} /><div><small>Durak sayısı</small><strong>{route.stops?.length || 0} durak</strong></div></article>
-          <article><IconMap size={19} /><div><small>Zorluk</small><strong>{route.difficultyLabel || route.difficulty}</strong></div></article>
+        <div className="route-detail-hero">
+          <SafeImage src={getImageUrl(route.image)} alt={route.title} />
+          <div className="route-hero-info"><span><IconPin size={13} /> {route.district}</span><strong>{route.title}</strong><p>{route.description}</p></div>
+        </div>
+        <div className="route-detail-map-card">
+          <header><div><span>ROTA HARİTASI</span><h2>Duraklar ve güzergâh</h2></div><small>OpenLayers · EPSG:4326</small></header>
+          <OpenLayersMap geojson={route.geojson} routeMode fitToData mapType={mapType} onMapTypeChange={setMapType} height="318px" />
+          {route.cbs?.provider === 'mock-cbs' && <p className="route-estimate-note"><IconInfo size={15} /><span><strong>Demo CBS:</strong> Belediye yol ağı bağlandığında çizgi ve süre gerçek güzergâha göre otomatik yenilenir.</span></p>}
         </div>
       </section>
 
+      <section className="route-detail-metrics" aria-label="Rota özeti">
+        <article><IconRoute size={19} /><div><small>Toplam mesafe</small><strong>{route.distanceKm} km</strong></div></article>
+        <article><IconClock size={19} /><div><small>Tahmini süre</small><strong>{formatMinutes(route.durationMinutes)}</strong></div></article>
+        <article><IconPin size={19} /><div><small>Durak sayısı</small><strong>{route.stops?.length || 0} durak</strong></div></article>
+        <article><IconMap size={19} /><div><small>Zorluk seviyesi</small><strong>{route.difficultyLabel || route.difficulty}</strong></div></article>
+      </section>
+
       <section className="route-detail-grid">
-        <div className="route-detail-map-card">
-          <header><div><span>ROTA HARİTASI</span><h2>Duraklar ve güzergâh</h2></div><small>OpenLayers · EPSG:4326</small></header>
-          <OpenLayersMap geojson={route.geojson} routeMode fitToData mapType={mapType} onMapTypeChange={setMapType} height="430px" />
-          {route.cbs?.provider === 'mock-cbs' && <p className="route-estimate-note"><IconInfo size={15} /><span><strong>Demo CBS hesaplaması:</strong> Çizgi durakları doğrudan bağlar. Belediye yol ağı servisi bağlandığında güzergâh ve süre otomatik olarak gerçek yol verisine göre hesaplanır.</span></p>}
+        <div className="related-routes-panel">
+          <header><div><span>KEŞFETMEYE DEVAM ET</span><h2>Yakındaki ve benzer rotalar</h2></div><Link to="/kultur-rotalari">Tümünü Gör <IconArrow size={13} /></Link></header>
+          <div className="related-route-list">{relatedRoutes.map((item) => <Link to={`/kultur-rotalari/${item.slug}`} key={item.id}><SafeImage src={item.image} alt="" /><div><span>{item.categoryLabel}</span><strong>{item.title}</strong><p><IconClock size={11} /> {item.duration}<b>·</b><IconRoute size={11} /> {item.distance}</p></div><IconArrow size={15} /></Link>)}</div>
         </div>
 
         <aside className="route-stop-panel">
