@@ -102,6 +102,18 @@ export default function EventsPage() {
     return () => { active = false; };
   }, []);
 
+  useEffect(() => {
+    if (!calendarExpanded) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event) => { if (event.key === 'Escape') setCalendarExpanded(false); };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [calendarExpanded]);
+
   const categories = useMemo(() => [...new Map(events.map((item) => [item.category, item.categoryLabel || item.category])).entries()], [events]);
   const districts = useMemo(() => [...new Set(events.map((item) => item.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr')), [events]);
   const categoryCounts = useMemo(() => events.reduce((result, item) => ({ ...result, [item.category]: (result[item.category] || 0) + 1 }), {}), [events]);
@@ -149,7 +161,7 @@ export default function EventsPage() {
         <aside className="event-calendar-card" role="button" tabIndex="0" onClick={() => setCalendarExpanded(true)} onKeyDown={(event) => event.key === 'Enter' && setCalendarExpanded(true)}><header><div><span>ETKİNLİK TAKVİMİ</span><strong>{calendarTitle}</strong></div><div><button type="button" aria-label="Önceki ay" onClick={(event) => { event.stopPropagation(); changeMonth(-1); }}>‹</button><button type="button" aria-label="Sonraki ay" onClick={(event) => { event.stopPropagation(); changeMonth(1); }}>›</button></div></header><CalendarGrid cursor={calendarCursor} eventDates={eventDates} selectedDate={selectedDate} onSelect={(key) => { setSelectedDate(key); setCalendarExpanded(true); }} /><footer><span><i /> Etkinlik bulunan gün</span><button type="button">Genişlet</button></footer></aside>
       </section>
 
-      {calendarExpanded && <section className="expanded-calendar-panel"><header><div><span>AYLIK ETKİNLİK TAKVİMİ</span><h2>{calendarTitle}</h2></div><div><button type="button" aria-label="Önceki ay" onClick={() => changeMonth(-1)}>‹</button><button type="button" aria-label="Sonraki ay" onClick={() => changeMonth(1)}>›</button><button type="button" className="close-calendar" aria-label="Takvimi kapat" onClick={() => setCalendarExpanded(false)}>×</button></div></header><div className="expanded-calendar-body"><CalendarGrid cursor={calendarCursor} eventDates={eventDates} selectedDate={selectedDate} expanded onSelect={setSelectedDate} /><aside><header><span>SEÇİLEN GÜN</span><strong>{selectedDate ? new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${selectedDate}T12:00:00`)) : 'Bir tarih seçin'}</strong></header><div>{selectedDayEvents.length ? selectedDayEvents.map((item) => <Link key={item.id} to={`/etkinlikler/${item.id}`}><i style={{ background: categoryColors[item.category] || '#2468ad' }} /><div><span>{item.time} · {item.categoryLabel}</span><strong>{item.title}</strong><small><IconPin size={11} /> {item.venue}</small></div><IconArrow size={14} /></Link>) : <p>Bu tarihte planlanmış etkinlik bulunmuyor.</p>}</div></aside></div></section>}
+      {calendarExpanded && <div className="event-calendar-modal" role="dialog" aria-modal="true" aria-label="Aylık etkinlik takvimi" onClick={() => setCalendarExpanded(false)}><section className="expanded-calendar-panel" onClick={(event) => event.stopPropagation()}><header><div><span>AYLIK ETKİNLİK TAKVİMİ</span><h2>{calendarTitle}</h2></div><div><button type="button" aria-label="Önceki ay" onClick={() => changeMonth(-1)}>‹</button><button type="button" aria-label="Sonraki ay" onClick={() => changeMonth(1)}>›</button><button type="button" className="close-calendar" aria-label="Takvimi kapat" onClick={() => setCalendarExpanded(false)}>×</button></div></header><div className="expanded-calendar-body"><CalendarGrid cursor={calendarCursor} eventDates={eventDates} selectedDate={selectedDate} expanded onSelect={setSelectedDate} /><aside><header><span>SEÇİLEN GÜN</span><strong>{selectedDate ? new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${selectedDate}T12:00:00`)) : 'Bir tarih seçin'}</strong></header><div>{selectedDayEvents.length ? selectedDayEvents.map((item) => <Link key={item.id} to={`/etkinlikler/${item.id}`}><i style={{ background: categoryColors[item.category] || '#2468ad' }} /><div><span>{item.time} · {item.categoryLabel}</span><strong>{item.title}</strong><small><IconPin size={11} /> {item.venue}</small></div><IconArrow size={14} /></Link>) : <p>Bu tarihte planlanmış etkinlik bulunmuyor.</p>}</div></aside></div></section></div>}
 
       <section className="event-category-strip" aria-label="Etkinlik kategorileri"><button type="button" className={draft.category === 'tumu' ? 'active' : ''} onClick={() => { setDraft((current) => ({ ...current, category: 'tumu' })); setFilters((current) => ({ ...current, category: 'tumu' })); }}>Tümü <b>{events.length}</b></button>{categories.map(([key, label]) => <button type="button" key={key} className={draft.category === key ? 'active' : ''} style={{ '--event-color': categoryColors[key] || '#2468ad' }} onClick={() => { setDraft((current) => ({ ...current, category: key })); setFilters((current) => ({ ...current, category: key })); }}>{label} <b>{categoryCounts[key] || 0}</b></button>)}</section>
 
