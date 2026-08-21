@@ -47,6 +47,15 @@ export default function Sidebar({ open = false, onNavigate }) {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const syncCount = (event) => {
+      if (Number.isFinite(event.detail?.count)) setUnreadCount(event.detail.count);
+      else api.getNotificationCount().then((count) => setUnreadCount(Number(count) || 0)).catch(() => {});
+    };
+    window.addEventListener('tkmbs-notifications-updated', syncCount);
+    return () => window.removeEventListener('tkmbs-notifications-updated', syncCount);
+  }, []);
+
   return (
     <aside className={`portal-sidebar ${open ? 'is-open' : ''}`}>
       <div className="sidebar-brand">

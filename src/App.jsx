@@ -11,6 +11,7 @@ import RouteBuilderPage from './pages/RouteBuilderPage';
 import EventsPage from './pages/EventsPage';
 import EventDetailPage from './pages/EventDetailPage';
 import FavoritesPage from './pages/FavoritesPage';
+import NotificationsPage from './pages/NotificationsPage';
 import AboutPage from './pages/AboutPage';
 import AdminPanelPage from './pages/AdminPanelPage';
 import GisAnalyticsPage from './pages/GisAnalyticsPage';
@@ -46,7 +47,7 @@ function App() {
           <Route path="/favoriler" element={<FavoritesPage />} />
           <Route path="/yonetim-paneli" element={<AdminPanelPage />} />
           <Route path="/cbs-analitik" element={<GisAnalyticsPage />} />
-          <Route path="/bildirimler" element={<Navigate to="/etkinlikler" replace />} />
+          <Route path="/bildirimler" element={<NotificationsPage />} />
           <Route path="/raporlar" element={<Navigate to="/cbs-analitik" replace />} />
           <Route path="/hakkinda" element={<AboutPage />} />
         </Routes>

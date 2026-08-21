@@ -8,9 +8,14 @@ export { monuments, events, categoryCounts, eventCategoryCounts, statistics, wea
 export const routes = culturalRoutes;
 
 export const notifications = [
-  { id: 1, title: 'Yeni etkinlik eklendi', message: 'Kültürel Mirası Koruma Paneli takvime eklendi.', date: '10 dakika önce', read: false },
-  { id: 2, title: 'Restorasyon duyurusu', message: 'Habib-i Neccar Camii kayıt bilgileri güncellendi.', date: '2 saat önce', read: false },
-  { id: 3, title: 'Yeni kültür rotası', message: 'İskenderun Sahil Kültür Turu kullanıma açıldı.', date: '1 gün önce', read: false },
+  { id: 1, type: 'event', title: 'Yeni etkinlik eklendi', message: 'Kültürel Mirası Koruma Paneli etkinlik takvimine eklendi.', date: '10 dakika önce', createdAt: '2026-08-21T14:20:00+03:00', link: '/etkinlikler/13', read: false },
+  { id: 2, type: 'monument', title: 'Envanter kaydı güncellendi', message: 'Habib-i Neccar Camii koruma ve ziyaret bilgileri yenilendi.', date: '2 saat önce', createdAt: '2026-08-21T12:30:00+03:00', link: '/tarihi-eserler/habib-i-neccar-camii', read: false },
+  { id: 3, type: 'route', title: 'Yeni kültür rotası', message: 'İskenderun Sahil Kültür Turu ziyaretçilerin kullanımına açıldı.', date: '1 gün önce', createdAt: '2026-08-20T16:00:00+03:00', link: '/kultur-rotalari/iskenderun-sahil-kordonu', read: false },
+  { id: 4, type: 'event', title: 'Etkinlik programı açıklandı', message: 'Antakya Medeniyetler Korosu Konseri program ayrıntıları yayımlandı.', date: '3 gün önce', createdAt: '2026-08-18T10:15:00+03:00', link: '/etkinlikler/11', read: true },
+  { id: 5, type: 'route', title: 'Rota süresi güncellendi', message: 'İnanç ve Medeniyet Rotası için tahmini gezi süresi yeniden hesaplandı.', date: '5 gün önce', createdAt: '2026-08-16T09:40:00+03:00', link: '/kultur-rotalari/inanc-ve-medeniyet-rotasi', read: true },
+  { id: 6, type: 'system', title: 'Harita katmanları yenilendi', message: 'Tarihi eser ve doğal güzellik katmanlarının gösterim ayarları güncellendi.', date: '1 hafta önce', createdAt: '2026-08-14T11:00:00+03:00', link: '/harita', read: true },
+  { id: 7, type: 'monument', title: 'Yeni fotoğraflar eklendi', message: 'Payas Kalesi envanter kaydına yeni saha fotoğrafları eklendi.', date: '2 hafta önce', createdAt: '2026-08-07T13:20:00+03:00', link: '/tarihi-eserler/payas-kalesi', read: true },
+  { id: 8, type: 'system', title: 'Kültürel miras arşivi', message: 'Aylık veri doğrulama çalışması başarıyla tamamlandı.', date: '3 hafta önce', createdAt: '2026-07-31T15:00:00+03:00', link: '/tarihi-eserler', read: true },
 ];
 
 function includesText(value, query) {
@@ -197,6 +202,17 @@ export function getNotifications() {
   return notifications.map((item) => ({ ...item }));
 }
 
+export function markNotificationRead(id) {
+  const notification = notifications.find((item) => item.id === Number(id));
+  if (notification) notification.read = true;
+  return notification ? { ...notification } : null;
+}
+
+export function markAllNotificationsRead() {
+  notifications.forEach((item) => { item.read = true; });
+  return notifications.map((item) => ({ ...item }));
+}
+
 export function getWeather() {
   return { ...weather };
 }
@@ -224,6 +240,8 @@ export default {
   getEvent,
   getNotificationCount,
   getNotifications,
+  markNotificationRead,
+  markAllNotificationsRead,
   getWeather,
   getStatistics,
 };

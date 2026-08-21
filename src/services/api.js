@@ -158,6 +158,8 @@ const realApi = {
   getEvent: (id) => fetchAPI(`/events/${id}`),
   getNotificationCount: () => fetchAPI('/notifications/count'),
   getNotifications: () => fetchAPI('/notifications'),
+  markNotificationRead: (id) => sendAPI(`/notifications/${id}/read`, {}),
+  markAllNotificationsRead: () => sendAPI('/notifications/read-all', {}),
   getStatistics: () => fetchAPI('/statistics'),
   getWeather: () => fetchAPI('/weather'),
   getCategories: () => fetchAPI('/categories'),
@@ -219,6 +221,14 @@ const mockApi = {
   getNotifications: async () => {
     const db = await getMockDb();
     return db.getNotifications();
+  },
+  markNotificationRead: async (id) => {
+    const db = await getMockDb();
+    return db.markNotificationRead(id);
+  },
+  markAllNotificationsRead: async () => {
+    const db = await getMockDb();
+    return db.markAllNotificationsRead();
   },
   getStatistics: async () => {
     const db = await getMockDb();

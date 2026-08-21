@@ -13,12 +13,19 @@ export default function TopBar({ onMenuClick }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    Promise.all([api.getNotifications(), api.getNotificationCount()])
+    const loadNotifications = () => Promise.all([api.getNotifications(), api.getNotificationCount()])
       .then(([items, count]) => {
         setNotifications(items || []);
         setUnreadCount(Number(count) || 0);
       })
       .catch((error) => console.error('Bildirimler yüklenemedi:', error));
+    loadNotifications();
+    const syncNotifications = (event) => {
+      if (Number.isFinite(event.detail?.count)) setUnreadCount(event.detail.count);
+      api.getNotifications().then((items) => setNotifications(items || [])).catch(() => {});
+    };
+    window.addEventListener('tkmbs-notifications-updated', syncNotifications);
+    return () => window.removeEventListener('tkmbs-notifications-updated', syncNotifications);
   }, []);
 
   useEffect(() => {
@@ -35,6 +42,19 @@ export default function TopBar({ onMenuClick }) {
     event.preventDefault();
     const value = query.trim();
     navigate(value ? '/tarihi-eserler?search=' + encodeURIComponent(value) : '/tarihi-eserler');
+  };
+
+  const openNotification = async (item) => {
+    if (!item.read) {
+      await api.markNotificationRead(item.id);
+      const next = notifications.map((notification) => notification.id === item.id ? { ...notification, read: true } : notification);
+      const count = next.filter((notification) => !notification.read).length;
+      setNotifications(next);
+      setUnreadCount(count);
+      window.dispatchEvent(new CustomEvent('tkmbs-notifications-updated', { detail: { count } }));
+    }
+    setNotificationsOpen(false);
+    navigate(item.link || '/bildirimler');
   };
 
   return (
@@ -73,7 +93,7 @@ export default function TopBar({ onMenuClick }) {
               </div>
               <div className="notification-dropdown-list">
                 {notifications.length ? notifications.map((item) => (
-                  <button type="button" className={'notification-item ' + (!item.read ? 'unread' : '')} key={item.id}>
+                  <button type="button" className={'notification-item ' + (!item.read ? 'unread' : '')} key={item.id} onClick={() => openNotification(item)}>
                     <span className="notification-item-dot" />
                     <span>
                       <strong>{item.title}</strong>
@@ -83,6 +103,7 @@ export default function TopBar({ onMenuClick }) {
                   </button>
                 )) : <p className="notification-empty">Bildirim bulunmuyor.</p>}
               </div>
+              <button type="button" className="notification-view-all" onClick={() => { setNotificationsOpen(false); navigate('/bildirimler'); }}>Tüm Bildirimleri Gör</button>
             </section>
           )}
         </div>

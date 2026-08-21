@@ -127,6 +127,7 @@
 .notification-item small { margin-top: 3px; color: #516078; font-size: 10px; line-height: 1.35; }
 .notification-item time { margin-top: 4px; color: #8a96a8; font-size: 9px; }
 .notification-empty { padding: 20px; text-align: center; color: var(--text-muted); font-size: 11px; }
+.notification-view-all{width:100%;height:38px;color:#1d548b;border:0;border-top:1px solid var(--border);background:#fafcff;font-size:9px;font-weight:750}.notification-view-all:hover{background:#f1f6fb}
 .management-link {
   height: 44px;
   padding: 0 13px;
