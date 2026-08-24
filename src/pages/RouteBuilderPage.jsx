@@ -3,7 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
-import { IconClock, IconInfo, IconPin, IconRoute, IconSearch } from '../components/common/Icons';
+import { IconClock, IconPin, IconRoute, IconSearch } from '../components/common/Icons';
 import './RouteBuilderPage.css';
 
 const modes = [{ key: 'walking', label: 'Yürüyüş', icon: '🚶' }, { key: 'cycling', label: 'Bisiklet', icon: '🚲' }, { key: 'driving', label: 'Araç', icon: '🚗' }];
@@ -82,28 +82,17 @@ export default function RouteBuilderPage() {
       setTimeout(() => setSaved(false), 2200);
     }
   };
-  const downloadGeoJSON = () => {
-    if (!preview?.geojson) return;
-    const url = URL.createObjectURL(new Blob([JSON.stringify(preview.geojson, null, 2)], { type: 'application/geo+json' }));
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = 'kulturel-rota.geojson';
-    anchor.click();
-    URL.revokeObjectURL(url);
-  };
-
   if (loading) return <div className="route-builder-state"><span /><strong>Rota oluşturucu hazırlanıyor…</strong></div>;
 
   return (
     <div className="route-builder-page">
       <nav className="route-builder-breadcrumb"><Link to="/">Ana Sayfa</Link><b>›</b><Link to="/kultur-rotalari">Kültürel Rotalar</Link><b>›</b><span>Rota Oluştur</span></nav>
-      <header className="route-builder-header"><div><span>OPENLAYERS ROTA PLANLAMA</span><h1>Kendi Rotanı Oluştur</h1><p>Haritadaki eserleri seç, durak sırasını ayarla ve GeoJSON çıktısını hazırla.</p></div><div className="route-builder-actions"><button type="button" onClick={downloadGeoJSON} disabled={!selectedIds.length}>GeoJSON İndir</button><button type="button" className="primary" onClick={saveRoute} disabled={!selectedIds.length}>{saved ? 'Kaydedildi ✓' : 'Taslağı Kaydet'}</button></div></header>
+      <header className="route-builder-header"><div><span>GEZİNİ PLANLA</span><h1>Kendi Rotanı Oluştur</h1><p>Görmek istediğiniz yerleri seçin, durak sırasını belirleyin ve gezi planınızı hazırlayın.</p></div><div className="route-builder-actions"><button type="button" className="primary" onClick={saveRoute} disabled={!selectedIds.length}>{saved ? 'Kaydedildi ✓' : 'Rotayı Kaydet'}</button></div></header>
 
       <section className="route-builder-summary">
         <article><IconRoute size={18} /><div><small>Mesafe</small><strong>{preview?.distanceKm || 0} km</strong></div></article>
         <article><IconClock size={18} /><div><small>Toplam süre</small><strong>{formatMinutes(preview?.durationMinutes)}</strong></div></article>
         <article><IconPin size={18} /><div><small>Durak</small><strong>{selectedIds.length}</strong></div></article>
-        <p><IconInfo size={15} /><span><strong>Demo CBS:</strong> Mesafe kuş uçuşu tahmindir. Gerçek belediye yol ağı servisi aynı veri sözleşmesine bağlanacaktır.</span></p>
       </section>
 
       <section className="route-builder-layout">
@@ -117,7 +106,7 @@ export default function RouteBuilderPage() {
           <div className="candidate-stops"><header><span>DURAK EKLE</span><label><IconSearch size={14} /><input placeholder="Eser ara…" value={query} onChange={(event) => setQuery(event.target.value)} /></label></header><div>{candidates.slice(0, 20).map((item) => <button type="button" key={item.id} onClick={() => toggleStop(item.id)}><SafeImage src={item.image} alt="" /><span><strong>{item.name}</strong><small>{item.district}</small></span><b>+</b></button>)}</div></div>
         </aside>
 
-        <div className="route-builder-map"><header><div><span>CANLI ÖNİZLEME</span><h2>Haritadan durak seç</h2></div><small>Bir işarete tıklayarak ekleyip kaldırabilirsiniz.</small></header><OpenLayersMap geojson={mapGeoJSON} routeMode fitToData mapType={mapType} onMapTypeChange={setMapType} onFeatureClick={(props) => props?.monumentId && toggleStop(props.monumentId)} height="690px" /></div>
+        <div className="route-builder-map"><header><div><span>CANLI ÖNİZLEME</span><h2>Haritadan durak seç</h2></div><small>Bir işarete tıklayarak ekleyip kaldırabilirsiniz.</small></header><OpenLayersMap geojson={mapGeoJSON} routeMode mapType={mapType} onMapTypeChange={setMapType} onFeatureClick={(props) => props?.monumentId && toggleStop(props.monumentId)} height="690px" /></div>
       </section>
     </div>
   );

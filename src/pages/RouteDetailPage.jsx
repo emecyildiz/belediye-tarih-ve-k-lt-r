@@ -85,7 +85,7 @@ export default function RouteDetailPage() {
           <ol>
             {(route.stops || []).map((stop) => <li key={stop.monumentId}><i>{stop.order}</i><SafeImage src={stop.image} alt="" /><div><strong>{stop.name}</strong><span><IconPin size={11} /> {stop.district}</span><small>Önerilen ziyaret: {stop.visitMinutes} dk</small></div><Link to={`/tarihi-eserler/${stop.slug}`} aria-label={`${stop.name} detayını aç`}><IconArrow size={14} /></Link></li>)}
           </ol>
-          {!route.stops?.length && <div className="route-empty-stops">Bu demo rotaya henüz durak atanmadı. Rota oluşturucudan durak ekleyebilirsiniz.</div>}
+          {!route.stops?.length && <div className="route-empty-stops">Bu rotaya henüz durak eklenmedi. Rota oluşturucudan durak ekleyebilirsiniz.</div>}
         </aside>
       </section>
     </div>

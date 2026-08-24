@@ -32,7 +32,7 @@ export default function AdminModulePlaceholderPage() {
         </div>
         <span>GELİŞTİRME AŞAMASINDA</span>
         <h2>Bu sayfa şu anda hazırlanıyor</h2>
-        <p>Modül, belediyenin gerçek veri ve yetkilendirme altyapısı bağlandıktan sonra kullanıma açılacaktır.</p>
+        <p>Bu bölümde planlanan hazırlık çalışmaları devam etmektedir.</p>
         <div className="admin-module-note">
           <strong>Ana yönetim ekranı kullanıma hazırdır.</strong>
           <small>Güncel sistem özetlerini ve raporları Gösterge Paneli üzerinden inceleyebilirsiniz.</small>
