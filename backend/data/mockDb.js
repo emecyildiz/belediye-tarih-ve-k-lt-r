@@ -4,7 +4,7 @@ import { events, eventCategoryCounts } from './events.js';
 import { statistics, weather, chartData, buildStatistics, buildChartData } from './statistics.js';
 import { buildRoutePreview } from '../services/cbs/mockCbsProvider.js';
 import { buildAdminDashboard, reviewAdminRecord } from './adminDashboard.js';
-import { getUserFavorites, toggleUserFavorite, getUserRoutes, saveUserRoute } from './userData.js';
+import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, getUserRoutes, saveUserRoute } from './userData.js';
 
 export { monuments, events, categoryCounts, eventCategoryCounts, statistics, weather, chartData };
 export const routes = culturalRoutes;
@@ -369,6 +369,10 @@ export function toggleFavorite(type, id) {
   return toggleUserFavorite(type, id, { monuments, routes: culturalRoutes, events });
 }
 
+export function getProfileOverview() {
+  return getUserProfileOverview({ monuments, routes: culturalRoutes, events });
+}
+
 export function getCustomRoutes() {
   return getUserRoutes();
 }
@@ -410,6 +414,7 @@ export default {
   reviewAdminItem,
   getFavorites,
   toggleFavorite,
+  getProfileOverview,
   getCustomRoutes,
   saveCustomRoute,
 };

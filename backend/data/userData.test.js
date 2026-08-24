@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { monuments } from './monuments.js';
 import { culturalRoutes } from './routes.js';
 import { events } from './events.js';
-import { getUserFavorites, toggleUserFavorite, getUserRoutes, saveUserRoute } from './userData.js';
+import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, getUserRoutes, saveUserRoute } from './userData.js';
 
 const sources = { monuments, routes: culturalRoutes, events };
 
@@ -26,6 +26,13 @@ test('favori değişikliği API sonucuyla kullanıcı kaydını eşzamanlı gün
 test('olmayan ana kayda favori ilişkisi oluşturulmaz', () => {
   assert.equal(toggleUserFavorite('monument', 99999, sources), null);
   assert.equal(toggleUserFavorite('invalid', 1, sources), null);
+});
+
+test('profil geçmişi geçerli ana kayıt bağlantılarıyla çözülür', () => {
+  const overview = getUserProfileOverview(sources);
+  assert.ok(overview.visitedCount > 0);
+  assert.ok(overview.visitTrend.length >= 7);
+  assert.ok(overview.recentViews.every((item) => item.title && item.href));
 });
 
 test('özel rota yalnızca geçerli ve tekilleştirilmiş duraklarla kaydedilir', () => {

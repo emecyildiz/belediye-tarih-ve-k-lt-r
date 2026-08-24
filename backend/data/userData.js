@@ -4,9 +4,24 @@ const allowedFavoriteTypes = new Set(['monument', 'route', 'event']);
 const demoUserData = {
   userId: 1,
   favorites: {
-    monument: [1, 4],
-    route: [2],
-    event: [3],
+    monument: [1, 2, 4, 9, 13],
+    route: [2, 3, 4, 5, 6],
+    event: [1, 3],
+  },
+  profileOverview: {
+    visitedCount: 21,
+    recentViews: [
+      { type: 'monument', id: 4, viewedAt: '2026-08-23T16:20:00+03:00' },
+      { type: 'monument', id: 5, viewedAt: '2026-08-22T11:10:00+03:00' },
+      { type: 'route', id: 2, viewedAt: '2026-08-21T18:45:00+03:00' },
+      { type: 'monument', id: 2, viewedAt: '2026-08-20T14:30:00+03:00' },
+    ],
+    visitTrend: [
+      { label: 'Şub', pageViews: 5, heritageVisits: 2 }, { label: 'Mar', pageViews: 7, heritageVisits: 4 },
+      { label: 'Nis', pageViews: 8, heritageVisits: 5 }, { label: 'May', pageViews: 5, heritageVisits: 3 },
+      { label: 'Haz', pageViews: 8, heritageVisits: 5 }, { label: 'Tem', pageViews: 9, heritageVisits: 7 },
+      { label: 'Ağu', pageViews: 7, heritageVisits: 6 },
+    ],
   },
   customRoutes: [],
 };
@@ -24,6 +39,21 @@ export function toggleUserFavorite(type, id, sources) {
   const favorited = !current.includes(numericId);
   demoUserData.favorites[type] = favorited ? [...current, numericId] : current.filter((itemId) => itemId !== numericId);
   return { type, id: numericId, favorited, ids: [...demoUserData.favorites[type]] };
+}
+
+export function getUserProfileOverview(sources) {
+  const configs = {
+    monument: { rows: sources.monuments, titleKey: 'name', basePath: '/tarihi-eserler' },
+    route: { rows: sources.routes, titleKey: 'title', basePath: '/kultur-rotalari' },
+    event: { rows: sources.events, titleKey: 'title', basePath: '/etkinlikler' },
+  };
+  const recentViews = demoUserData.profileOverview.recentViews.map((view) => {
+    const config = configs[view.type];
+    const item = config?.rows.find((row) => row.id === view.id);
+    if (!item) return null;
+    return { ...view, title: item[config.titleKey], image: item.image, district: item.district, href: `${config.basePath}/${item.slug || item.id}` };
+  }).filter(Boolean);
+  return { visitedCount: demoUserData.profileOverview.visitedCount, recentViews, visitTrend: demoUserData.profileOverview.visitTrend.map((item) => ({ ...item })) };
 }
 
 export function getUserRoutes() {
