@@ -191,6 +191,7 @@ const realApi = {
   getLocation: (id) => fetchAPI(`/locations/${id}`),
   getCharts: () => fetchAPI('/charts'),
   getAboutContent: () => fetchAPI('/content/about'),
+  getHomeContent: () => fetchAPI('/content/home'),
   getAdminDashboard: () => fetchAPI('/admin/dashboard'),
   reviewAdminItem: (id, decision) => sendAPI(`/admin/reviews/${id}/decision`, { decision }),
   getFavorites: () => fetchAPI('/user/favorites'),
@@ -310,6 +311,10 @@ const mockApi = {
   getAboutContent: async () => {
     const db = await getMockDb();
     return db.getAboutContent();
+  },
+  getHomeContent: async () => {
+    const db = await getMockDb();
+    return db.getHomeContent();
   },
   getAdminDashboard: async () => {
     const db = await getMockDb();

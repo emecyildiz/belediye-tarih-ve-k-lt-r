@@ -9,7 +9,8 @@ import {
 } from '../components/common/Icons';
 import './HomePage.css';
 
-const emptyData = { monuments: [], routes: [], events: [], geojson: null };
+const emptyData = { monuments: [], routes: [], events: [], geojson: null, content: null };
+const quickActionIcons = { monument: IconMonument, route: IconRoute, map: IconMap, calendar: IconCalendar, heart: IconHeart, info: IconInfo };
 
 function ScrollableSection({ title, to, linkText = 'Tümünü Gör', kind, children }) {
   const trackRef = useRef(null);
@@ -91,20 +92,43 @@ function SimpleSectionTitle({ children, to, linkText }) {
 export default function HomePage() {
   const [data, setData] = useState(emptyData);
   const [loading, setLoading] = useState(true);
+  const [activeHeroSlide, setActiveHeroSlide] = useState(0);
+  const [heroPaused, setHeroPaused] = useState(false);
+  const heroTouchStart = useRef(null);
 
   useEffect(() => {
     let active = true;
-    Promise.all([api.getMonuments(), api.getRoutes(), api.getEvents(), api.getLocations()])
-      .then(([monuments, routes, events, geojson]) => {
-        if (active) setData({ monuments, routes, events, geojson });
+    Promise.all([api.getMonuments(), api.getRoutes(), api.getEvents(), api.getLocations(), api.getHomeContent()])
+      .then(([monuments, routes, events, geojson, content]) => {
+        if (active) setData({ monuments, routes, events, geojson, content });
       })
       .catch((error) => console.error('Ana sayfa verileri yüklenemedi:', error))
       .finally(() => active && setLoading(false));
     return () => { active = false; };
   }, []);
 
-  if (loading) return <div className="loading">İçerikler hazırlanıyor…</div>;
-  const hero = data.monuments[0];
+  const heroSlides = data.content?.heroSlides || [];
+
+  useEffect(() => {
+    if (heroPaused || heroSlides.length < 2) return undefined;
+    const timer = window.setInterval(() => setActiveHeroSlide((current) => (current + 1) % heroSlides.length), 6500);
+    return () => window.clearInterval(timer);
+  }, [heroPaused, heroSlides.length]);
+
+  const moveHero = (direction) => {
+    if (!heroSlides.length) return;
+    setActiveHeroSlide((current) => (current + direction + heroSlides.length) % heroSlides.length);
+  };
+
+  const finishHeroSwipe = (clientX) => {
+    if (heroTouchStart.current === null) return;
+    const distance = clientX - heroTouchStart.current;
+    if (Math.abs(distance) > 45) moveHero(distance < 0 ? 1 : -1);
+    heroTouchStart.current = null;
+  };
+
+  if (loading || !data.content) return <div className="loading">İçerikler hazırlanıyor…</div>;
+  const sections = data.content.sections;
   const upcomingEvents = data.events
     .filter((item) => new Date(`${item.date}T23:59:59`).getTime() >= Date.now())
     .sort((first, second) => new Date(first.date) - new Date(second.date));
@@ -113,32 +137,37 @@ export default function HomePage() {
     <div className="home-page">
       <div className="home-dashboard-grid">
         <section className="home-primary-column">
-          <article className="home-hero">
-            <SafeImage className="home-hero-image" src={hero?.image} alt="" />
-            <div className="home-hero-shade" />
-            <div className="home-hero-content">
-              <p>Hatay'ın</p>
-              <h1>Kültürel Mirasını<br />Keşfedin</h1>
-              <span>Tarihi eserleri keşfedin, rotalar oluşturun ve kültürel mirasımızı birlikte koruyalım.</span>
-              <Link className="hero-button" to="/tarihi-eserler">
-                Daha Fazla Keşfedin <IconArrow size={15} />
-              </Link>
+          <article className="home-hero" aria-roledescription="döngüsel vitrin" aria-label="Hatay kültürel miras vitrini" onMouseEnter={() => setHeroPaused(true)} onMouseLeave={() => setHeroPaused(false)} onFocus={() => setHeroPaused(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setHeroPaused(false); }} onTouchStart={(event) => { heroTouchStart.current = event.touches[0].clientX; setHeroPaused(true); }} onTouchEnd={(event) => { finishHeroSwipe(event.changedTouches[0].clientX); setHeroPaused(false); }}>
+            <div className="home-hero-track" style={{ transform: `translateX(-${activeHeroSlide * 100}%)` }}>
+              {heroSlides.map((slide, index) => <div className="home-hero-slide" key={slide.id} aria-hidden={index !== activeHeroSlide}>
+                <SafeImage className="home-hero-image" src={slide.image} alt={slide.placeName} />
+                <div className="home-hero-shade" />
+                <div className="home-hero-content">
+                  <p>{slide.eyebrow}</p>
+                  <h1>{slide.title}</h1>
+                  <span>{slide.description}</span>
+                  <Link className="hero-button" to={slide.actionHref} tabIndex={index === activeHeroSlide ? undefined : -1}>
+                    {slide.actionLabel} <IconArrow size={15} />
+                  </Link>
+                </div>
+                <div className="hero-caption"><strong>{slide.placeName}</strong><span>{slide.district}</span></div>
+              </div>)}
             </div>
-            {hero && <div className="hero-caption"><strong>{hero.name}</strong><span>{hero.district}</span></div>}
+            {heroSlides.length > 1 && <><div className="hero-carousel-arrows"><button type="button" onClick={() => moveHero(-1)} aria-label="Önceki görsel">‹</button><button type="button" onClick={() => moveHero(1)} aria-label="Sonraki görsel">›</button></div><div className="hero-carousel-dots" aria-label="Vitrin görselleri">{heroSlides.map((slide, index) => <button type="button" key={slide.id} className={index === activeHeroSlide ? 'active' : ''} onClick={() => setActiveHeroSlide(index)} aria-label={`${index + 1}. görsel: ${slide.placeName}`} aria-current={index === activeHeroSlide ? 'true' : undefined} />)}</div></>}
           </article>
 
-          <ScrollableSection title="Öne Çıkan Eserler" to="/tarihi-eserler" kind="monuments">
+          <ScrollableSection title={sections.featuredMonuments.title} to={sections.featuredMonuments.href} linkText={sections.featuredMonuments.linkLabel} kind="monuments">
             {data.monuments.map((item) => <MonumentCard key={item.id} item={item} />)}
           </ScrollableSection>
 
-          <ScrollableSection title="Popüler Rotalar" to="/kultur-rotalari" linkText="Tüm Rotalar" kind="routes">
+          <ScrollableSection title={sections.popularRoutes.title} to={sections.popularRoutes.href} linkText={sections.popularRoutes.linkLabel} kind="routes">
             {data.routes.map((item) => <RouteCard key={item.id} item={item} />)}
           </ScrollableSection>
         </section>
 
         <aside className="home-side-column">
           <section className="home-map-card">
-            <SimpleSectionTitle to="/harita" linkText="Haritayı Aç">Harita</SimpleSectionTitle>
+            <SimpleSectionTitle to={sections.map.href} linkText={sections.map.linkLabel}>{sections.map.title}</SimpleSectionTitle>
             <div className="home-map-frame">
               {data.geojson && <OpenLayersMap geojson={data.geojson} cluster />}
               <Link className="map-fullscreen-link" to="/harita">⛶ Tam Ekran</Link>
@@ -146,7 +175,7 @@ export default function HomePage() {
           </section>
 
           <section className="home-events-card">
-            <SimpleSectionTitle to="/etkinlikler" linkText="Tümünü Gör">Yaklaşan Etkinlikler</SimpleSectionTitle>
+            <SimpleSectionTitle to={sections.events.href} linkText={sections.events.linkLabel}>{sections.events.title}</SimpleSectionTitle>
             <div className="home-event-list" tabIndex="0" aria-label="Kaydırılabilir yaklaşan etkinlikler listesi">
               {upcomingEvents.map((item) => <EventRow key={item.id} item={item} />)}
             </div>
@@ -155,12 +184,7 @@ export default function HomePage() {
       </div>
 
       <section className="home-quick-actions" aria-label="Hızlı bağlantılar">
-        <Link to="/tarihi-eserler"><IconMonument size={23} /><span><strong>Eserleri İncele</strong><small>Tarihi miras arşivi</small></span></Link>
-        <Link to="/kultur-rotalari"><IconRoute size={23} /><span><strong>Rotaları Keşfet</strong><small>Tematik gezi planları</small></span></Link>
-        <Link to="/harita"><IconMap size={23} /><span><strong>Katmanlar</strong><small>Harita görünümü</small></span></Link>
-        <Link to="/etkinlikler"><IconCalendar size={23} /><span><strong>Etkinlikler</strong><small>Kültür takvimi</small></span></Link>
-        <Link to="/profil"><IconHeart size={23} /><span><strong>Profil & Favoriler</strong><small>Kaydettiğiniz içerikler</small></span></Link>
-        <Link to="/hakkinda"><IconInfo size={23} /><span><strong>Proje Hakkında</strong><small>TKMBS bilgileri</small></span></Link>
+        {data.content.quickActions.map((action) => { const ActionIcon = quickActionIcons[action.icon] || IconArrow; return <Link key={action.href} to={action.href}><ActionIcon size={23} /><span><strong>{action.title}</strong><small>{action.text}</small></span></Link>; })}
       </section>
     </div>
   );

@@ -1,0 +1,70 @@
+export const homeContent = {
+  id: 'home-main',
+  locale: 'tr-TR',
+  status: 'published',
+  updatedAt: '2026-08-24T11:30:00+03:00',
+  heroSlides: [
+    {
+      id: 'habib-neccar',
+      eyebrow: "Hatay'ın",
+      title: 'Kültürel Mirasını Keşfedin',
+      description: 'Tarihi eserleri keşfedin, rotalar oluşturun ve kültürel mirasımızı birlikte koruyalım.',
+      image: '/assets/monuments/habib-neccar-main.jpg',
+      placeName: 'Habib-i Neccar Camii',
+      district: 'Antakya',
+      actionLabel: 'Daha Fazla Keşfedin',
+      actionHref: '/tarihi-eserler/habib-i-neccar-camii',
+    },
+    {
+      id: 'st-pierre',
+      eyebrow: 'İnançların buluştuğu kent',
+      title: 'St. Pierre Kilisesi’ni Tanıyın',
+      description: 'Antakya’nın binlerce yıllık inanç mirasını ve dünyanın ilk mağara kiliselerinden birini yakından keşfedin.',
+      image: '/assets/monuments/st-pierre-main.jpg',
+      placeName: 'St. Pierre Kilisesi',
+      district: 'Antakya',
+      actionLabel: 'Eseri İnceleyin',
+      actionHref: '/tarihi-eserler/st-pierre-kilisesi',
+    },
+    {
+      id: 'payas-kalesi',
+      eyebrow: 'Akdeniz kıyısında tarih',
+      title: 'Payas Kalesi’ni Keşfedin',
+      description: 'Kervansarayı, külliyesi ve savunma yapılarıyla Payas’ın tarih boyunca taşıdığı önemi görün.',
+      image: '/assets/monuments/payas-kalesi-main.jpg',
+      placeName: 'Payas Kalesi',
+      district: 'Payas',
+      actionLabel: 'Eseri İnceleyin',
+      actionHref: '/tarihi-eserler/payas-kalesi',
+    },
+    {
+      id: 'harbiye',
+      eyebrow: 'Doğa ve kültür bir arada',
+      title: 'Harbiye Şelaleleri’nde Nefes Alın',
+      description: 'Efsaneleri, doğal güzellikleri ve geleneksel yaşamıyla Harbiye’nin kendine özgü atmosferini deneyimleyin.',
+      image: '/assets/monuments/harbiye-selaleleri.jpg',
+      placeName: 'Harbiye Şelaleleri',
+      district: 'Defne',
+      actionLabel: 'Bölgeyi Keşfedin',
+      actionHref: '/tarihi-eserler/harbiye-selaleleri',
+    },
+  ],
+  sections: {
+    featuredMonuments: { title: 'Öne Çıkan Eserler', href: '/tarihi-eserler', linkLabel: 'Tümünü Gör' },
+    popularRoutes: { title: 'Popüler Rotalar', href: '/kultur-rotalari', linkLabel: 'Tüm Rotalar' },
+    map: { title: 'Harita', href: '/harita', linkLabel: 'Haritayı Aç' },
+    events: { title: 'Yaklaşan Etkinlikler', href: '/etkinlikler', linkLabel: 'Tümünü Gör' },
+  },
+  quickActions: [
+    { icon: 'monument', title: 'Eserleri İncele', text: 'Tarihi miras arşivi', href: '/tarihi-eserler' },
+    { icon: 'route', title: 'Rotaları Keşfet', text: 'Tematik gezi planları', href: '/kultur-rotalari' },
+    { icon: 'map', title: 'Katmanlar', text: 'Harita görünümü', href: '/harita' },
+    { icon: 'calendar', title: 'Etkinlikler', text: 'Kültür takvimi', href: '/etkinlikler' },
+    { icon: 'heart', title: 'Profil & Favoriler', text: 'Kaydettiğiniz içerikler', href: '/profil' },
+    { icon: 'info', title: 'Proje Hakkında', text: 'TKMBS bilgileri', href: '/hakkinda' },
+  ],
+};
+
+export function getHomeContent() {
+  return JSON.parse(JSON.stringify(homeContent));
+}

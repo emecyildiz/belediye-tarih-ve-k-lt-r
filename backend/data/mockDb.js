@@ -6,6 +6,7 @@ import { buildRoutePreview } from '../services/cbs/mockCbsProvider.js';
 import { buildAdminDashboard, reviewAdminRecord } from './adminDashboard.js';
 import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './userData.js';
 import { aboutContent, getAboutContent as queryAboutContent } from './aboutContent.js';
+import { homeContent, getHomeContent as queryHomeContent } from './homeContent.js';
 
 export { monuments, events, categoryCounts, eventCategoryCounts, statistics, weather, chartData };
 export const routes = culturalRoutes;
@@ -352,6 +353,10 @@ export function getAboutContent() {
   return queryAboutContent();
 }
 
+export function getHomeContent() {
+  return queryHomeContent();
+}
+
 export function getCharts() {
   return buildChartData({ monuments, routes: culturalRoutes, events });
 }
@@ -401,6 +406,7 @@ export default {
   weather,
   chartData,
   aboutContent,
+  homeContent,
   getMonuments,
   getMonumentsPage,
   getMonument,
@@ -420,6 +426,7 @@ export default {
   getWeather,
   getStatistics,
   getAboutContent,
+  getHomeContent,
   getCharts,
   getAdminDashboard,
   reviewAdminItem,
