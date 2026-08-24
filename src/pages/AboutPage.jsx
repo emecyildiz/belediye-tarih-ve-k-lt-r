@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import {
-  IconArrow, IconCalendar, IconDocument, IconInfo, IconMap,
+  IconArrow, IconCalendar, IconInfo, IconMap,
   IconMonument, IconPin, IconRoute,
 } from '../components/common/Icons';
 import './AboutPage.css';
@@ -10,38 +10,38 @@ import './AboutPage.css';
 const capabilities = [
   {
     icon: IconMonument,
-    title: 'Dijital kültür envanteri',
-    text: 'Tarihi eserlerin dönem, konum, koruma ve ziyaret bilgilerinin ortak bir yapıda sunulması.',
+    title: 'Tarihi yerleri tanıyın',
+    text: 'Hatay’ın camilerini, kiliselerini, müzelerini, kalelerini ve doğal güzelliklerini yakından tanıyın.',
   },
   {
     icon: IconMap,
-    title: 'CBS tabanlı keşif',
-    text: 'Konumsal verilerin OpenLayers haritasında katmanlar ve filtrelerle görüntülenmesi.',
+    title: 'Haritada kolayca bulun',
+    text: 'Ziyaret etmek istediğiniz yerlerin konumunu görün ve çevrenizdeki kültürel durakları keşfedin.',
   },
   {
     icon: IconRoute,
-    title: 'Kültürel rotalar',
-    text: 'Tematik durakların mesafe, süre ve ulaşım bilgileriyle gezi planına dönüştürülmesi.',
+    title: 'Gezinizi planlayın',
+    text: 'Hazırlanan kültürel rotalarla gezi sürenizi, duraklarınızı ve ziyaret sıranızı önceden planlayın.',
   },
   {
     icon: IconCalendar,
-    title: 'Etkinlik takvimi',
-    text: 'Kentteki kültür, sanat, gezi ve atölye programlarının tek takvimde takip edilmesi.',
+    title: 'Etkinliklere katılın',
+    text: 'Kültür, sanat, gezi ve atölye programlarını takvimden izleyerek Hatay’ın kültürel yaşamına katılın.',
   },
 ];
 
 const processSteps = [
-  ['01', 'Kayıt', 'Kültür varlığına ait temel ve konumsal bilgiler sisteme kaydedilir.'],
-  ['02', 'Doğrulama', 'İçerik, koordinat ve medya bilgileri yetkili birimlerce kontrol edilir.'],
-  ['03', 'Yayın', 'Onaylanan kayıtlar harita ve ilgili katalog sayfalarında yayımlanır.'],
-  ['04', 'Analiz', 'Ziyaret ve kullanım verileri yönetici raporlarına tutarlı biçimde aktarılır.'],
+  ['01', 'Keşfet', 'İlginizi çeken tarihi eserleri, doğal alanları ve kültürel etkinlikleri bulun.'],
+  ['02', 'Bilgi edin', 'Ziyaret öncesinde yapının tarihini, özelliklerini, konumunu ve ziyaret bilgilerini öğrenin.'],
+  ['03', 'Planla', 'Kültürel rotaları inceleyin veya görmek istediğiniz duraklarla kendi gezi planınızı hazırlayın.'],
+  ['04', 'Hatay’ı yaşa', 'Hazırladığınız planla şehri gezin, kültürel mirası yerinde görün ve deneyimleyin.'],
 ];
 
-const technologies = [
-  ['React', 'Kullanıcı arayüzü'],
-  ['Node.js & Express', 'API ve servis katmanı'],
-  ['OpenLayers', 'Web haritası'],
-  ['GeoJSON', 'Konumsal veri aktarımı'],
+const municipalityGoals = [
+  ['Kolay erişim', 'Kültürel bilgilere herkesin rahatça ulaşabilmesi'],
+  ['Doğru yönlendirme', 'Ziyaretçilerin gezi öncesinde ihtiyaç duyduğu bilgileri bulabilmesi'],
+  ['Kültürel farkındalık', 'Hatay’ın zengin mirasının daha yakından tanınması'],
+  ['Geleceğe aktarım', 'Tarihi ve kültürel değerlerin yeni kuşaklara anlatılması'],
 ];
 
 export default function AboutPage() {
@@ -67,7 +67,7 @@ export default function AboutPage() {
       <section className="about-hero">
         <div className="about-hero-copy">
           <span className="about-eyebrow"><IconInfo size={14} /> TKMBS hakkında</span>
-          <h1>Hatay'ın tarihi ve kültürel mirası <em>tek platformda.</em></h1>
+          <h1>Hatay'ın tarihi ve kültürel mirası <em>tek yerde.</em></h1>
           <p>
             Tarihi eserleri, kültürel rotaları ve etkinlikleri doğru konum bilgileriyle
             keşfedin; Hatay'ın zengin mirasına tek noktadan ulaşın.
@@ -91,27 +91,26 @@ export default function AboutPage() {
       <section className="about-intro">
         <div className="about-section-heading">
           <span>PROJE HAKKINDA</span>
-          <h2>Kültürel mirasa tek noktadan erişim</h2>
+          <h2>Hatay’ı tanımak ve daha güzel gezmek için</h2>
         </div>
         <div className="about-intro-copy">
           <p>
-            Tarihi ve Kültürel Miras Bilgi Sistemi; kentin farklı kaynaklarda bulunan
-            kültür envanterini ortak bir veri yapısında birleştirmek, harita üzerinde
-            görünür kılmak ve vatandaşların doğru bilgiye kolayca ulaşmasını sağlamak
-            amacıyla tasarlanmıştır.
+            Tarihi ve Kültürel Miras Bilgi Sistemi, Hatay’ın binlerce yıllık geçmişini
+            vatandaşlarımız ve ziyaretçilerimiz için daha kolay anlaşılır ve erişilebilir
+            hale getirmek amacıyla hazırlanmıştır.
           </p>
           <p>
-            Sistem yalnızca bir tanıtım sitesi değildir. Eser, rota ve etkinlik kayıtları
-            aynı veri kaynağına bağlı çalışır; bu veriler yönetim tarafındaki istatistik ve
-            raporların da temelini oluşturur.
+            Ziyaret etmek istediğiniz yer hakkında önceden bilgi edinebilir, konumunu
+            haritada görebilir, size uygun kültürel rotayı seçebilir ve gezi gününüzü
+            daha verimli planlayabilirsiniz.
           </p>
         </div>
       </section>
 
       <section className="about-capabilities">
         <div className="about-section-heading centered">
-          <span>SİSTEM NELER SUNAR?</span>
-          <h2>Keşiften planlamaya bütünleşik deneyim</h2>
+          <span>NASIL YARARLANABİLİRSİNİZ?</span>
+          <h2>Keşfedin, öğrenin ve gezinizi planlayın</h2>
         </div>
         <div className="about-capability-grid">
           {capabilities.map(({ icon: Icon, title, text }) => (
@@ -126,16 +125,16 @@ export default function AboutPage() {
 
       <section className="about-data-flow">
         <div className="about-flow-copy">
-          <span>VERİ YAŞAM DÖNGÜSÜ</span>
-          <h2>Bir kayıt, sistemin tamamında aynı bilgi</h2>
+          <span>HATAY’I KEŞFETME REHBERİ</span>
+          <h2>Geziye başlamadan önce ihtiyacınız olan bilgiler</h2>
           <p>
-            Ana kayıtlarda yapılan değişiklikler ilgili katalog, harita ve rapor ekranlarına
-            aynı veri ilişkileri üzerinden yansır. Böylece birbirinden kopuk veya çelişen
-            içeriklerin oluşması önlenir.
+            Gitmek istediğiniz yeri seçin, tarihini ve ziyaret bilgilerini okuyun. Haritadaki
+            konumunu inceleyin, yakınındaki diğer eserleri görün ve zamanınıza uygun bir rota
+            oluşturarak Hatay’ı kendi hızınızda keşfedin.
           </p>
           <div className="about-data-note">
-            <IconDocument size={19} />
-            <div><strong>Kurumsal CBS entegrasyonuna hazır</strong><small>Servis katmanı, belediyenin API ve gerçek CBS veri altyapısına bağlanabilecek şekilde ayrıştırılmıştır.</small></div>
+            <IconInfo size={19} />
+            <div><strong>Hatay Büyükşehir Belediyesi</strong><small>Kentimizin tarihi ve kültürel değerlerini tanıtmak, kültür turizmini desteklemek ve vatandaşlarımızın doğru bilgiye kolayca ulaşmasını sağlamak için çalışıyoruz.</small></div>
           </div>
         </div>
         <ol className="about-process-list">
@@ -147,12 +146,12 @@ export default function AboutPage() {
 
       <section className="about-technology">
         <div className="about-section-heading">
-          <span>TEKNİK ALTYAPI</span>
-          <h2>Açık standartlarla geliştirildi</h2>
-          <p>Modüler servis yapısı sayesinde veri kaynağı değiştiğinde kullanıcı arayüzü aynı sözleşmeyle çalışmayı sürdürebilir.</p>
+          <span>BELEDİYEMİZİN AMACI</span>
+          <h2>Kültürel mirası herkes için görünür kılmak</h2>
+          <p>Hatay’ın eşsiz tarihini korurken bu değerlerin vatandaşlarımız, çocuklarımız ve kentimizi ziyaret eden misafirlerimiz tarafından daha iyi tanınmasını amaçlıyoruz.</p>
         </div>
         <div className="about-tech-list">
-          {technologies.map(([name, purpose]) => <article key={name}><strong>{name}</strong><span>{purpose}</span></article>)}
+          {municipalityGoals.map(([name, purpose]) => <article key={name}><strong>{name}</strong><span>{purpose}</span></article>)}
         </div>
       </section>
 
