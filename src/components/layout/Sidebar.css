@@ -16,11 +16,23 @@
   transition: width .22s ease, flex-basis .22s ease, transform .22s ease;
 }
 .portal-sidebar.is-collapsed {
-  width: 0;
-  flex-basis: 0;
-  transform: translateX(-100%);
-  overflow: hidden;
+  width: 64px;
+  flex-basis: 64px;
+  overflow-x: hidden;
 }
+.portal-sidebar.is-collapsed .sidebar-product,
+.portal-sidebar.is-collapsed .sidebar-weather { display: none; }
+.portal-sidebar.is-collapsed .sidebar-nav { padding: 10px 7px; }
+.portal-sidebar.is-collapsed .sidebar-link { padding: 9px; justify-content: center; gap: 0; }
+.portal-sidebar.is-collapsed .sidebar-link > span { display: none; }
+.portal-sidebar.is-collapsed .sidebar-link::before { left: -7px; }
+.portal-sidebar.is-collapsed .sidebar-badge { position: absolute; top: 2px; right: 1px; min-width: 17px; height: 17px; padding: 0 4px; font-size: 8px; }
+.admin-sidebar.is-collapsed .admin-sidebar-product,
+.admin-sidebar.is-collapsed .admin-sidebar-account { display: none; }
+.admin-sidebar.is-collapsed .admin-sidebar-nav { padding: 10px 7px; }
+.admin-sidebar.is-collapsed .admin-sidebar-link { padding: 8px; justify-content: center; gap: 0; }
+.admin-sidebar.is-collapsed .admin-sidebar-link > span { display: none; }
+.admin-sidebar.is-collapsed .admin-sidebar-link > b { position: absolute; top: 1px; right: 0; min-width: 16px; height: 16px; padding: 0 4px; font-size: 7px; }
 .sidebar-product {
   padding: 14px 17px 12px;
   border-bottom: 1px solid rgb(255 255 255 / 12%);
@@ -137,5 +149,4 @@
     box-shadow: 14px 0 40px rgb(0 19 48 / 25%);
   }
   .portal-sidebar.is-open { transform: translateX(0); }
-  .portal-sidebar.is-collapsed.is-open { width: 238px; flex-basis: 238px; }
 }

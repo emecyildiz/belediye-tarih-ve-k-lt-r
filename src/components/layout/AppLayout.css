@@ -38,10 +38,10 @@
   transition: margin-left .22s ease;
 }
 
-.sidebar-collapsed .app-main { margin-left: 0; }
+.sidebar-collapsed .app-main { margin-left: 64px; }
 .sidebar-collapsed .portal-topbar {
-  width: calc(100% - 238px);
-  margin-left: 238px;
+  width: calc(100% - 174px);
+  margin-left: 174px;
 }
 
 .app-content {

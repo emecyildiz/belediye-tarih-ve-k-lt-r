@@ -7,7 +7,7 @@ import './AppLayout.css';
 
 export default function AppLayout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('tkmbs-sidebar-collapsed-v2') !== 'false');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const { pathname } = useLocation();
   const adminLayout = pathname.startsWith('/yonetim-paneli') || pathname === '/raporlar' || pathname === '/cbs-analitik';
 
@@ -18,10 +18,11 @@ export default function AppLayout({ children }) {
       setMenuOpen((value) => !value);
       return;
     }
-    setSidebarCollapsed((value) => {
-      localStorage.setItem('tkmbs-sidebar-collapsed-v2', String(!value));
-      return !value;
-    });
+    setSidebarCollapsed((value) => !value);
+  };
+
+  const expandSidebar = () => {
+    setSidebarCollapsed(false);
   };
 
   return (
@@ -30,8 +31,8 @@ export default function AppLayout({ children }) {
         <img src="/assets/image6.png" alt="Hatay Büyükşehir Belediyesi" />
       </div>
       {adminLayout
-        ? <AdminSidebar open={menuOpen} collapsed={sidebarCollapsed} onNavigate={() => setMenuOpen(false)} />
-        : <Sidebar open={menuOpen} collapsed={sidebarCollapsed} onNavigate={() => setMenuOpen(false)} />}
+        ? <AdminSidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={() => setMenuOpen(false)} />
+        : <Sidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={() => setMenuOpen(false)} />}
       {menuOpen && (
         <button
           type="button"

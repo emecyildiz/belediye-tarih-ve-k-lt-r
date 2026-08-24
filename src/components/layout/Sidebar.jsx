@@ -33,7 +33,7 @@ function HataySkyline() {
   );
 }
 
-export default function Sidebar({ open = false, collapsed = false, onNavigate }) {
+export default function Sidebar({ open = false, collapsed = false, onExpand, onNavigate }) {
   const [weather, setWeather] = useState({ temp: 24, desc: 'Güneşli', location: 'Antakya' });
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -55,8 +55,17 @@ export default function Sidebar({ open = false, collapsed = false, onNavigate })
     return () => window.removeEventListener('tkmbs-notifications-updated', syncCount);
   }, []);
 
+  const handleNavigate = (event) => {
+    if (collapsed && !window.matchMedia('(max-width: 900px)').matches) {
+      event.preventDefault();
+      onExpand?.();
+      return;
+    }
+    onNavigate?.();
+  };
+
   return (
-    <aside className={`portal-sidebar ${open ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`} aria-hidden={collapsed && !open}>
+    <aside className={`portal-sidebar ${open ? 'is-open' : ''} ${collapsed && !open ? 'is-collapsed' : ''}`}>
       <div className="sidebar-product">
         <strong>TKMBS</strong>
         <span>Tarihi ve Kültürel Miras Bilgi Sistemi</span>
@@ -67,7 +76,8 @@ export default function Sidebar({ open = false, collapsed = false, onNavigate })
             key={item.path}
             to={item.path}
             end={item.end}
-            onClick={onNavigate}
+            onClick={handleNavigate}
+            title={collapsed ? item.label : undefined}
             className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
           >
             <NavIcon name={item.icon} size={19} />

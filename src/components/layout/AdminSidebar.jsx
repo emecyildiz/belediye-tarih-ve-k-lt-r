@@ -28,21 +28,30 @@ const moduleItems = [
   ['content', 'İçerik Yönetimi', 'globals/site-settings'],
 ];
 
-export default function AdminSidebar({ open = false, collapsed = false, onNavigate }) {
+export default function AdminSidebar({ open = false, collapsed = false, onExpand, onNavigate }) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     api.getNotificationCount().then((count) => setUnreadCount(Number(count) || 0)).catch(() => {});
   }, []);
 
-  return <aside className={`portal-sidebar admin-sidebar ${open ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`} aria-hidden={collapsed && !open}>
+  const handleNavigate = (event) => {
+    if (collapsed && !window.matchMedia('(max-width: 900px)').matches) {
+      event.preventDefault();
+      onExpand?.();
+      return;
+    }
+    onNavigate?.();
+  };
+
+  return <aside className={`portal-sidebar admin-sidebar ${open ? 'is-open' : ''} ${collapsed && !open ? 'is-collapsed' : ''}`}>
     <div className="admin-sidebar-product"><span>TKMBS</span><strong>Yönetim Paneli</strong></div>
     <nav className="admin-sidebar-nav" aria-label="Yönetim menüsü">
-      <NavLink to="/yonetim-paneli" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="dashboard"/><span>Gösterge Paneli</span></NavLink>
-      {moduleItems.map(([icon, label, path]) => <a href={`${CMS_URL}/admin/${path}`} target="_blank" rel="noreferrer" onClick={onNavigate} className="admin-sidebar-link" key={path}><AdminMenuIcon name={icon}/><span>{label}</span></a>)}
-      <a href={`${CMS_URL}/admin/collections/notifications`} target="_blank" rel="noreferrer" onClick={onNavigate} className="admin-sidebar-link"><AdminMenuIcon name="bell"/><span>Bildirimler</span>{unreadCount > 0 && <b>{unreadCount}</b>}</a>
-      <NavLink to="/raporlar" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link report${isActive ? ' active' : ''}`}><AdminMenuIcon name="report"/><span>Raporlar</span></NavLink>
-      <NavLink to="/yonetim-paneli/yedekleme" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="backup"/><span>Yedekleme</span></NavLink>
+      <NavLink to="/yonetim-paneli" onClick={handleNavigate} title={collapsed ? 'Gösterge Paneli' : undefined} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="dashboard"/><span>Gösterge Paneli</span></NavLink>
+      {moduleItems.map(([icon, label, path]) => <a href={`${CMS_URL}/admin/${path}`} target="_blank" rel="noreferrer" onClick={handleNavigate} title={collapsed ? label : undefined} className="admin-sidebar-link" key={path}><AdminMenuIcon name={icon}/><span>{label}</span></a>)}
+      <a href={`${CMS_URL}/admin/collections/notifications`} target="_blank" rel="noreferrer" onClick={handleNavigate} title={collapsed ? 'Bildirimler' : undefined} className="admin-sidebar-link"><AdminMenuIcon name="bell"/><span>Bildirimler</span>{unreadCount > 0 && <b>{unreadCount}</b>}</a>
+      <NavLink to="/raporlar" onClick={handleNavigate} title={collapsed ? 'Raporlar' : undefined} className={({ isActive }) => `admin-sidebar-link report${isActive ? ' active' : ''}`}><AdminMenuIcon name="report"/><span>Raporlar</span></NavLink>
+      <NavLink to="/yonetim-paneli/yedekleme" onClick={handleNavigate} title={collapsed ? 'Yedekleme' : undefined} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="backup"/><span>Yedekleme</span></NavLink>
     </nav>
     <div className="admin-sidebar-account"><span>Y</span><div><strong>Yönetici</strong><small>Yetkili çalışma alanı</small></div><i>•••</i></div>
   </aside>;
