@@ -146,25 +146,30 @@ img { max-width: 100%; display: block; border-radius: var(--radius); }
 }
 
 .page-load-more {
-  display: block;
-  min-width: 220px;
-  margin: 22px auto 4px;
-  padding: 11px 18px;
-  border: 1px solid #b9cce4;
-  border-radius: 10px;
-  background: #fff;
+  width: fit-content;
+  margin: 18px auto 5px;
+  padding: 5px 2px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
   color: #07356d;
   font: inherit;
+  font-size: 10px;
   font-weight: 700;
   cursor: pointer;
-  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+  transition: color .2s ease, border-color .2s ease;
 }
+.page-load-more::after { content: '↓'; font-size: 13px; line-height: 1; transition: transform .2s ease; }
 
 .page-load-more:hover:not(:disabled) {
-  border-color: #1768b4;
-  background: #f1f7fd;
-  transform: translateY(-1px);
+  color: #1768b4;
+  border-bottom-color: currentColor;
 }
+.page-load-more:hover:not(:disabled)::after { transform: translateY(2px); }
+.page-load-more:focus-visible { outline: 2px solid rgb(23 104 180 / 28%); outline-offset: 4px; border-radius: 2px; }
 
 .page-load-more:disabled { cursor: wait; opacity: .65; }
 
