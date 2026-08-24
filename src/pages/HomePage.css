@@ -28,7 +28,7 @@
 }
 .home-hero {
   position: relative;
-  min-height: 285px;
+  min-height: 320px;
   display: flex;
   align-items: center;
   color: #fff;
@@ -64,8 +64,8 @@
 .home-hero-content {
   position: relative;
   z-index: 2;
-  width: min(430px, 75%);
-  padding: 28px 25px;
+  width: min(590px, 82%);
+  padding: 30px 28px 48px;
 }
 .home-hero-content p {
   margin: 0;
@@ -74,9 +74,11 @@
 }
 .home-hero-content h1 {
   margin: 0 0 9px;
-  font-size: clamp(32px, 3.2vw, 45px);
-  line-height: .98;
-  letter-spacing: -.04em;
+  max-width: 570px;
+  font-size: clamp(32px, 3vw, 46px);
+  line-height: 1.04;
+  letter-spacing: -.035em;
+  text-wrap: balance;
 }
 .home-hero-content > span {
   display: block;
@@ -84,20 +86,6 @@
   color: rgb(255 255 255 / 92%);
   font-size: 17px;
   line-height: 1.55;
-}
-.hero-button {
-  width: fit-content;
-  margin-top: 16px;
-  padding: 11px 16px;
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  border-radius: 6px;
-  color: #fff;
-  background: linear-gradient(135deg, #0a356f, #001a40);
-  box-shadow: 0 8px 20px rgb(0 13 33 / 22%);
-  font-size: 15px;
-  font-weight: 650;
 }
 .hero-caption {
   position: absolute;
@@ -425,9 +413,9 @@
 @media (max-width: 620px) {
   .home-page { width: 100%; overflow: hidden; }
   .home-dashboard-grid, .home-primary-column, .home-side-column { width: 100%; max-width: 100%; }
-  .home-hero { min-height: 310px; }
-  .home-hero-content { width: 92%; padding: 22px 17px; }
-  .home-hero-content h1 { font-size: 34px; }
+  .home-hero { min-height: 380px; }
+  .home-hero-content { width: 94%; padding: 24px 17px 50px; }
+  .home-hero-content h1 { font-size: clamp(30px, 9vw, 36px); line-height: 1.06; }
   .hero-caption { display: none; }
   .hero-carousel-arrows { top: 10px; right: 10px; }
   .hero-carousel-arrows button { width: 30px; height: 30px; }

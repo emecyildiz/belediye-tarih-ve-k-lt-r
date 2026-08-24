@@ -167,19 +167,16 @@ export default function HomePage() {
         <section className="home-primary-column">
           <article className={`home-hero ${heroPointer.current ? 'is-dragging' : ''}`} aria-roledescription="döngüsel vitrin" aria-label="Hatay kültürel miras vitrini" onMouseEnter={() => setHeroPaused(true)} onMouseLeave={() => setHeroPaused(false)} onFocus={() => setHeroPaused(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setHeroPaused(false); }} onTouchStart={(event) => { heroTouchStart.current = event.touches[0].clientX; setHeroPaused(true); }} onTouchEnd={(event) => { finishHeroSwipe(event.changedTouches[0].clientX); setHeroPaused(false); }} onPointerDown={startHeroDrag} onPointerMove={moveHeroDrag} onPointerUp={endHeroDrag} onPointerCancel={endHeroDrag} onDragStart={(event) => event.preventDefault()} onClickCapture={(event) => { if (suppressHeroClick.current) { event.preventDefault(); event.stopPropagation(); suppressHeroClick.current = false; } }}>
             <div className="home-hero-track" style={{ transform: `translateX(calc(-${activeHeroSlide * 100}% + ${heroDragOffset}px))`, transition: heroPointer.current ? 'none' : undefined }}>
-              {heroSlides.map((slide, index) => <div className="home-hero-slide" key={slide.id} aria-hidden={index !== activeHeroSlide}>
+              {heroSlides.map((slide, index) => <Link className="home-hero-slide" to={slide.actionHref} key={slide.id} aria-hidden={index !== activeHeroSlide} aria-label={`${slide.placeName} ayrıntılarını görüntüle`} tabIndex={index === activeHeroSlide ? 0 : -1}>
                 <SafeImage className="home-hero-image" src={slide.image} alt={slide.placeName} />
                 <div className="home-hero-shade" />
                 <div className="home-hero-content">
                   <p>{slide.eyebrow}</p>
                   <h1>{slide.title}</h1>
                   <span>{slide.description}</span>
-                  <Link className="hero-button" to={slide.actionHref} tabIndex={index === activeHeroSlide ? undefined : -1}>
-                    {slide.actionLabel} <IconArrow size={15} />
-                  </Link>
                 </div>
                 <div className="hero-caption"><strong>{slide.placeName}</strong><span>{slide.district}</span></div>
-              </div>)}
+              </Link>)}
             </div>
             {heroSlides.length > 1 && <><div className="hero-carousel-arrows"><button type="button" onClick={() => moveHero(-1)} aria-label="Önceki görsel">‹</button><button type="button" onClick={() => moveHero(1)} aria-label="Sonraki görsel">›</button></div><div className="hero-carousel-dots" aria-label="Vitrin görselleri">{heroSlides.map((slide, index) => <button type="button" key={slide.id} className={index === activeHeroSlide ? 'active' : ''} onClick={() => setActiveHeroSlide(index)} aria-label={`${index + 1}. görsel: ${slide.placeName}`} aria-current={index === activeHeroSlide ? 'true' : undefined} />)}</div></>}
           </article>
