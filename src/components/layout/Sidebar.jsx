@@ -33,7 +33,7 @@ function HataySkyline() {
   );
 }
 
-export default function Sidebar({ open = false, onNavigate }) {
+export default function Sidebar({ open = false, collapsed = false, onNavigate }) {
   const [weather, setWeather] = useState({ temp: 24, desc: 'Güneşli', location: 'Antakya' });
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -56,7 +56,7 @@ export default function Sidebar({ open = false, onNavigate }) {
   }, []);
 
   return (
-    <aside className={`portal-sidebar ${open ? 'is-open' : ''}`}>
+    <aside className={`portal-sidebar ${open ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`} aria-hidden={collapsed && !open}>
       <div className="sidebar-brand">
         <img src="/assets/image6.png" alt="Hatay Büyükşehir Belediyesi" />
       </div>

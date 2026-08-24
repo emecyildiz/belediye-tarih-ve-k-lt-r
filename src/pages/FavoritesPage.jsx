@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
+import useDragScroll from '../hooks/useDragScroll';
 import { IconArrow, IconBookmark, IconCalendar, IconClock, IconHeart, IconMonument, IconPin, IconRoute, IconUser } from '../components/common/Icons';
 import './FavoritesPage.css';
 
@@ -29,9 +30,9 @@ function StripCard({ item, type, onRemove }) {
 }
 
 function FavoriteStrip({ title, items, type, onRemove, allHref }) {
-  const trackRef = useRef(null);
+  const { ref: trackRef, dragProps } = useDragScroll('x');
   const scroll = (direction) => trackRef.current?.scrollBy({ left: direction * Math.max(300, trackRef.current.clientWidth * .78), behavior: 'smooth' });
-  return <section className="favorite-strip-section"><header><h2>{title}</h2><div><Link to={allHref}>Tümünü Gör <IconArrow size={11} /></Link><button type="button" onClick={() => scroll(-1)} aria-label={`${title} listesini sola kaydır`}>‹</button><button type="button" onClick={() => scroll(1)} aria-label={`${title} listesini sağa kaydır`}>›</button></div></header><div className="favorite-strip-track" ref={trackRef}>{items.length ? items.map((item) => <StripCard key={item.id} item={item} type={type} onRemove={onRemove} />) : <p className="favorite-strip-empty">Bu bölümde henüz favoriniz yok.</p>}</div></section>;
+  return <section className="favorite-strip-section"><header><h2>{title}</h2><div><Link to={allHref}>Tümünü Gör <IconArrow size={11} /></Link><button type="button" onClick={() => scroll(-1)} aria-label={`${title} listesini sola kaydır`}>‹</button><button type="button" onClick={() => scroll(1)} aria-label={`${title} listesini sağa kaydır`}>›</button></div></header><div className="favorite-strip-track drag-scroll" ref={trackRef} {...dragProps}>{items.length ? items.map((item) => <StripCard key={item.id} item={item} type={type} onRemove={onRemove} />) : <p className="favorite-strip-empty">Bu bölümde henüz favoriniz yok.</p>}</div></section>;
 }
 
 function TrendChart({ data = [] }) {

@@ -47,7 +47,10 @@
   display: flex;
   align-items: center;
   overflow: hidden;
+  cursor: grab;
+  user-select: none;
 }
+.home-hero.is-dragging { cursor: grabbing; }
 .home-hero-image, .home-hero-shade {
   position: absolute;
   inset: 0;

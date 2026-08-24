@@ -146,7 +146,7 @@
 .management-link b { margin-left: 4px; font-size: 16px; }
 .mobile-menu-button {
   grid-column: 1;
-  display: none;
+  display: inline-flex;
   flex-direction: column;
   gap: 4px;
 }
@@ -162,7 +162,6 @@
     padding: 9px 12px;
     gap: 8px;
   }
-  .mobile-menu-button { display: inline-flex; }
   .portal-search { grid-column: 2; }
   .topbar-actions { grid-column: 3; }
   .help-button { display: none; }

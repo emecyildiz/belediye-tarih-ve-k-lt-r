@@ -4,13 +4,14 @@ import api from '../../services/api';
 import { IconBell, IconSearch, IconUser } from '../common/Icons';
 import './TopBar.css';
 
-export default function TopBar({ onMenuClick }) {
+export default function TopBar({ onMenuClick, sidebarCollapsed = false, menuOpen = false }) {
   const [query, setQuery] = useState('');
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const notificationRef = useRef(null);
   const navigate = useNavigate();
+  const sidebarExpanded = window.matchMedia('(max-width: 900px)').matches ? menuOpen : !sidebarCollapsed;
 
   useEffect(() => {
     const loadNotifications = () => Promise.all([api.getNotifications(), api.getNotificationCount()])
@@ -63,7 +64,7 @@ export default function TopBar({ onMenuClick }) {
 
   return (
     <header className="portal-topbar">
-      <button type="button" className="mobile-menu-button" onClick={onMenuClick} aria-label="Menüyü aç">
+      <button type="button" className="mobile-menu-button" onClick={onMenuClick} aria-label={sidebarExpanded ? 'Menüyü kapat' : 'Menüyü aç'} aria-expanded={sidebarExpanded}>
         <span /><span /><span />
       </button>
 

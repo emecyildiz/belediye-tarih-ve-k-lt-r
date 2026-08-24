@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
+import useDragScroll from '../hooks/useDragScroll';
 import {
   IconArrow, IconCalendar, IconClock, IconHeart, IconInfo,
   IconMap, IconMonument, IconPin, IconRoute,
@@ -13,7 +14,7 @@ const emptyData = { monuments: [], routes: [], events: [], geojson: null, conten
 const quickActionIcons = { monument: IconMonument, route: IconRoute, map: IconMap, calendar: IconCalendar, heart: IconHeart, info: IconInfo };
 
 function ScrollableSection({ title, to, linkText = 'Tümünü Gör', kind, children }) {
-  const trackRef = useRef(null);
+  const { ref: trackRef, dragProps } = useDragScroll('x');
   const move = (direction) => {
     const track = trackRef.current;
     if (!track) return;
@@ -30,7 +31,7 @@ function ScrollableSection({ title, to, linkText = 'Tümünü Gör', kind, child
           <Link to={to}>{linkText} <span>›</span></Link>
         </div>
       </div>
-      <div ref={trackRef} className={'horizontal-card-track ' + kind}>{children}</div>
+      <div ref={trackRef} {...dragProps} className={'horizontal-card-track drag-scroll ' + kind}>{children}</div>
     </section>
   );
 }
@@ -94,7 +95,11 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [activeHeroSlide, setActiveHeroSlide] = useState(0);
   const [heroPaused, setHeroPaused] = useState(false);
+  const [heroDragOffset, setHeroDragOffset] = useState(0);
   const heroTouchStart = useRef(null);
+  const heroPointer = useRef(null);
+  const suppressHeroClick = useRef(false);
+  const eventScroll = useDragScroll('y');
 
   useEffect(() => {
     let active = true;
@@ -127,6 +132,29 @@ export default function HomePage() {
     heroTouchStart.current = null;
   };
 
+  const startHeroDrag = (event) => {
+    if (event.pointerType === 'touch' || event.button !== 0 || event.target.closest('button')) return;
+    heroPointer.current = { id: event.pointerId, startX: event.clientX };
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setHeroPaused(true);
+  };
+
+  const moveHeroDrag = (event) => {
+    if (heroPointer.current?.id !== event.pointerId) return;
+    const distance = event.clientX - heroPointer.current.startX;
+    if (Math.abs(distance) > 4) suppressHeroClick.current = true;
+    setHeroDragOffset(Math.max(-140, Math.min(140, distance)));
+  };
+
+  const endHeroDrag = (event) => {
+    if (heroPointer.current?.id !== event.pointerId) return;
+    const distance = event.clientX - heroPointer.current.startX;
+    if (Math.abs(distance) > 45) moveHero(distance < 0 ? 1 : -1);
+    heroPointer.current = null;
+    setHeroDragOffset(0);
+    setHeroPaused(false);
+  };
+
   if (loading || !data.content) return <div className="loading">İçerikler hazırlanıyor…</div>;
   const sections = data.content.sections;
   const upcomingEvents = data.events
@@ -137,8 +165,8 @@ export default function HomePage() {
     <div className="home-page">
       <div className="home-dashboard-grid">
         <section className="home-primary-column">
-          <article className="home-hero" aria-roledescription="döngüsel vitrin" aria-label="Hatay kültürel miras vitrini" onMouseEnter={() => setHeroPaused(true)} onMouseLeave={() => setHeroPaused(false)} onFocus={() => setHeroPaused(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setHeroPaused(false); }} onTouchStart={(event) => { heroTouchStart.current = event.touches[0].clientX; setHeroPaused(true); }} onTouchEnd={(event) => { finishHeroSwipe(event.changedTouches[0].clientX); setHeroPaused(false); }}>
-            <div className="home-hero-track" style={{ transform: `translateX(-${activeHeroSlide * 100}%)` }}>
+          <article className={`home-hero ${heroPointer.current ? 'is-dragging' : ''}`} aria-roledescription="döngüsel vitrin" aria-label="Hatay kültürel miras vitrini" onMouseEnter={() => setHeroPaused(true)} onMouseLeave={() => setHeroPaused(false)} onFocus={() => setHeroPaused(true)} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setHeroPaused(false); }} onTouchStart={(event) => { heroTouchStart.current = event.touches[0].clientX; setHeroPaused(true); }} onTouchEnd={(event) => { finishHeroSwipe(event.changedTouches[0].clientX); setHeroPaused(false); }} onPointerDown={startHeroDrag} onPointerMove={moveHeroDrag} onPointerUp={endHeroDrag} onPointerCancel={endHeroDrag} onDragStart={(event) => event.preventDefault()} onClickCapture={(event) => { if (suppressHeroClick.current) { event.preventDefault(); event.stopPropagation(); suppressHeroClick.current = false; } }}>
+            <div className="home-hero-track" style={{ transform: `translateX(calc(-${activeHeroSlide * 100}% + ${heroDragOffset}px))`, transition: heroPointer.current ? 'none' : undefined }}>
               {heroSlides.map((slide, index) => <div className="home-hero-slide" key={slide.id} aria-hidden={index !== activeHeroSlide}>
                 <SafeImage className="home-hero-image" src={slide.image} alt={slide.placeName} />
                 <div className="home-hero-shade" />
@@ -176,7 +204,7 @@ export default function HomePage() {
 
           <section className="home-events-card">
             <SimpleSectionTitle to={sections.events.href} linkText={sections.events.linkLabel}>{sections.events.title}</SimpleSectionTitle>
-            <div className="home-event-list" tabIndex="0" aria-label="Kaydırılabilir yaklaşan etkinlikler listesi">
+            <div ref={eventScroll.ref} {...eventScroll.dragProps} className="home-event-list drag-scroll drag-scroll-y" tabIndex="0" aria-label="Kaydırılabilir yaklaşan etkinlikler listesi">
               {upcomingEvents.map((item) => <EventRow key={item.id} item={item} />)}
             </div>
           </section>

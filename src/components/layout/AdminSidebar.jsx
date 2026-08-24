@@ -28,14 +28,14 @@ const moduleItems = [
   ['content', 'İçerik Yönetimi', 'globals/site-settings'],
 ];
 
-export default function AdminSidebar({ open = false, onNavigate }) {
+export default function AdminSidebar({ open = false, collapsed = false, onNavigate }) {
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     api.getNotificationCount().then((count) => setUnreadCount(Number(count) || 0)).catch(() => {});
   }, []);
 
-  return <aside className={`portal-sidebar admin-sidebar ${open ? 'is-open' : ''}`}>
+  return <aside className={`portal-sidebar admin-sidebar ${open ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`} aria-hidden={collapsed && !open}>
     <div className="sidebar-brand"><img src="/assets/image6.png" alt="Hatay Büyükşehir Belediyesi" /></div>
     <div className="admin-sidebar-product"><span>TKMBS</span><strong>Yönetim Paneli</strong></div>
     <nav className="admin-sidebar-nav" aria-label="Yönetim menüsü">

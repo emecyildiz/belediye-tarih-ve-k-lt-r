@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
 import useFavoriteIds from '../hooks/useFavoriteIds';
+import useDragScroll from '../hooks/useDragScroll';
 import { IconArrow, IconCalendar, IconClock, IconHeart, IconInfo, IconPin } from '../components/common/Icons';
 import './EventDetailPage.css';
 
@@ -47,7 +48,7 @@ export default function EventDetailPage() {
   const [error, setError] = useState(false);
   const [favoriteIds, toggleFavoriteId] = useFavoriteIds('event');
   const [shareLabel, setShareLabel] = useState('Paylaş');
-  const relatedRef = useRef(null);
+  const { ref: relatedRef, dragProps: relatedDragProps } = useDragScroll('x');
 
   useEffect(() => {
     let active = true;
@@ -123,7 +124,7 @@ export default function EventDetailPage() {
         </aside>
       </div>
 
-      <section className="related-events-panel"><header><div><span>KEŞFETMEYE DEVAM ET</span><h2>Benzer etkinlikler</h2></div><div><button type="button" onClick={() => relatedRef.current?.scrollBy({ left: -280, behavior: 'smooth' })} aria-label="Önceki etkinlikler">‹</button><button type="button" onClick={() => relatedRef.current?.scrollBy({ left: 280, behavior: 'smooth' })} aria-label="Sonraki etkinlikler">›</button><Link to="/etkinlikler">Tümü</Link></div></header><div className="related-events-list" ref={relatedRef}>{relatedEvents.map((item) => { const itemDate = dateInfo(item); return <Link to={`/etkinlikler/${item.slug || item.id}`} key={item.id}><SafeImage src={getImageUrl(item.image)} alt={item.title} /><time><strong>{itemDate.day}</strong><span>{itemDate.month}</span></time><div><span>{item.categoryLabel}</span><strong>{item.title}</strong><small><IconPin size={11} /> {item.district} · {item.time}</small></div><IconArrow size={14} /></Link>; })}</div></section>
+      <section className="related-events-panel"><header><div><span>KEŞFETMEYE DEVAM ET</span><h2>Benzer etkinlikler</h2></div><div><button type="button" onClick={() => relatedRef.current?.scrollBy({ left: -280, behavior: 'smooth' })} aria-label="Önceki etkinlikler">‹</button><button type="button" onClick={() => relatedRef.current?.scrollBy({ left: 280, behavior: 'smooth' })} aria-label="Sonraki etkinlikler">›</button><Link to="/etkinlikler">Tümü</Link></div></header><div className="related-events-list drag-scroll" ref={relatedRef} {...relatedDragProps}>{relatedEvents.map((item) => { const itemDate = dateInfo(item); return <Link to={`/etkinlikler/${item.slug || item.id}`} key={item.id}><SafeImage src={getImageUrl(item.image)} alt={item.title} /><time><strong>{itemDate.day}</strong><span>{itemDate.month}</span></time><div><span>{item.categoryLabel}</span><strong>{item.title}</strong><small><IconPin size={11} /> {item.district} · {item.time}</small></div><IconArrow size={14} /></Link>; })}</div></section>
     </article>
   );
 }

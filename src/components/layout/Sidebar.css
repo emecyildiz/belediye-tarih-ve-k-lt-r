@@ -12,6 +12,13 @@
   background:
     radial-gradient(circle at 28% 86%, rgb(18 80 147 / 30%), transparent 34%),
     linear-gradient(165deg, #052654 0%, #00183a 72%, #02152e 100%);
+  transition: width .22s ease, flex-basis .22s ease, transform .22s ease;
+}
+.portal-sidebar.is-collapsed {
+  width: 0;
+  flex-basis: 0;
+  transform: translateX(-100%);
+  overflow: hidden;
 }
 .sidebar-brand {
   height: 88px;
@@ -145,4 +152,5 @@
     box-shadow: 14px 0 40px rgb(0 19 48 / 25%);
   }
   .portal-sidebar.is-open { transform: translateX(0); }
+  .portal-sidebar.is-collapsed.is-open { width: 238px; flex-basis: 238px; }
 }

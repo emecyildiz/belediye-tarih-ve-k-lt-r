@@ -40,7 +40,6 @@ export default function MapPage() {
       .then(([geojson, items]) => {
         setAllGeojson(geojson);
         setMonuments(items || []);
-        if (items?.length) setSelectedLocation(items[0]);
       })
       .catch((error) => console.error('Harita verileri yüklenemedi:', error));
   }, []);
@@ -152,13 +151,6 @@ export default function MapPage() {
               {districts.map((item) => <option value={item} key={item}>{item}</option>)}
             </select>
           </label>
-          <div className="map-field">
-            <span>Harita Görünümü</span>
-            <div className="map-basemap-switch">
-              <button type="button" className={mapType === 'map' ? 'active' : ''} onClick={() => setMapType('map')}>Harita</button>
-              <button type="button" className={mapType === 'satellite' ? 'active' : ''} onClick={() => setMapType('satellite')}>Uydu</button>
-            </div>
-          </div>
           <button type="button" className="map-reset-button" onClick={resetFilters}>Filtreleri Temizle</button>
         </section>
       </aside>

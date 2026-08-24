@@ -270,8 +270,10 @@ export default function OpenLayersMap({
         <>
           {onMapTypeChange && (
             <div className="map-type-toggle">
-              <button type="button" className={mapType === 'map' ? 'active' : ''} onClick={() => onMapTypeChange('map')}>Harita</button>
-              <button type="button" className={mapType === 'satellite' ? 'active' : ''} onClick={() => onMapTypeChange('satellite')}>Uydu</button>
+              <button type="button" onClick={() => onMapTypeChange(mapType === 'satellite' ? 'map' : 'satellite')} aria-label={mapType === 'satellite' ? 'Standart haritaya geç' : 'Uydu görünümüne geç'}>
+                <span className={`map-type-preview ${mapType === 'satellite' ? 'standard' : 'satellite'}`} aria-hidden="true" />
+                <strong>{mapType === 'satellite' ? 'Harita' : 'Uydu'}</strong>
+              </button>
             </div>
           )}
           <div className="map-zoom-controls">
