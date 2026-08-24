@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import HomePage from './pages/HomePage';
 import MapPage from './pages/MapPage';
@@ -46,7 +46,8 @@ function App() {
           <Route path="/rota-olustur" element={<RouteBuilderPage />} />
           <Route path="/etkinlikler" element={<EventsPage />} />
           <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
-          <Route path="/favoriler" element={<FavoritesPage />} />
+          <Route path="/profil/*" element={<FavoritesPage />} />
+          <Route path="/favoriler" element={<Navigate to="/profil" replace />} />
           <Route path="/yonetim-paneli" element={<AdminPanelPage />} />
           <Route path="/yonetim-paneli/:module" element={<AdminModulePlaceholderPage />} />
           <Route path="/cbs-analitik" element={<GisAnalyticsPage />} />

@@ -165,7 +165,7 @@ export function IconDocument({ size = 18 }) {
 const iconMap = {
   home: IconHome, map: IconMap, monument: IconMonument, route: IconRoute,
   calendar: IconCalendar, info: IconInfo, heart: IconHeart,
-  bell: IconBell, document: IconDocument, sun: IconSun
+  bell: IconBell, document: IconDocument, sun: IconSun, user: IconUser
 };
 
 export function NavIcon({ name, size = 18 }) {

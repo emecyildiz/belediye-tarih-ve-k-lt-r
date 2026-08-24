@@ -10,7 +10,7 @@ const menuItems = [
   { path: '/tarihi-eserler', icon: 'monument', label: 'Tarihi Eserler' },
   { path: '/kultur-rotalari', icon: 'route', label: 'Kültürel Rotalar' },
   { path: '/etkinlikler', icon: 'calendar', label: 'Etkinlikler' },
-  { path: '/favoriler', icon: 'heart', label: 'Favoriler' },
+  { path: '/profil', icon: 'user', label: 'Profil' },
   { path: '/bildirimler', icon: 'bell', label: 'Bildirimler', notification: true },
   { path: '/hakkinda', icon: 'info', label: 'Hakkında' },
 ];

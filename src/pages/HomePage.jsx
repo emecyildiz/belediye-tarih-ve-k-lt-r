@@ -159,7 +159,7 @@ export default function HomePage() {
         <Link to="/kultur-rotalari"><IconRoute size={23} /><span><strong>Rotaları Keşfet</strong><small>Tematik gezi planları</small></span></Link>
         <Link to="/harita"><IconMap size={23} /><span><strong>Katmanlar</strong><small>Harita görünümü</small></span></Link>
         <Link to="/etkinlikler"><IconCalendar size={23} /><span><strong>Etkinlikler</strong><small>Kültür takvimi</small></span></Link>
-        <Link to="/favoriler"><IconHeart size={23} /><span><strong>Favoriler</strong><small>Kaydettiğiniz içerikler</small></span></Link>
+        <Link to="/profil"><IconHeart size={23} /><span><strong>Profil & Favoriler</strong><small>Kaydettiğiniz içerikler</small></span></Link>
         <Link to="/hakkinda"><IconInfo size={23} /><span><strong>Proje Hakkında</strong><small>TKMBS bilgileri</small></span></Link>
       </section>
     </div>

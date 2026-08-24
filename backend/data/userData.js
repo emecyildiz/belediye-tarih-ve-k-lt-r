@@ -9,6 +9,18 @@ const demoUserData = {
     event: [1, 3],
   },
   profileOverview: {
+    profile: {
+      displayName: 'TKMBS Kullanıcısı',
+      email: 'kullanici@tkmbs.local',
+      district: 'Antakya',
+      membershipDate: '2026-01-15',
+    },
+    preferences: {
+      eventReminders: true,
+      routeSuggestions: true,
+      favoriteUpdates: true,
+      weatherAlerts: false,
+    },
     visitedCount: 21,
     recentViews: [
       { type: 'monument', id: 4, viewedAt: '2026-08-23T16:20:00+03:00' },
@@ -56,7 +68,21 @@ export function getUserProfileOverview(sources) {
     if (!item) return null;
     return { ...view, title: item[config.titleKey], image: item.image, district: item.district, href: `${config.basePath}/${item.slug || item.id}` };
   }).filter(Boolean);
-  return { visitedCount: demoUserData.profileOverview.visitedCount, recentViews, visitTrend: demoUserData.profileOverview.visitTrend.map((item) => ({ ...item })) };
+  return {
+    profile: { ...demoUserData.profileOverview.profile },
+    preferences: { ...demoUserData.profileOverview.preferences },
+    visitedCount: demoUserData.profileOverview.visitedCount,
+    recentViews,
+    visitTrend: demoUserData.profileOverview.visitTrend.map((item) => ({ ...item })),
+  };
+}
+
+export function updateUserPreferences(payload = {}) {
+  const allowedKeys = Object.keys(demoUserData.profileOverview.preferences);
+  allowedKeys.forEach((key) => {
+    if (typeof payload[key] === 'boolean') demoUserData.profileOverview.preferences[key] = payload[key];
+  });
+  return { ...demoUserData.profileOverview.preferences };
 }
 
 export function getUserRoutes() {

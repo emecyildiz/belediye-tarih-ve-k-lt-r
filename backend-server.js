@@ -17,7 +17,7 @@ import {
   searchCatalog,
 } from './backend/data/mockDb.js';
 import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDashboard.js';
-import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
+import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
 
 const app = express();
 app.use(cors());
@@ -209,6 +209,7 @@ app.post('/api/admin/reviews/:id/decision', (req, res) => {
 
 app.get('/api/user/favorites', (_req, res) => res.json(ok(getUserFavorites())));
 app.get('/api/user/profile-overview', (_req, res) => res.json(ok(getUserProfileOverview({ monuments, routes: culturalRoutes, events }))));
+app.post('/api/user/preferences', (req, res) => res.json(ok(updateUserPreferences(req.body))));
 app.post('/api/user/favorites/:type/:id/toggle', (req, res) => {
   const result = toggleUserFavorite(req.params.type, req.params.id, { monuments, routes: culturalRoutes, events });
   if (!result) return fail(res, 'Favori türü veya kayıt geçersiz', 400);

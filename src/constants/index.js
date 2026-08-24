@@ -21,7 +21,7 @@ export const NAV_ITEMS = [
   { path: '/tarihi-eserler', label: 'Tarihi Eserler', icon: 'monument' },
   { path: '/kultur-rotalari', label: 'Kültürel Rotalar', icon: 'route' },
   { path: '/etkinlikler', label: 'Etkinlikler', icon: 'calendar' },
-  { path: '/favoriler', label: 'Favoriler', icon: 'heart' },
+  { path: '/profil', label: 'Profil', icon: 'user' },
   { path: '/yonetim-paneli', label: 'Yönetim Paneli', icon: 'settings' },
 ];
 

@@ -4,7 +4,7 @@ import { events, eventCategoryCounts } from './events.js';
 import { statistics, weather, chartData, buildStatistics, buildChartData } from './statistics.js';
 import { buildRoutePreview } from '../services/cbs/mockCbsProvider.js';
 import { buildAdminDashboard, reviewAdminRecord } from './adminDashboard.js';
-import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, getUserRoutes, saveUserRoute } from './userData.js';
+import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './userData.js';
 
 export { monuments, events, categoryCounts, eventCategoryCounts, statistics, weather, chartData };
 export const routes = culturalRoutes;
@@ -373,6 +373,10 @@ export function getProfileOverview() {
   return getUserProfileOverview({ monuments, routes: culturalRoutes, events });
 }
 
+export function savePreferences(payload) {
+  return updateUserPreferences(payload);
+}
+
 export function getCustomRoutes() {
   return getUserRoutes();
 }
@@ -415,6 +419,7 @@ export default {
   getFavorites,
   toggleFavorite,
   getProfileOverview,
+  savePreferences,
   getCustomRoutes,
   saveCustomRoute,
 };

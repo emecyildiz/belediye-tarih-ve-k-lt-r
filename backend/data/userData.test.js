@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { monuments } from './monuments.js';
 import { culturalRoutes } from './routes.js';
 import { events } from './events.js';
-import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, getUserRoutes, saveUserRoute } from './userData.js';
+import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './userData.js';
 
 const sources = { monuments, routes: culturalRoutes, events };
 
@@ -34,6 +34,14 @@ test('profil geçmişi geçerli ana kayıt bağlantılarıyla çözülür', () =
   assert.ok(overview.visitTrend.length >= 7);
   assert.ok(overview.visitTrend.every((item) => ['monumentVisits', 'routeVisits', 'eventVisits'].every((key) => Number.isInteger(item[key]))));
   assert.ok(overview.recentViews.every((item) => item.title && item.href));
+});
+
+test('profil tercihleri yalnızca izin verilen boolean alanları günceller', () => {
+  const updated = updateUserPreferences({ eventReminders: false, unknown: true, routeSuggestions: 'hayır' });
+  assert.equal(updated.eventReminders, false);
+  assert.equal(typeof updated.routeSuggestions, 'boolean');
+  assert.equal('unknown' in updated, false);
+  updateUserPreferences({ eventReminders: true });
 });
 
 test('özel rota yalnızca geçerli ve tekilleştirilmiş duraklarla kaydedilir', () => {
