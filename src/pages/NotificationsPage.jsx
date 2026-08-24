@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { IconBell, IconCalendar, IconDocument, IconMonument, IconRoute, IconSearch } from '../components/common/Icons';
+import { IconArrow, IconBell, IconCalendar, IconDocument, IconMap, IconMonument, IconRoute, IconSearch } from '../components/common/Icons';
 import './NotificationsPage.css';
 
 const typeConfig = {
@@ -15,6 +15,7 @@ export default function NotificationsPage() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [activeTab, setActiveTab] = useState('all');
+  const [activeType, setActiveType] = useState('all');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -33,9 +34,15 @@ export default function NotificationsPage() {
     const normalized = query.trim().toLocaleLowerCase('tr-TR');
     return notifications.filter((item) => (
       (activeTab === 'all' || (activeTab === 'unread' ? !item.read : item.read))
+      && (activeType === 'all' || item.type === activeType)
       && (!normalized || `${item.title} ${item.message} ${typeConfig[item.type]?.label || ''}`.toLocaleLowerCase('tr-TR').includes(normalized))
     ));
-  }, [activeTab, notifications, query]);
+  }, [activeTab, activeType, notifications, query]);
+
+  const typeCounts = useMemo(() => Object.keys(typeConfig).reduce((counts, type) => ({
+    ...counts,
+    [type]: notifications.filter((item) => item.type === type).length,
+  }), {}), [notifications]);
 
   const publishCount = (items) => window.dispatchEvent(new CustomEvent('tkmbs-notifications-updated', { detail: { count: items.filter((item) => !item.read).length } }));
 
@@ -72,8 +79,19 @@ export default function NotificationsPage() {
 
     <section className="notification-overview" aria-label="Bildirim özeti"><article><div><IconBell size={18} /></div><span><small>Toplam Bildirim</small><strong>{notifications.length}</strong></span></article><article><div><i /></div><span><small>Okunmamış</small><strong>{unreadCount}</strong></span></article><article><div><IconDocument size={18} /></div><span><small>Okunmuş</small><strong>{notifications.length - unreadCount}</strong></span></article></section>
 
-    <section className="notifications-panel"><header><nav aria-label="Bildirim durumu">{tabs.map((tab) => <button type="button" key={tab.key} className={activeTab === tab.key ? 'active' : ''} onClick={() => setActiveTab(tab.key)}>{tab.label}<b>{tab.count}</b></button>)}</nav><label><IconSearch size={14} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Bildirimlerde ara…" /></label></header>
-      {loading ? <div className="notifications-state"><span /><strong>Bildirimler yükleniyor…</strong></div> : error ? <div className="notifications-state error"><IconBell size={34} /><strong>Bildirimler yüklenemedi</strong><p>Lütfen daha sonra tekrar deneyin.</p></div> : visibleNotifications.length ? <div className="notifications-list">{visibleNotifications.map((item) => { const config = typeConfig[item.type] || typeConfig.system; const TypeIcon = config.icon; return <article className={`notification-card ${item.read ? 'read' : 'unread'}`} key={item.id} style={{ '--notification-color': config.color }}><button type="button" className="notification-card-main" onClick={() => openNotification(item)}><span className="notification-type-icon"><TypeIcon size={18} /></span><span className="notification-card-copy"><span>{config.label}<i>·</i>{item.date}</span><strong>{item.title}</strong><p>{item.message}</p></span><span className="notification-open">›</span></button>{!item.read && <button type="button" className="notification-mark-read" onClick={() => markRead(item.id)} aria-label={`${item.title} bildirimini okundu işaretle`}><i /> Okundu işaretle</button>}</article>; })}</div> : <div className="notifications-state empty"><div><IconBell size={29} /></div><strong>{query ? 'Aramanızla eşleşen bildirim bulunamadı' : activeTab === 'unread' ? 'Okunmamış bildiriminiz yok' : 'Bu bölümde bildirim bulunmuyor'}</strong><p>{query ? 'Farklı bir sözcükle tekrar arayabilirsiniz.' : 'Yeni gelişmeler olduğunda bildirimler burada görünecek.'}</p></div>}
-    </section>
+    <div className="notifications-workspace">
+      <section className="notifications-panel"><header><nav aria-label="Bildirim durumu">{tabs.map((tab) => <button type="button" key={tab.key} className={activeTab === tab.key ? 'active' : ''} onClick={() => setActiveTab(tab.key)}>{tab.label}<b>{tab.count}</b></button>)}</nav><label><IconSearch size={14} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Bildirimlerde ara…" /></label></header>
+        {activeType !== 'all' && <div className="notification-active-filter"><span>{typeConfig[activeType].label} bildirimleri gösteriliyor</span><button type="button" onClick={() => setActiveType('all')}>Filtreyi kaldır</button></div>}
+        {loading ? <div className="notifications-state"><span /><strong>Bildirimler yükleniyor…</strong></div> : error ? <div className="notifications-state error"><IconBell size={34} /><strong>Bildirimler yüklenemedi</strong><p>Lütfen daha sonra tekrar deneyin.</p></div> : visibleNotifications.length ? <div className="notifications-list">{visibleNotifications.map((item) => { const config = typeConfig[item.type] || typeConfig.system; const TypeIcon = config.icon; return <article className={`notification-card ${item.read ? 'read' : 'unread'}`} key={item.id} style={{ '--notification-color': config.color }}><button type="button" className="notification-card-main" onClick={() => openNotification(item)}><span className="notification-type-icon"><TypeIcon size={18} /></span><span className="notification-card-copy"><span>{config.label}<i>·</i>{item.date}</span><strong>{item.title}</strong><p>{item.message}</p></span><span className="notification-open">›</span></button>{!item.read && <button type="button" className="notification-mark-read" onClick={() => markRead(item.id)} aria-label={`${item.title} bildirimini okundu işaretle`}><i /> Okundu işaretle</button>}</article>; })}</div> : <div className="notifications-state empty"><div><IconBell size={29} /></div><strong>{query ? 'Aramanızla eşleşen bildirim bulunamadı' : activeTab === 'unread' ? 'Okunmamış bildiriminiz yok' : 'Bu bölümde bildirim bulunmuyor'}</strong><p>{query ? 'Farklı bir sözcükle tekrar arayabilirsiniz.' : 'Yeni gelişmeler olduğunda bildirimler burada görünecek.'}</p></div>}
+      </section>
+
+      <aside className="notifications-aside">
+        <section className="notification-types"><header><div><span>BİLDİRİM DAĞILIMI</span><h2>İlgi alanlarına göre</h2></div><strong>{notifications.length}</strong></header><div>{Object.entries(typeConfig).map(([type, config]) => { const TypeIcon = config.icon; const count = typeCounts[type] || 0; const percent = notifications.length ? Math.round((count / notifications.length) * 100) : 0; return <button type="button" key={type} className={activeType === type ? 'active' : ''} onClick={() => setActiveType((current) => current === type ? 'all' : type)} style={{ '--notification-color': config.color }}><span className="notification-type-mini"><TypeIcon size={15} /></span><span><strong>{config.label}</strong><small>{count} bildirim</small><i><b style={{ width: `${percent}%` }} /></i></span><em>{percent}%</em></button>; })}</div></section>
+
+        <section className="notification-shortcuts"><span>HIZLI ERİŞİM</span><h2>Keşfetmeye devam edin</h2><div><Link to="/harita"><IconMap size={17} /><span><strong>Haritayı Aç</strong><small>Yakındaki kültürel duraklar</small></span><IconArrow size={14} /></Link><Link to="/etkinlikler"><IconCalendar size={17} /><span><strong>Etkinlik Takvimi</strong><small>Yaklaşan programları incele</small></span><IconArrow size={14} /></Link><Link to="/kultur-rotalari"><IconRoute size={17} /><span><strong>Kültürel Rotalar</strong><small>Yeni gezi seçeneklerini keşfet</small></span><IconArrow size={14} /></Link></div></section>
+
+        <Link className="notification-preferences" to="/profil/ayarlar"><span><IconBell size={18} /></span><div><strong>Bildirim tercihleri</strong><small>Hangi gelişmelerden haberdar olmak istediğinizi seçin.</small></div><IconArrow size={14} /></Link>
+      </aside>
+    </div>
   </div>;
 }
