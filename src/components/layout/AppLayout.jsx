@@ -7,7 +7,7 @@ import './AppLayout.css';
 
 export default function AppLayout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('tkmbs-sidebar-collapsed') === 'true');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => localStorage.getItem('tkmbs-sidebar-collapsed-v2') !== 'false');
   const { pathname } = useLocation();
   const adminLayout = pathname.startsWith('/yonetim-paneli') || pathname === '/raporlar' || pathname === '/cbs-analitik';
 
@@ -19,13 +19,16 @@ export default function AppLayout({ children }) {
       return;
     }
     setSidebarCollapsed((value) => {
-      localStorage.setItem('tkmbs-sidebar-collapsed', String(!value));
+      localStorage.setItem('tkmbs-sidebar-collapsed-v2', String(!value));
       return !value;
     });
   };
 
   return (
     <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      <div className="app-brand">
+        <img src="/assets/image6.png" alt="Hatay Büyükşehir Belediyesi" />
+      </div>
       {adminLayout
         ? <AdminSidebar open={menuOpen} collapsed={sidebarCollapsed} onNavigate={() => setMenuOpen(false)} />
         : <Sidebar open={menuOpen} collapsed={sidebarCollapsed} onNavigate={() => setMenuOpen(false)} />}

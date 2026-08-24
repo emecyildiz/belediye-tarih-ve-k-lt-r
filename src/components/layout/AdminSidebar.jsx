@@ -36,7 +36,6 @@ export default function AdminSidebar({ open = false, collapsed = false, onNaviga
   }, []);
 
   return <aside className={`portal-sidebar admin-sidebar ${open ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`} aria-hidden={collapsed && !open}>
-    <div className="sidebar-brand"><img src="/assets/image6.png" alt="Hatay Büyükşehir Belediyesi" /></div>
     <div className="admin-sidebar-product"><span>TKMBS</span><strong>Yönetim Paneli</strong></div>
     <nav className="admin-sidebar-nav" aria-label="Yönetim menüsü">
       <NavLink to="/yonetim-paneli" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="dashboard"/><span>Gösterge Paneli</span></NavLink>

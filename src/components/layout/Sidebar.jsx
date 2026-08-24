@@ -57,9 +57,6 @@ export default function Sidebar({ open = false, collapsed = false, onNavigate })
 
   return (
     <aside className={`portal-sidebar ${open ? 'is-open' : ''} ${collapsed ? 'is-collapsed' : ''}`} aria-hidden={collapsed && !open}>
-      <div className="sidebar-brand">
-        <img src="/assets/image6.png" alt="Hatay Büyükşehir Belediyesi" />
-      </div>
       <div className="sidebar-product">
         <strong>TKMBS</strong>
         <span>Tarihi ve Kültürel Miras Bilgi Sistemi</span>

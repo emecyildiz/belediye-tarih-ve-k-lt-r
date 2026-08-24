@@ -1,9 +1,10 @@
 .portal-sidebar {
-  position: sticky;
-  top: 0;
+  position: fixed;
+  top: 88px;
+  left: 0;
   z-index: 90;
   width: 238px;
-  height: 100vh;
+  height: calc(100vh - 88px);
   flex: 0 0 238px;
   display: flex;
   flex-direction: column;
@@ -19,23 +20,6 @@
   flex-basis: 0;
   transform: translateX(-100%);
   overflow: hidden;
-}
-.sidebar-brand {
-  height: 88px;
-  min-height: 88px;
-  flex: 0 0 88px;
-  padding: 14px 16px 10px;
-  display: flex;
-  align-items: center;
-  background: #fff;
-}
-.sidebar-brand img {
-  width: 100%;
-  max-width: 196px;
-  height: 58px;
-  object-fit: contain;
-  object-position: left center;
-  border-radius: 0;
 }
 .sidebar-product {
   padding: 14px 17px 12px;
@@ -145,8 +129,9 @@
 }
 @media (max-width: 900px) {
   .portal-sidebar {
-    position: fixed;
+    top: 0;
     left: 0;
+    height: 100vh;
     transform: translateX(-105%);
     transition: transform .22s ease;
     box-shadow: 14px 0 40px rgb(0 19 48 / 25%);
