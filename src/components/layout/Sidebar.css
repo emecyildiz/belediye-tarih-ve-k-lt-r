@@ -2,7 +2,7 @@
   position: fixed;
   top: 88px;
   left: 0;
-  z-index: 90;
+  z-index: 100;
   width: 238px;
   height: calc(100vh - 88px);
   flex: 0 0 238px;
@@ -14,6 +14,7 @@
     radial-gradient(circle at 28% 86%, rgb(18 80 147 / 30%), transparent 34%),
     linear-gradient(165deg, #052654 0%, #00183a 72%, #02152e 100%);
   transition: width .22s ease, flex-basis .22s ease, transform .22s ease;
+  box-shadow: 10px 0 28px rgb(0 20 52 / 12%);
 }
 .portal-sidebar.is-collapsed {
   width: 64px;

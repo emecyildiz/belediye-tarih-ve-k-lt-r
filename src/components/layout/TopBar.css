@@ -49,7 +49,7 @@
   align-items: center;
   gap: 8px;
 }
-.topbar-icon-button, .mobile-menu-button {
+.topbar-icon-button {
   position: relative;
   width: 40px;
   height: 40px;
@@ -61,7 +61,7 @@
   background: transparent;
   border-radius: 9px;
 }
-.topbar-icon-button:hover, .mobile-menu-button:hover,
+.topbar-icon-button:hover,
 .topbar-icon-button[aria-expanded="true"] { background: var(--surface-subtle); }
 .help-button { font-size: 19px; font-weight: 700; }
 .notification-menu { position: relative; }
@@ -144,26 +144,14 @@
 }
 .management-link:hover { border-color: #9eb3cd; box-shadow: 0 5px 14px rgb(15 38 72 / 8%); }
 .management-link b { margin-left: 4px; font-size: 16px; }
-.mobile-menu-button {
-  grid-column: 1;
-  display: inline-flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.mobile-menu-button span {
-  width: 19px;
-  height: 2px;
-  background: currentColor;
-  border-radius: 2px;
-}
 @media (max-width: 900px) {
   .portal-topbar {
-    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     padding: 9px 12px;
     gap: 8px;
   }
-  .portal-search { grid-column: 2; }
-  .topbar-actions { grid-column: 3; }
+  .portal-search { grid-column: 1; }
+  .topbar-actions { grid-column: 2; }
   .help-button { display: none; }
 }
 @media (max-width: 620px) {

@@ -33,6 +33,15 @@ export default function AppLayout({ children }) {
       {adminLayout
         ? <AdminSidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={() => setMenuOpen(false)} />
         : <Sidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={() => setMenuOpen(false)} />}
+      <button
+        type="button"
+        className="sidebar-layout-toggle"
+        onClick={toggleSidebar}
+        aria-label={sidebarCollapsed && !menuOpen ? 'Menüyü aç' : 'Menüyü kapat'}
+        aria-expanded={!sidebarCollapsed || menuOpen}
+      >
+        <span /><span /><span />
+      </button>
       {menuOpen && (
         <button
           type="button"
@@ -42,7 +51,7 @@ export default function AppLayout({ children }) {
         />
       )}
       <div className="app-main">
-        <TopBar onMenuClick={toggleSidebar} sidebarCollapsed={sidebarCollapsed} menuOpen={menuOpen} />
+        <TopBar />
         <main className="app-content">{children}</main>
         <footer className="app-footer">
           © 2026 Hatay Büyükşehir Belediyesi · Tarihi ve Kültürel Miras Bilgi Sistemi

@@ -34,15 +34,38 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 238px;
-  transition: margin-left .22s ease;
+  margin-left: 64px;
 }
 
 .sidebar-collapsed .app-main { margin-left: 64px; }
-.sidebar-collapsed .portal-topbar {
+.portal-topbar {
   width: calc(100% - 174px);
   margin-left: 174px;
 }
+
+.sidebar-layout-toggle {
+  position: fixed;
+  z-index: 105;
+  top: 99px;
+  left: 12px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: #fff;
+  border: 1px solid rgb(255 255 255 / 22%);
+  border-radius: 8px;
+  background: rgb(4 45 94 / 94%);
+  box-shadow: 0 5px 14px rgb(0 18 47 / 18%);
+  transition: left .22s ease, background .18s ease;
+}
+.app-shell:not(.sidebar-collapsed) .sidebar-layout-toggle { left: 186px; }
+.sidebar-layout-toggle:hover { background: #0b56a1; }
+.sidebar-layout-toggle span { width: 19px; height: 2px; border-radius: 2px; background: currentColor; }
 
 .app-content {
   width: 100%;
@@ -65,7 +88,18 @@
   .app-brand { display: none; }
   .app-main,
   .sidebar-collapsed .app-main { margin-left: 0; }
+  .portal-topbar,
   .sidebar-collapsed .portal-topbar { width: 100%; margin-left: 0; }
+  .sidebar-layout-toggle,
+  .app-shell:not(.sidebar-collapsed) .sidebar-layout-toggle {
+    top: auto;
+    right: auto;
+    bottom: 18px;
+    left: 12px;
+    border-color: rgb(255 255 255 / 45%);
+    border-radius: 50%;
+    box-shadow: 0 7px 20px rgb(0 24 57 / 28%);
+  }
   .app-content { padding: 12px; }
   .sidebar-backdrop {
     position: fixed;
