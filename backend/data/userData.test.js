@@ -32,6 +32,7 @@ test('profil geçmişi geçerli ana kayıt bağlantılarıyla çözülür', () =
   const overview = getUserProfileOverview(sources);
   assert.ok(overview.visitedCount > 0);
   assert.ok(overview.visitTrend.length >= 7);
+  assert.ok(overview.visitTrend.every((item) => ['monumentVisits', 'routeVisits', 'eventVisits'].every((key) => Number.isInteger(item[key]))));
   assert.ok(overview.recentViews.every((item) => item.title && item.href));
 });
 

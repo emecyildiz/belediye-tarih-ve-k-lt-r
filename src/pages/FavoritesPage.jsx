@@ -37,14 +37,20 @@ function FavoriteStrip({ title, items, type, onRemove, allHref }) {
 function TrendChart({ data = [] }) {
   const width = 560;
   const height = 188;
-  const max = Math.max(1, ...data.flatMap((item) => [item.pageViews, item.heritageVisits]));
-  const step = data.length > 1 ? 480 / (data.length - 1) : 0;
-  const point = (value, index) => `${48 + index * step},${145 - value / max * 105}`;
+  const max = Math.max(1, ...data.flatMap((item) => [item.monumentVisits, item.routeVisits, item.eventVisits]));
+  const groupWidth = data.length ? 488 / data.length : 0;
+  const series = [
+    { key: 'monumentVisits', className: 'monument-bar' },
+    { key: 'routeVisits', className: 'route-bar' },
+    { key: 'eventVisits', className: 'event-bar' },
+  ];
   return <svg className="profile-trend-chart" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Aylık ziyaret istatistikleri">
     {[0, .25, .5, .75, 1].map((ratio) => <g key={ratio}><line x1="42" x2="540" y1={145 - ratio * 105} y2={145 - ratio * 105} /><text x="8" y={149 - ratio * 105}>{Math.round(max * ratio)}</text></g>)}
-    {data.map((item, index) => <g key={item.label}><rect x={38 + index * step} y={145 - item.heritageVisits / max * 105} width="18" height={item.heritageVisits / max * 105} rx="3" /><text className="month" x={47 + index * step} y="169">{item.label}</text></g>)}
-    <polyline points={data.map((item, index) => point(item.pageViews, index)).join(' ')} />
-    {data.map((item, index) => <circle key={item.label} cx={48 + index * step} cy={145 - item.pageViews / max * 105} r="3.5" />)}
+    {data.map((item, index) => <g key={item.label}>{series.map((entry, seriesIndex) => {
+      const value = item[entry.key] || 0;
+      const barHeight = value / max * 105;
+      return <rect key={entry.key} className={entry.className} x={49 + index * groupWidth + seriesIndex * 12} y={145 - barHeight} width="9" height={barHeight} rx="2"><title>{item.label}: {value} ziyaret</title></rect>;
+    })}<text className="month" x={61 + index * groupWidth} y="169">{item.label}</text></g>)}
   </svg>;
 }
 
@@ -94,7 +100,7 @@ export default function FavoritesPage() {
       <FavoriteStrip title="Favori Rotalarım" items={groups.route} type="route" onRemove={removeFavorite} allHref="/kultur-rotalari" />
       <div className="profile-bottom-grid"><section className="profile-upcoming"><header><h2>Bekleyen Etkinliklerim</h2><Link to="/etkinlikler">Tümünü Gör <IconArrow size={10} /></Link></header><div>{upcomingEvents.length ? upcomingEvents.map((item) => <article key={item.id}><SafeImage src={getImageUrl(item.image)} alt={item.title} /><div className="profile-event-date"><strong>{new Date(`${item.date}T12:00:00`).getDate()}</strong><span>{new Intl.DateTimeFormat('tr-TR', { month: 'short' }).format(new Date(`${item.date}T12:00:00`))}</span></div><div><Link to={`/etkinlikler/${item.slug || item.id}`}>{item.title}</Link><small><IconPin size={10} /> {item.district}</small><span><IconClock size={10} /> {item.time} · {dateLabel(item.date)}</span></div></article>) : <p>Favori etkinliğiniz bulunmuyor.</p>}</div></section>
       <section className="profile-recent"><header><h2>Son Görüntülediklerim</h2><span>Son aktiviteler</span></header><div>{(overview.recentViews || []).map((item) => <Link to={item.href} key={`${item.type}-${item.id}`}><SafeImage src={getImageUrl(item.image)} alt={item.title} /><span><strong>{item.title}</strong><small><IconPin size={9} /> {item.district}</small><time>{new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(new Date(item.viewedAt))}</time></span></Link>)}</div></section></div>
-    </main><aside className="profile-side-column"><section className="profile-chart-card"><header><div><span>KULLANICI İSTATİSTİKLERİ</span><h2>Ziyaret Geçmişim</h2></div><small>Son 7 ay</small></header><div className="profile-chart-legend"><span><i /> Sayfa görüntüleme</span><span><i /> Eser ziyareti</span></div><TrendChart data={overview.visitTrend} /></section>
+    </main><aside className="profile-side-column"><section className="profile-chart-card"><header><div><span>AYLIK ZİYARET İSTATİSTİKLERİ</span><h2>İçerik Türüne Göre Ziyaretlerim</h2></div><small>Son 7 ay</small></header><div className="profile-chart-legend"><span><i /> Tarihi eser</span><span><i /> Kültürel rota</span><span><i /> Etkinlik</span></div><TrendChart data={overview.visitTrend} /></section>
       <section className="profile-map-card"><header><div><span>FAVORİ KONUM DAĞILIMI</span><h2>Favori Konumlarım</h2></div><Link to="/harita">Haritada Aç <IconArrow size={10} /></Link></header><div className="profile-map"><OpenLayersMap geojson={mapData} fitToData cluster height="100%" onFeatureClick={(feature) => feature?.slug && navigate(`/tarihi-eserler/${feature.slug}`)} /></div><footer>{groups.monument.slice(0, 3).map((item) => <span key={item.id}><i style={{ background: item.id % 2 ? '#1768b2' : '#c9861b' }} /> {item.name}</span>)}</footer></section>
     </aside></div>
   </div>;
