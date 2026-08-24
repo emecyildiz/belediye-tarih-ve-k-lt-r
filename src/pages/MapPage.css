@@ -27,7 +27,7 @@
   z-index: 15;
   top: 10px;
   left: 10px;
-  width: 274px;
+  width: 300px;
   max-height: calc(100% - 20px);
   padding: 0;
   overflow: hidden;
@@ -49,13 +49,13 @@
 .map-control-panel h1 {
   margin: 0;
   color: var(--navy-deep);
-  font-size: 20px;
+  font-size: 24px;
 }
 .map-control-panel header p {
   margin: 4px 0 0;
   color: #65738a;
-  font-size: 10px;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.5;
 }
 .map-control-section {
   margin-top: 8px;
@@ -68,7 +68,7 @@
 .map-control-section h2 {
   margin: 0 0 9px;
   color: var(--navy-deep);
-  font-size: 12px;
+  font-size: 15px;
 }
 .map-control-heading {
   padding-bottom: 8px;
@@ -82,14 +82,14 @@
 .map-control-heading span {
   display: block;
   color: var(--text-muted);
-  font-size: 9px;
+  font-size: 11px;
 }
 .map-control-heading button {
   padding: 3px 0;
   color: #31577f;
   border: 0;
   background: transparent;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -97,7 +97,7 @@
 .map-layer-list { margin-top: 4px; display: grid; grid-template-columns: 1fr; gap: 0; }
 .map-layer-list label {
   position: relative;
-  min-height: 30px;
+  min-height: 36px;
   padding: 3px 0;
   display: grid;
   grid-template-columns: 15px 22px minmax(0, 1fr) 15px;
@@ -108,7 +108,7 @@
   border-bottom: 1px solid #edf0f4;
   border-radius: 0;
   background: transparent;
-  font-size: 10px;
+  font-size: 12px;
   cursor: pointer;
   transition: color .18s ease, background .18s ease;
 }
@@ -127,8 +127,8 @@
 }
 .layer-name { min-width: 0; }
 .layer-name { display:flex; align-items:center; justify-content:space-between; gap:5px; }
-.layer-name strong { overflow:hidden; color:inherit; font-size:9px; font-weight:650; white-space:nowrap; text-overflow:ellipsis; }
-.layer-name small { color:#8793a3; font-size:8px; }
+.layer-name strong { overflow:hidden; color:inherit; font-size:12px; font-weight:650; white-space:nowrap; text-overflow:ellipsis; }
+.layer-name small { color:#68788d; font-size:11px; }
 .layer-chevron { color:#63758a; font-size:13px; line-height:1; transform:translateY(-2px); }
 .map-field {
   margin-top: 8px;
@@ -137,7 +137,7 @@
 }
 .map-field > span {
   color: #637188;
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 600;
 }
 .map-reset-button {
@@ -148,12 +148,12 @@
   border: 1px solid #cbd6e3;
   border-radius: 6px;
   background: #fff;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 650;
   cursor: pointer;
 }
 .map-reset-button:hover { background:#f3f6fa; }
-.heritage-map-page .map-type-toggle { left: 300px; }
+.heritage-map-page .map-type-toggle { left: 322px; }
 .map-legend-card {
   position: absolute;
   z-index: 12;
@@ -170,13 +170,13 @@
   transition: right .24s ease;
 }
 .map-legend-card.detail-visible { right: 382px; }
-.map-legend-card strong { color: var(--navy-deep); font-size: 11px; }
+.map-legend-card strong { color: var(--navy-deep); font-size: 14px; }
 .map-legend-card span {
   display: flex;
   align-items: center;
   gap: 7px;
   color: #536177;
-  font-size: 9px;
+  font-size: 11px;
 }
 .map-legend-card svg { flex: 0 0 auto; }
 .map-detail-panel {
@@ -206,7 +206,7 @@
   color: var(--navy);
   border: 0;
   background: transparent;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 650;
 }
 .map-detail-close { font-size: 22px !important; }
@@ -226,7 +226,7 @@
 .map-detail-title h2 {
   margin: 0;
   color: var(--navy-deep);
-  font-size: 19px;
+  font-size: 22px;
   line-height: 1.2;
 }
 .map-detail-title > span {
@@ -234,7 +234,7 @@
   color: #2e6d46;
   background: #e8f3ec;
   border-radius: 99px;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 650;
   white-space: nowrap;
 }
@@ -244,7 +244,7 @@
   align-items: center;
   gap: 5px;
   color: #526178;
-  font-size: 10px;
+  font-size: 12px;
 }
 .map-detail-meta {
   margin-top: 13px;
@@ -258,12 +258,12 @@
 .map-detail-meta > span:first-child { padding-left: 0; }
 .map-detail-meta > span:last-child { border-right: 0; }
 .map-detail-meta small, .map-detail-meta strong { display: block; }
-.map-detail-meta small { color: #7c899b; font-size: 8px; }
-.map-detail-meta strong { margin-top: 3px; color: var(--navy-deep); font-size: 10px; }
+.map-detail-meta small { color: #68788d; font-size: 11px; }
+.map-detail-meta strong { margin-top: 3px; color: var(--navy-deep); font-size: 12px; }
 .map-detail-description {
   margin: 12px 0;
   color: #435168;
-  font-size: 10px;
+  font-size: 13px;
   line-height: 1.55;
 }
 .map-detail-actions { display: grid; gap: 7px; }
@@ -277,7 +277,7 @@
   border: 1px solid #aebbd0;
   border-radius: 6px;
   background: #fff;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 650;
 }
 .map-detail-actions button.primary { color: #fff; border-color: var(--navy); background: var(--navy); }
@@ -286,7 +286,7 @@
   padding-top: 13px;
   border-top: 1px solid #e6eaf0;
 }
-.map-nearby h3 { margin: 0 0 7px; color: var(--navy-deep); font-size: 12px; }
+.map-nearby h3 { margin: 0 0 7px; color: var(--navy-deep); font-size: 15px; }
 .map-nearby > button {
   width: 100%;
   padding: 7px 0;
@@ -305,7 +305,7 @@
 .map-nearby strong {
   overflow: hidden;
   color: var(--navy-deep);
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
@@ -315,9 +315,9 @@
   align-items: center;
   gap: 3px;
   color: #738095;
-  font-size: 8px;
+  font-size: 11px;
 }
-.map-nearby b { color: #536178; font-size: 9px; }
+.map-nearby b { color: #536178; font-size: 11px; }
 .mobile-filter-toggle, .mobile-panel-close { display: none; }
 @media (max-width: 1100px) {
   .map-detail-panel { width: 330px; }
@@ -328,7 +328,7 @@
   .map-control-panel {
     top: 0;
     left: 0;
-    width: min(310px, 88vw);
+    width: min(330px, 90vw);
     height: 100%;
     max-height: none;
     overflow-y: auto;
@@ -350,7 +350,7 @@
     border-radius: 6px;
     background: var(--navy);
     box-shadow: var(--shadow-sm);
-    font-size: 10px;
+    font-size: 12px;
   }
   .mobile-panel-close {
     display: block;
@@ -366,7 +366,7 @@
 @media (max-width: 520px) {
   .map-detail-panel { width: 100%; padding: 12px; }
   .map-detail-image { height: 155px; }
-  .map-detail-title h2 { font-size: 17px; }
+  .map-detail-title h2 { font-size: 20px; }
   .map-detail-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .map-nearby { margin-top: 12px; padding-top: 10px; }
 }

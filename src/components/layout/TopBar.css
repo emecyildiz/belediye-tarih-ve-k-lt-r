@@ -39,7 +39,7 @@
   outline: 0;
   color: var(--text);
   background: transparent;
-  font-size: 13px;
+  font-size: 15px;
 }
 .portal-search input::placeholder { color: #7f8da2; }
 .topbar-actions {
@@ -99,8 +99,8 @@
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
 }
-.notification-dropdown-header strong { color: var(--navy-deep); font-size: 14px; }
-.notification-dropdown-header span { color: var(--text-muted); font-size: 10px; }
+.notification-dropdown-header strong { color: var(--navy-deep); font-size: 16px; }
+.notification-dropdown-header span { color: var(--text-muted); font-size: 12px; }
 .notification-dropdown-list { max-height: 340px; overflow-y: auto; }
 .notification-item {
   width: 100%;
@@ -124,11 +124,11 @@
 }
 .notification-item.unread .notification-item-dot { background: #df1f2d; }
 .notification-item strong, .notification-item small, .notification-item time { display: block; }
-.notification-item strong { color: var(--navy-deep); font-size: 11px; }
-.notification-item small { margin-top: 3px; color: #516078; font-size: 10px; line-height: 1.35; }
-.notification-item time { margin-top: 4px; color: #8a96a8; font-size: 9px; }
-.notification-empty { padding: 20px; text-align: center; color: var(--text-muted); font-size: 11px; }
-.notification-view-all{width:100%;height:38px;color:#1d548b;border:0;border-top:1px solid var(--border);background:#fafcff;font-size:9px;font-weight:750}.notification-view-all:hover{background:#f1f6fb}
+.notification-item strong { color: var(--navy-deep); font-size: 13px; }
+.notification-item small { margin-top: 3px; color: #516078; font-size: 12px; line-height: 1.45; }
+.notification-item time { margin-top: 4px; color: #8a96a8; font-size: 11px; }
+.notification-empty { padding: 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+.notification-view-all{width:100%;height:40px;color:#1d548b;border:0;border-top:1px solid var(--border);background:#fafcff;font-size:12px;font-weight:750}.notification-view-all:hover{background:#f1f6fb}
 .management-link {
   height: 44px;
   padding: 0 13px;
@@ -139,7 +139,7 @@
   border: 1px solid #dce3ec;
   border-radius: 9px;
   background: #fff;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 650;
 }
 .management-link:hover { border-color: #9eb3cd; box-shadow: 0 5px 14px rgb(15 38 72 / 8%); }
@@ -158,7 +158,7 @@
   .management-link { width: 40px; padding: 0; justify-content: center; }
   .management-link span, .management-link b { display: none; }
   .portal-search { padding: 0 10px; }
-  .portal-search input { font-size: 12px; }
+  .portal-search input { font-size: 14px; }
 }
 
 @media (max-width: 480px) {

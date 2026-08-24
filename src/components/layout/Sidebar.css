@@ -48,7 +48,7 @@
   display: block;
   margin-top: 6px;
   color: #d7e2f2;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.35;
 }
 .sidebar-nav {
@@ -65,7 +65,7 @@
   gap: 12px;
   color: #e7eef8;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 500;
 }
 .sidebar-link::before {
@@ -100,7 +100,7 @@
   border-radius: 999px;
   color: #fff;
   background: #e11d2e;
-  font-size: 11px;
+  font-size: 12px;
 }
 .sidebar-weather {
   margin: auto 12px 14px;
@@ -125,7 +125,7 @@
 }
 .weather-topline span, .sidebar-weather p {
   color: #f3f6fb;
-  font-size: 12px;
+  font-size: 14px;
 }
 .sidebar-weather p { margin: 6px 0 0 50px; }
 .weather-skyline {
