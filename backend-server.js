@@ -20,6 +20,7 @@ import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDash
 import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
 import { getAboutContent } from './backend/data/aboutContent.js';
 import { getHomeContent } from './backend/data/homeContent.js';
+import { getPayloadSnapshotOrNull } from './backend/services/cms/payloadCms.js';
 
 const app = express();
 app.use(cors());
@@ -199,10 +200,26 @@ app.get('/api/charts', (_req, res) => res.json(ok(buildChartData({ monuments, ro
 app.get('/api/content/about', (_req, res) => res.json(ok(getAboutContent())));
 app.get('/api/content/home', (_req, res) => res.json(ok(getHomeContent())));
 
-app.get('/api/admin/dashboard', (_req, res) => {
-  const statisticsData = buildStatistics({ monuments, routes: culturalRoutes, events });
-  const chartsData = buildChartData({ monuments, routes: culturalRoutes, events });
-  res.json(ok(buildAdminDashboard({ monuments, routes: culturalRoutes, events, statistics: statisticsData, charts: chartsData })));
+app.get('/api/admin/dashboard', async (_req, res) => {
+  const cms = await getPayloadSnapshotOrNull();
+  const sources = cms || { monuments, routes: culturalRoutes, events };
+  const statisticsData = buildStatistics(sources);
+  const chartsData = buildChartData(sources);
+  const dashboard = buildAdminDashboard({ ...sources, statistics: statisticsData, charts: chartsData });
+  dashboard.generatedAt = new Date().toISOString();
+  dashboard.geojson = cms?.geojson || monumentsToGeoJSON(monuments);
+  dashboard.cms = {
+    connected: Boolean(cms),
+    source: cms ? 'Payload CMS' : 'Yerel örnek veri',
+    adminUrl: cms?.adminUrl || `${(process.env.PAYLOAD_CMS_URL || 'http://localhost:3000').replace(/\/$/, '')}/admin`,
+  };
+  if (cms) {
+    dashboard.pendingReviews = [];
+    dashboard.activity = cms.activity;
+    dashboard.metrics = dashboard.metrics.map((metric) => metric.key === 'pending' ? { ...metric, value: 0, detail: 'Taslaklar Payload üzerinden yönetilir' } : metric);
+    dashboard.systemStatus = dashboard.systemStatus.map((item) => item.key === 'database' ? { ...item, value: 'Payload CMS' } : item);
+  }
+  res.json(ok(dashboard));
 });
 
 app.post('/api/admin/reviews/:id/decision', (req, res) => {

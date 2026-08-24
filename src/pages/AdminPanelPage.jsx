@@ -48,7 +48,7 @@ export default function AdminPanelPage() {
   useEffect(() => {
     let active = true;
     Promise.all([api.getAdminDashboard(), api.getLocations()])
-      .then(([dashboardData, locationData]) => { if (active) { setDashboard(dashboardData); setGeojson(locationData); } })
+      .then(([dashboardData, locationData]) => { if (active) { setDashboard(dashboardData); setGeojson(dashboardData.geojson || locationData); } })
       .catch(() => active && setError(true))
       .finally(() => active && setLoading(false));
     return () => { active = false; };
@@ -71,8 +71,8 @@ export default function AdminPanelPage() {
 
   return <div className="admin-dashboard-page">
     <header className="admin-dashboard-header">
-      <div><span><i /> YÖNETİCİ ÇALIŞMA ALANI</span><h1>Yönetim özeti</h1><p>İçerik, CBS ve kullanım verilerinin güncel durumunu tek ekrandan izleyin.</p></div>
-      <div className="admin-header-actions"><small>Son veri güncellemesi<b>{formatDate(dashboard.generatedAt, true)}</b></small><Link to="/raporlar"><IconDocument size={14} /> Raporları aç</Link></div>
+      <div><span><i className={dashboard.cms?.connected ? '' : 'offline'} /> YÖNETİCİ ÇALIŞMA ALANI · {dashboard.cms?.source || 'Veri katmanı'}</span><h1>Yönetim özeti</h1><p>İçerik, CBS ve kullanım verilerinin güncel durumunu tek ekrandan izleyin.</p></div>
+      <div className="admin-header-actions"><small>Son veri güncellemesi<b>{formatDate(dashboard.generatedAt, true)}</b></small><a href={dashboard.cms?.adminUrl || 'http://localhost:3000/admin'} target="_blank" rel="noreferrer"><IconMonument size={14} /> İçerikleri yönet</a><Link to="/raporlar"><IconDocument size={14} /> Raporları aç</Link></div>
     </header>
 
     <section className="admin-metric-grid" aria-label="Yönetim istatistikleri">

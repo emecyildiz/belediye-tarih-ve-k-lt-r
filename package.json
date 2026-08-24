@@ -10,6 +10,11 @@
     "preview": "vite preview",
     "server": "node backend-server.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
+    "dev:cms": "concurrently \"npm run server\" \"npm run dev\" \"npm --prefix cms run dev\"",
+    "cms:dev": "npm --prefix cms run dev",
+    "cms:build": "npm --prefix cms run build",
+    "cms:seed": "npm --prefix cms run seed",
+    "cms:types": "npm --prefix cms run generate:types",
     "test:data": "node --test backend/data/*.test.js",
     "lint": "eslint src",
     "type-check": "tsc --noEmit"

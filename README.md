@@ -63,6 +63,27 @@ npm run dev
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:5000/api/locations
 
+## 🗂️ Payload CMS ile İçerik Yönetimi
+
+Payload CMS, ana Vite uygulamasından bağımsız olarak `cms/` klasöründe çalışır. Geliştirme veritabanı SQLite'tır; veritabanı dosyası ve gizli ayarlar Git'e eklenmez.
+
+```bash
+# İlk kurulum
+npm --prefix cms install
+npm run cms:seed
+
+# Portal + Express API + Payload CMS
+npm run dev:cms
+```
+
+- **Payload Yönetimi**: http://localhost:3000/admin
+- **Payload REST API**: http://localhost:3000/api
+- **Özel Yönetim Özeti**: http://localhost:5173/yonetim-paneli
+
+İlk açılışta `/admin` ekranından gerçek yönetici hesabı oluşturulur. Eser, rota, etkinlik, bildirim ve portal ayarları Payload üzerinden yönetilir. `cms:seed` komutu aynı kayıtları çoğaltmaz; `legacyId` alanıyla mevcut veriyi günceller.
+
+Express yönetim API'si önce Payload'a bağlanır. CMS geçici olarak kapalıysa sunum ekranının çökmemesi için yerel örnek veri yedek olarak kullanılır. Gerçek belediye veritabanı geldiğinde `cms/src/payload.config.ts` içindeki SQLite adaptörü PostgreSQL adaptörüyle değiştirilebilir; portalın GeoJSON sözleşmesi korunur.
+
 ## 📁 Proje Yapısı
 
 ```

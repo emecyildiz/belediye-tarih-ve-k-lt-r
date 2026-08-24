@@ -317,8 +317,13 @@ const mockApi = {
     return db.getHomeContent();
   },
   getAdminDashboard: async () => {
-    const db = await getMockDb();
-    return db.getAdminDashboard();
+    try {
+      return await realApi.getAdminDashboard();
+    } catch {
+      const db = await getMockDb();
+      const dashboard = db.getAdminDashboard();
+      return { ...dashboard, cms: { connected: false, source: 'Yerel örnek veri', adminUrl: 'http://localhost:3000/admin' } };
+    }
   },
   reviewAdminItem: async (id, decision) => {
     const db = await getMockDb();

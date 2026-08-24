@@ -19,12 +19,13 @@ function AdminMenuIcon({ name }) {
   return <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round">{paths[name]}</svg>;
 }
 
+const CMS_URL = (import.meta.env.VITE_CMS_URL || 'http://localhost:3000').replace(/\/$/, '');
 const moduleItems = [
-  ['monument', 'Eser Yönetimi', 'eser-yonetimi'],
-  ['route', 'Rota Yönetimi', 'rota-yonetimi'],
-  ['calendar', 'Etkinlik Yönetimi', 'etkinlik-yonetimi'],
-  ['users', 'Kullanıcılar', 'kullanicilar'],
-  ['content', 'İçerik Yönetimi', 'icerik-yonetimi'],
+  ['monument', 'Eser Yönetimi', 'collections/monuments'],
+  ['route', 'Rota Yönetimi', 'collections/cultural-routes'],
+  ['calendar', 'Etkinlik Yönetimi', 'collections/events'],
+  ['users', 'Kullanıcılar', 'collections/users'],
+  ['content', 'İçerik Yönetimi', 'globals/site-settings'],
 ];
 
 export default function AdminSidebar({ open = false, onNavigate }) {
@@ -39,8 +40,8 @@ export default function AdminSidebar({ open = false, onNavigate }) {
     <div className="admin-sidebar-product"><span>TKMBS</span><strong>Yönetim Paneli</strong></div>
     <nav className="admin-sidebar-nav" aria-label="Yönetim menüsü">
       <NavLink to="/yonetim-paneli" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="dashboard"/><span>Gösterge Paneli</span></NavLink>
-      {moduleItems.map(([icon, label, path]) => <NavLink to={`/yonetim-paneli/${path}`} onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`} key={path}><AdminMenuIcon name={icon}/><span>{label}</span></NavLink>)}
-      <NavLink to="/yonetim-paneli/bildirimler" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="bell"/><span>Bildirimler</span>{unreadCount > 0 && <b>{unreadCount}</b>}</NavLink>
+      {moduleItems.map(([icon, label, path]) => <a href={`${CMS_URL}/admin/${path}`} target="_blank" rel="noreferrer" onClick={onNavigate} className="admin-sidebar-link" key={path}><AdminMenuIcon name={icon}/><span>{label}</span></a>)}
+      <a href={`${CMS_URL}/admin/collections/notifications`} target="_blank" rel="noreferrer" onClick={onNavigate} className="admin-sidebar-link"><AdminMenuIcon name="bell"/><span>Bildirimler</span>{unreadCount > 0 && <b>{unreadCount}</b>}</a>
       <NavLink to="/raporlar" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link report${isActive ? ' active' : ''}`}><AdminMenuIcon name="report"/><span>Raporlar</span></NavLink>
       <NavLink to="/yonetim-paneli/yedekleme" onClick={onNavigate} className={({ isActive }) => `admin-sidebar-link${isActive ? ' active' : ''}`}><AdminMenuIcon name="backup"/><span>Yedekleme</span></NavLink>
     </nav>
