@@ -66,29 +66,15 @@ export default function AboutPage() {
     <div className="about-page">
       <section className="about-hero">
         <div className="about-hero-copy">
-          <span className="about-eyebrow"><IconInfo size={14} /> Kurumsal proje</span>
-          <h1>Hatay'ın kültürel belleği<br /><em>dijital haritada.</em></h1>
+          <span className="about-eyebrow"><IconInfo size={14} /> TKMBS hakkında</span>
+          <h1>Hatay'ın tarihi ve kültürel mirası <em>tek platformda.</em></h1>
           <p>
-            TKMBS; Hatay'ın tarihi eserlerini, kültürel rotalarını ve etkinliklerini
-            erişilebilir, güncel ve konum tabanlı bir bilgi sistemi içinde buluşturur.
+            Tarihi eserleri, kültürel rotaları ve etkinlikleri doğru konum bilgileriyle
+            keşfedin; Hatay'ın zengin mirasına tek noktadan ulaşın.
           </p>
           <div className="about-hero-actions">
             <Link className="about-primary-action" to="/harita">Haritayı keşfet <IconArrow size={15} /></Link>
             <Link className="about-secondary-action" to="/tarihi-eserler">Eserleri incele</Link>
-          </div>
-        </div>
-
-        <div className="about-identity-card">
-          <div className="about-identity-brand">
-            <img src="/assets/image6.png" alt="Hatay Büyükşehir Belediyesi" />
-          </div>
-          <div className="about-identity-title">
-            <small>TKMBS</small>
-            <strong>Tarihi ve Kültürel<br />Miras Bilgi Sistemi</strong>
-            <span>Hatay Büyükşehir Belediyesi</span>
-          </div>
-          <div className="about-identity-grid" aria-hidden="true">
-            <i /><i /><i /><i /><i /><i /><i /><i /><i />
           </div>
         </div>
       </section>
