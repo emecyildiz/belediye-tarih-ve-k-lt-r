@@ -3,6 +3,7 @@
   gap: 16px;
   color: var(--text);
 }
+.about-page-state { min-height: 320px; display: grid; place-items: center; color: #63758a; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; font-size: 12px; font-weight: 700; }
 
 .about-hero {
   position: relative;
@@ -15,7 +16,7 @@
   color: #fff;
   background:
     linear-gradient(90deg, rgb(2 20 39 / 88%) 0%, rgb(3 28 52 / 72%) 47%, rgb(3 23 42 / 18%) 100%),
-    url('/assets/monuments/habib-neccar-main.jpg') center 48% / cover no-repeat;
+    var(--about-hero-image) center 48% / cover no-repeat;
   box-shadow: 0 14px 32px rgb(8 37 77 / 14%);
 }
 

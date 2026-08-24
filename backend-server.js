@@ -18,6 +18,7 @@ import {
 } from './backend/data/mockDb.js';
 import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDashboard.js';
 import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
+import { getAboutContent } from './backend/data/aboutContent.js';
 
 const app = express();
 app.use(cors());
@@ -194,6 +195,7 @@ app.get('/api/events/categories/counts', (_req, res) => {
 app.get('/api/statistics', (_req, res) => res.json(ok(buildStatistics({ monuments, routes: culturalRoutes, events }))));
 app.get('/api/weather', async (_req, res) => res.json(ok(await fetchAntakyaWeather())));
 app.get('/api/charts', (_req, res) => res.json(ok(buildChartData({ monuments, routes: culturalRoutes, events }))));
+app.get('/api/content/about', (_req, res) => res.json(ok(getAboutContent())));
 
 app.get('/api/admin/dashboard', (_req, res) => {
   const statisticsData = buildStatistics({ monuments, routes: culturalRoutes, events });
