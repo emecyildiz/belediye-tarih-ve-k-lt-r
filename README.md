@@ -65,11 +65,12 @@ npm run dev
 
 ## 🗂️ Payload CMS ile İçerik Yönetimi
 
-Payload CMS, ana Vite uygulamasından bağımsız olarak `cms/` klasöründe çalışır. Geliştirme veritabanı SQLite'tır; veritabanı dosyası ve gizli ayarlar Git'e eklenmez.
+Payload CMS, ana Vite uygulamasından bağımsız olarak `cms/` klasöründe çalışır ve PostgreSQL kullanır. Gizli bağlantı ayarları Git'e eklenmez.
 
 ```bash
 # İlk kurulum
 npm --prefix cms install
+npm --prefix cms run db:start
 npm run cms:seed
 
 # Portal + Express API + Payload CMS
@@ -82,7 +83,7 @@ npm run dev:cms
 
 İlk açılışta `/admin` ekranından gerçek yönetici hesabı oluşturulur. Eser, rota, etkinlik, bildirim ve portal ayarları Payload üzerinden yönetilir. `cms:seed` komutu aynı kayıtları çoğaltmaz; `legacyId` alanıyla mevcut veriyi günceller.
 
-Express yönetim API'si önce Payload'a bağlanır. CMS geçici olarak kapalıysa sunum ekranının çökmemesi için yerel örnek veri yedek olarak kullanılır. Gerçek belediye veritabanı geldiğinde `cms/src/payload.config.ts` içindeki SQLite adaptörü PostgreSQL adaptörüyle değiştirilebilir; portalın GeoJSON sözleşmesi korunur.
+Express yönetim API'si önce Payload'a bağlanır. CMS geçici olarak kapalıysa sunum ekranının çökmemesi için yerel örnek veri yedek olarak kullanılır. Payload doğrudan PostgreSQL adaptörünü kullanır; gerçek belediye veritabanı geldiğinde yalnızca gizli `DATABASE_URL` değeri değiştirilir ve portalın GeoJSON sözleşmesi korunur.
 
 ## 📁 Proje Yapısı
 

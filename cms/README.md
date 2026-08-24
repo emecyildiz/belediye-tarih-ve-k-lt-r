@@ -1,6 +1,6 @@
 # TKMBS Payload CMS
 
-Bu klasör Hatay Tarihi ve Kültürel Miras Bilgi Sistemi'nin içerik yönetim uygulamasıdır. Payload CMS 3, Next.js ve geliştirme ortamında SQLite kullanır.
+Bu klasör Hatay Tarihi ve Kültürel Miras Bilgi Sistemi'nin içerik yönetim uygulamasıdır. Payload CMS 3, Next.js ve PostgreSQL kullanır.
 
 ## Yönetilen içerikler
 
@@ -17,6 +17,7 @@ Bu klasör Hatay Tarihi ve Kültürel Miras Bilgi Sistemi'nin içerik yönetim u
 ```powershell
 npm install
 Copy-Item .env.example .env
+npm run db:start
 npm run seed
 npm run dev
 ```
@@ -29,13 +30,24 @@ Yönetim ekranı `http://localhost:3000/admin` adresindedir. İlk çalıştırma
 
 ## Ortam değişkenleri
 
-- `DATABASE_URL`: geliştirmede `file:./cms.db`
+- `DATABASE_URL`: PostgreSQL bağlantı adresi
 - `PAYLOAD_SECRET`: uzun ve gizli uygulama anahtarı
 - `PAYLOAD_PUBLIC_SERVER_URL`: CMS'in dış adresi
 - `PORTAL_ORIGIN`: Payload API'sine erişecek portal adresi
 
-`.env`, `cms.db`, yüklenen medya ve derleme çıktıları Git'e alınmaz.
+`.env`, yüklenen medya ve derleme çıktıları Git'e alınmaz. Örnek Docker parolası yalnızca yerel geliştirme içindir; belediye ortamında güçlü bir parola ve kurumun bağlantı adresi kullanılmalıdır.
 
 ## Üretim veritabanı
 
-Belediyenin PostgreSQL altyapısına geçerken `@payloadcms/db-postgres` kullanılarak yalnızca veritabanı adaptörü ve bağlantı adresi değiştirilir. Koleksiyon adları, ilişkiler ve REST API sözleşmesi aynı bırakılır.
+Sistem doğrudan resmi `@payloadcms/db-postgres` adaptörünü kullanır. Belediye sunucusuna geçerken kod değiştirilmez; yalnızca `DATABASE_URL` kurumun PostgreSQL adresiyle değiştirilir. Şema değişiklikleri üretimde migration komutlarıyla uygulanmalıdır.
+
+```powershell
+npm run migrate:create
+npm run migrate
+```
+
+## Yönetim sorumlulukları
+
+- Payload: içerik ekleme, düzenleme, silme, medya, kullanıcı ve yetkilendirme
+- TKMBS özel yönetim paneli: harita, özet göstergeler, istatistikler ve raporlama
+- Halk portalı: Payload REST API üzerinden yayımlanan onaylı içerikleri gösterir
