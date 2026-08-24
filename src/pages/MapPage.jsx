@@ -104,6 +104,7 @@ export default function MapPage() {
             mapType={mapType}
             onMapTypeChange={setMapType}
             onFeatureClick={selectFeature}
+            showFeatureTooltip
           />
         ) : <div className="map-loading">Harita yükleniyor…</div>}
       </div>

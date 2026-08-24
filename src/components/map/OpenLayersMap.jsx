@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
@@ -13,10 +13,15 @@ import { Fill, Stroke, Style, Circle as CircleStyle, Text, Icon } from 'ol/style
 import Cluster from 'ol/source/Cluster';
 import 'ol/ol.css';
 import { CATEGORY_COLORS } from '../../constants';
+import SafeImage from '../common/SafeImage';
 
 const HATAY_CENTER = fromLonLat([36.16, 36.20]);
 const DEFAULT_ZOOM = 11;
 const markerStyleCache = new globalThis.Map();
+const CATEGORY_LABELS = {
+  camii: 'Cami', kilise: 'Kilise', muze: 'Müze', han: 'Han',
+  kale: 'Kale', kopru: 'Köprü', doga: 'Doğal Alan', diger: 'Tarihi Eser',
+};
 
 function getCategorySymbol(category) {
   const symbols = {
@@ -108,11 +113,13 @@ export default function OpenLayersMap({
   onMapTypeChange,
   cluster = false,
   onFeatureClick,
+  showFeatureTooltip = false,
   routeMode = false,
   heatmap = false,
   fitToData = false,
   height = '100%',
 }) {
+  const [hoveredFeature, setHoveredFeature] = useState(null);
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const vectorSourceRef = useRef(null);
@@ -165,6 +172,34 @@ export default function OpenLayersMap({
               : feature.getProperties();
             onFeatureClick(props);
           }
+        });
+      }
+
+      if (showFeatureTooltip) {
+        mapRef.current.on('pointermove', (evt) => {
+          if (evt.dragging || evt.originalEvent?.pointerType === 'touch') {
+            setHoveredFeature(null);
+            return;
+          }
+          const feature = mapRef.current?.forEachFeatureAtPixel(evt.pixel, (item) => item);
+          const groupedFeatures = feature?.get('features');
+          const target = mapRef.current?.getTargetElement();
+          if (!feature || groupedFeatures?.length > 1) {
+            if (target) target.style.cursor = '';
+            setHoveredFeature(null);
+            return;
+          }
+          const properties = groupedFeatures?.[0]?.getProperties() || feature.getProperties();
+          if (properties.type === 'route-line' || !properties.name) {
+            if (target) target.style.cursor = '';
+            setHoveredFeature(null);
+            return;
+          }
+          if (target) target.style.cursor = 'pointer';
+          const tooltipWidth = 218;
+          const x = Math.max(8, Math.min(evt.pixel[0] + 14, container.clientWidth - tooltipWidth - 8));
+          const y = Math.max(8, Math.min(evt.pixel[1] - 64, container.clientHeight - 76));
+          setHoveredFeature({ properties, x, y });
         });
       }
 
@@ -246,6 +281,14 @@ export default function OpenLayersMap({
         </>
       )}
       <div ref={containerRef} className="ol-map-container" />
+      {hoveredFeature && <div className="ol-feature-tooltip" style={{ left: hoveredFeature.x, top: hoveredFeature.y }} aria-hidden="true">
+        <SafeImage src={hoveredFeature.properties.image} alt="" />
+        <div>
+          <small>{hoveredFeature.properties.stopNumber ? `${hoveredFeature.properties.stopNumber}. rota durağı` : (hoveredFeature.properties.categoryLabel || CATEGORY_LABELS[hoveredFeature.properties.category] || 'Kültürel miras')}</small>
+          <strong>{hoveredFeature.properties.name}</strong>
+          <span>{hoveredFeature.properties.district || 'Hatay'}</span>
+        </div>
+      </div>}
     </div>
   );
 }

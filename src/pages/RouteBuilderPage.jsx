@@ -62,7 +62,7 @@ export default function RouteBuilderPage() {
   const mapGeoJSON = useMemo(() => ({
     type: 'FeatureCollection',
     features: [
-      ...monuments.filter((item) => Array.isArray(item.coordinates)).map((item) => ({ type: 'Feature', id: item.id, properties: { id: item.id, monumentId: item.id, type: 'candidate', category: item.category, name: item.name, district: item.district }, geometry: { type: 'Point', coordinates: [item.coordinates[1], item.coordinates[0]] } })),
+      ...monuments.filter((item) => Array.isArray(item.coordinates)).map((item) => ({ type: 'Feature', id: item.id, properties: { id: item.id, monumentId: item.id, type: 'candidate', category: item.category, categoryLabel: item.categoryLabel, name: item.name, district: item.district, image: item.image, slug: item.slug }, geometry: { type: 'Point', coordinates: [item.coordinates[1], item.coordinates[0]] } })),
       ...(preview?.geojson?.features || []),
     ],
   }), [monuments, preview]);
@@ -106,7 +106,7 @@ export default function RouteBuilderPage() {
           <div className="candidate-stops"><header><span>DURAK EKLE</span><label><IconSearch size={14} /><input placeholder="Eser ara…" value={query} onChange={(event) => setQuery(event.target.value)} /></label></header><div>{candidates.slice(0, 20).map((item) => <button type="button" key={item.id} onClick={() => toggleStop(item.id)}><SafeImage src={item.image} alt="" /><span><strong>{item.name}</strong><small>{item.district}</small></span><b>+</b></button>)}</div></div>
         </aside>
 
-        <div className="route-builder-map"><header><div><span>CANLI ÖNİZLEME</span><h2>Haritadan durak seç</h2></div><small>Bir işarete tıklayarak ekleyip kaldırabilirsiniz.</small></header><OpenLayersMap geojson={mapGeoJSON} routeMode mapType={mapType} onMapTypeChange={setMapType} onFeatureClick={(props) => props?.monumentId && toggleStop(props.monumentId)} height="690px" /></div>
+        <div className="route-builder-map"><header><div><span>CANLI ÖNİZLEME</span><h2>Haritadan durak seç</h2></div><small>İşaretin üzerine gelerek mekânı inceleyebilir, tıklayarak rotaya ekleyebilirsiniz.</small></header><OpenLayersMap geojson={mapGeoJSON} routeMode showFeatureTooltip mapType={mapType} onMapTypeChange={setMapType} onFeatureClick={(props) => props?.monumentId && toggleStop(props.monumentId)} height="690px" /></div>
       </section>
     </div>
   );

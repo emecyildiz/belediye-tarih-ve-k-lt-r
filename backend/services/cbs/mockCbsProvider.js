@@ -58,8 +58,10 @@ export function buildRoutePreview({ monuments, stopIds = [], travelMode = 'walki
       monumentId: item.monumentId,
       stopNumber: item.order,
       name: item.name,
+      slug: item.slug,
       category: item.category,
       district: item.district,
+      image: item.image,
     },
     geometry: { type: 'Point', coordinates: [item.coordinates[1], item.coordinates[0]] },
   })));

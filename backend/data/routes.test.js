@@ -16,6 +16,12 @@ test('her örnek rota OpenLayers için çizgi ve durak GeoJSON verisi üretir', 
     const geojson = routeToGeoJSON(route, monuments);
     assert.equal(geojson.type, 'FeatureCollection');
     assert.ok(geojson.features.some((feature) => feature.geometry.type === 'LineString'), `${route.title} için rota çizgisi bekleniyor`);
-    assert.equal(geojson.features.filter((feature) => feature.geometry.type === 'Point').length, route.stops);
+    const stops = geojson.features.filter((feature) => feature.geometry.type === 'Point');
+    assert.equal(stops.length, route.stops);
+    assert.ok(stops.every((feature) => (
+      feature.properties.name
+      && feature.properties.district
+      && Object.hasOwn(feature.properties, 'image')
+    )));
   });
 });

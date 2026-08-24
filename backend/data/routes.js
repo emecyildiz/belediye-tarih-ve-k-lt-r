@@ -148,6 +148,10 @@ export function routeToGeoJSON(route, monuments) {
         type: "route-stop",
         stopNumber: i + 1,
         name: p.name,
+        slug: p.slug,
+        category: p.category,
+        district: p.district,
+        image: p.image,
         routeId: route.id
       },
       geometry: {
