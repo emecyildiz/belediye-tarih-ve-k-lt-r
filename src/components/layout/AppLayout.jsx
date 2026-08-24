@@ -25,14 +25,19 @@ export default function AppLayout({ children }) {
     setSidebarCollapsed(false);
   };
 
+  const handleSidebarNavigate = () => {
+    setMenuOpen(false);
+    setSidebarCollapsed(true);
+  };
+
   return (
     <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <div className="app-brand">
         <img src="/assets/image6.png" alt="Hatay Büyükşehir Belediyesi" />
       </div>
       {adminLayout
-        ? <AdminSidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={() => setMenuOpen(false)} />
-        : <Sidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={() => setMenuOpen(false)} />}
+        ? <AdminSidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={handleSidebarNavigate} />
+        : <Sidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={handleSidebarNavigate} />}
       <button
         type="button"
         className="sidebar-layout-toggle"
