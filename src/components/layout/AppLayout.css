@@ -61,7 +61,7 @@
   border-radius: 8px;
   background: rgb(4 45 94 / 94%);
   box-shadow: 0 5px 14px rgb(0 18 47 / 18%);
-  transition: left .22s ease, background .18s ease;
+  transition: left .28s cubic-bezier(.22, .78, .25, 1), background .18s ease;
 }
 .app-shell:not(.sidebar-collapsed) .sidebar-layout-toggle { left: 186px; }
 .sidebar-layout-toggle:hover { background: #0b56a1; }
@@ -79,7 +79,7 @@
   padding: 7px 18px 10px;
   text-align: center;
   color: var(--text-muted);
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .sidebar-backdrop { display: none; }
@@ -113,5 +113,5 @@
 
 @media (max-width: 480px) {
   .app-content { padding: 8px; }
-  .app-footer { padding: 7px 8px 9px; font-size: 9px; }
+  .app-footer { padding: 7px 8px 9px; font-size: 12px; }
 }
