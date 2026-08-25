@@ -187,7 +187,6 @@ export default function MapPage() {
             {selectedCoordinate && <div className="map-detail-coordinates" aria-label="Konum koordinatları">
               <span><small>Enlem</small><strong>{selectedCoordinate.latitude.toFixed(6)}</strong></span>
               <span><small>Boylam</small><strong>{selectedCoordinate.longitude.toFixed(6)}</strong></span>
-              <b>WGS84 · EPSG:4326</b>
             </div>}
             <div className="map-detail-meta">
               <span><small>Dönem</small><strong>{selectedLocation.century || selectedLocation.period || 'Bilinmiyor'}</strong></span>

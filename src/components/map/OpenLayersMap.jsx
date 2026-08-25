@@ -8,7 +8,6 @@ import VectorSource from 'ol/source/Vector';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import GeoJSON from 'ol/format/GeoJSON';
-import MousePosition from 'ol/control/MousePosition';
 import { fromLonLat, toLonLat } from 'ol/proj';
 import { Fill, Stroke, Style, Circle as CircleStyle, Text, Icon } from 'ol/style';
 import Cluster from 'ol/source/Cluster';
@@ -132,6 +131,7 @@ export default function OpenLayersMap({
   height = '100%',
 }) {
   const [hoveredFeature, setHoveredFeature] = useState(null);
+  const [cursorCoordinate, setCursorCoordinate] = useState(null);
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const vectorSourceRef = useRef(null);
@@ -141,6 +141,8 @@ export default function OpenLayersMap({
   const mapReadyRef = useRef(false);
 
   useEffect(() => {
+    let pointerLeaveHandler = null;
+
     const initMap = () => {
       const container = containerRef.current;
       if (!container || mapReadyRef.current) return false;
@@ -167,12 +169,7 @@ export default function OpenLayersMap({
         target: container,
         layers: [osmLayerRef.current, satelliteLayerRef.current, vectorLayer],
         view: new View({ center: HATAY_CENTER, zoom: DEFAULT_ZOOM }),
-        controls: showCoordinates ? [new MousePosition({
-          className: 'ol-coordinate-readout',
-          projection: 'EPSG:4326',
-          placeholder: 'Koordinat için harita üzerinde gezinin',
-          coordinateFormat: ([longitude, latitude]) => `Enlem ${latitude.toFixed(6)}  ·  Boylam ${longitude.toFixed(6)}`,
-        })] : [],
+        controls: [],
       });
 
       mapReadyRef.current = true;
@@ -191,12 +188,24 @@ export default function OpenLayersMap({
         });
       }
 
-      if (showFeatureTooltip) {
+      if (showFeatureTooltip || showCoordinates) {
         mapRef.current.on('pointermove', (evt) => {
           if (evt.dragging || evt.originalEvent?.pointerType === 'touch') {
             setHoveredFeature(null);
+            setCursorCoordinate(null);
             return;
           }
+
+          if (showCoordinates) {
+            const [longitude, latitude] = toLonLat(evt.coordinate);
+            setCursorCoordinate({
+              value: `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`,
+              x: Math.max(8, Math.min(evt.pixel[0] + 12, container.clientWidth - 158)),
+              y: Math.max(8, Math.min(evt.pixel[1] + 18, container.clientHeight - 32)),
+            });
+          }
+
+          if (!showFeatureTooltip) return;
           const feature = mapRef.current?.forEachFeatureAtPixel(evt.pixel, (item) => item);
           const groupedFeatures = feature?.get('features');
           const target = mapRef.current?.getTargetElement();
@@ -217,6 +226,12 @@ export default function OpenLayersMap({
           const y = Math.max(8, Math.min(evt.pixel[1] - 64, container.clientHeight - 76));
           setHoveredFeature({ properties, coordinate: coordinateDetails(groupedFeatures?.[0] || feature), x, y });
         });
+
+        pointerLeaveHandler = () => {
+          setHoveredFeature(null);
+          setCursorCoordinate(null);
+        };
+        container.addEventListener('pointerleave', pointerLeaveHandler);
       }
 
       return true;
@@ -233,6 +248,9 @@ export default function OpenLayersMap({
     }
 
     return () => {
+      if (pointerLeaveHandler && containerRef.current) {
+        containerRef.current.removeEventListener('pointerleave', pointerLeaveHandler);
+      }
       resizeObserverRef.current?.disconnect();
       resizeObserverRef.current = null;
       mapRef.current?.setTarget(null);
@@ -299,13 +317,15 @@ export default function OpenLayersMap({
         </>
       )}
       <div ref={containerRef} className="ol-map-container" />
+      {cursorCoordinate && <div className="ol-cursor-coordinate" style={{ left: cursorCoordinate.x, top: cursorCoordinate.y }} aria-hidden="true">
+        {cursorCoordinate.value}
+      </div>}
       {hoveredFeature && <div className="ol-feature-tooltip" style={{ left: hoveredFeature.x, top: hoveredFeature.y }} aria-hidden="true">
         <SafeImage src={hoveredFeature.properties.image} alt="" />
         <div>
           <small>{hoveredFeature.properties.stopNumber ? `${hoveredFeature.properties.stopNumber}. rota durağı` : (hoveredFeature.properties.categoryLabel || CATEGORY_LABELS[hoveredFeature.properties.category] || 'Kültürel miras')}</small>
           <strong>{hoveredFeature.properties.name}</strong>
           <span>{hoveredFeature.properties.district || 'Hatay'}</span>
-          {hoveredFeature.coordinate && <em>{hoveredFeature.coordinate.latitude.toFixed(6)}, {hoveredFeature.coordinate.longitude.toFixed(6)}</em>}
         </div>
       </div>}
     </div>
