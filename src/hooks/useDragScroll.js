@@ -29,8 +29,6 @@ export default function useDragScroll(axis = 'x') {
           scrollLeft: element.scrollLeft,
           scrollTop: element.scrollTop,
         };
-        element.setPointerCapture?.(event.pointerId);
-        element.classList.add('is-dragging');
       },
       onPointerMove: (event) => {
         if (!gesture.current.active || gesture.current.pointerId !== event.pointerId) return;
@@ -38,7 +36,11 @@ export default function useDragScroll(axis = 'x') {
         if (!element) return;
         const deltaX = event.clientX - gesture.current.startX;
         const deltaY = event.clientY - gesture.current.startY;
-        if (Math.abs(axis === 'x' ? deltaX : deltaY) > 5) gesture.current.dragged = true;
+        if (Math.abs(axis === 'x' ? deltaX : deltaY) > 5 && !gesture.current.dragged) {
+          gesture.current.dragged = true;
+          element.setPointerCapture?.(event.pointerId);
+          element.classList.add('is-dragging');
+        }
         if (!gesture.current.dragged) return;
         event.preventDefault();
         if (axis === 'x') element.scrollLeft = gesture.current.scrollLeft - deltaX;
