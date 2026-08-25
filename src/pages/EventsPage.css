@@ -75,3 +75,14 @@
 @media(max-width:1100px){.events-overview{grid-template-columns:minmax(0,1fr) minmax(410px,.85fr)}.events-layout{grid-template-columns:220px minmax(0,1fr)}}
 @media(max-width:850px){.events-overview{grid-template-columns:1fr}.events-overview .featured-event{height:250px}.event-calendar-card{height:310px}.calendar-days{grid-auto-rows:32px}.calendar-days button{height:32px}.events-layout{display:block}}
 @media(max-width:560px){.events-overview .featured-event{height:260px}.event-calendar-card{height:324px;padding:14px 12px}.calendar-days{grid-auto-rows:34px}.calendar-days button{height:34px}.event-card-image{height:220px}.event-card-body{min-height:205px}.events-overview .featured-event-content h2{font-size:22px}.events-overview .featured-event-content>p{font-size:14px!important}}
+
+/* Kart metinlerini koruyup kartların kapladığı alanı azaltır. */
+.events-page .event-results{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.events-page .event-card-image{height:172px}
+.events-page .event-card-date{width:56px;height:62px}
+.events-page .event-card-body{min-height:178px;padding:12px 14px}
+.events-page .event-card-description{margin:8px 0 9px;-webkit-line-clamp:2}
+.events-page .event-card-body footer{padding-top:7px}
+
+@media(max-width:1280px){.events-page .event-results{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.events-page .event-results{grid-template-columns:1fr}.events-page .event-card-image{height:190px}.events-page .event-card-body{min-height:182px}}

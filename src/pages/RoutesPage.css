@@ -17,3 +17,26 @@
 @media(max-width:760px){.cultural-routes-header{align-items:flex-start;flex-direction:column;gap:12px}.cultural-routes-tools{width:100%;justify-content:flex-start;flex-wrap:wrap}.cultural-routes-tools>label{flex:1}.cultural-routes-tools select{width:100%}.route-view-buttons{margin-left:auto}.mobile-route-filter{height:38px;padding:0 12px;display:inline-flex;align-items:center;gap:6px;color:#fff;border:0;border-radius:8px;background:var(--navy);font-size:9px;font-weight:700}.cultural-routes-layout{display:block}.cultural-route-filters{position:fixed;z-index:120;top:0;left:0;width:min(290px,88vw);height:100dvh;padding:15px;overflow-y:auto;border-radius:0;transform:translateX(-105%);transition:transform .22s ease}.cultural-route-filters.open{transform:translateX(0)}.cultural-route-filters>header>button{display:block}.route-filter-backdrop{position:fixed;z-index:110;inset:0;display:block;border:0;background:rgb(0 20 48/52%)}.custom-route-banner{grid-template-columns:38px minmax(0,1fr)}.custom-route-banner>a{grid-column:1/-1;justify-content:center}}
 @media(max-width:570px){.cultural-route-grid{grid-template-columns:1fr}.cultural-route-image{height:185px}.cultural-route-grid.list .cultural-route-card{display:flex;min-height:0}.cultural-route-grid.list .cultural-route-image{height:155px;min-height:155px}.cultural-route-grid.list .cultural-route-content{min-height:170px}}
 @media(max-width:390px){.cultural-routes-tools>label{order:2;flex-basis:100%}.route-view-buttons{margin-left:0}.cultural-route-image{height:170px}}
+
+/* Rota filtreleri ve kartlarında ölçülü okunabilirlik artışı. */
+.cultural-routes-page .cultural-routes-header p{font-size:15px!important}
+.cultural-routes-page .cultural-routes-tools>strong,
+.cultural-routes-page .cultural-routes-tools small,
+.cultural-routes-page .cultural-routes-tools select{font-size:14px!important}
+.cultural-routes-page .cultural-route-filters>header>div{font-size:15px!important}
+.cultural-routes-page .cultural-route-filters legend,
+.cultural-routes-page .cultural-route-filters fieldset b,
+.cultural-routes-page .route-filter-select span,
+.cultural-routes-page .route-filter-select select,
+.cultural-routes-page .route-filter-clear{font-size:14px!important}
+.cultural-routes-page .cultural-route-filters fieldset small{font-size:13px!important}
+.cultural-routes-page .cultural-route-filters fieldset label{min-height:35px}
+.cultural-routes-page .route-filter-select select,
+.cultural-routes-page .route-filter-clear{height:39px}
+.cultural-routes-page .route-card-heading>span,
+.cultural-routes-page .route-card-heading small,
+.cultural-routes-page .route-stop-names,
+.cultural-routes-page .cultural-route-content footer span,
+.cultural-routes-page .cultural-route-content footer>a{font-size:13px!important}
+.cultural-routes-page .cultural-route-content h2{font-size:15px!important}
+.cultural-routes-page .cultural-route-content>p{font-size:14px!important}
