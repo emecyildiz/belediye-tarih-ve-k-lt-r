@@ -24,6 +24,12 @@ const categoryNames = {
   kale: 'Kale', kopru: 'Köprü', doga: 'Doğal Alan', diger: 'Tarihi Eser',
 };
 
+function getLocationCoordinate(location) {
+  if (location?.coordinate) return location.coordinate;
+  if (!Array.isArray(location?.coordinates) || location.coordinates.length !== 2) return null;
+  return { latitude: Number(location.coordinates[0]), longitude: Number(location.coordinates[1]) };
+}
+
 export default function MapPage() {
   const navigate = useNavigate();
   const [allGeojson, setAllGeojson] = useState(null);
@@ -84,7 +90,7 @@ export default function MapPage() {
 
   const selectFeature = (properties) => {
     const fullItem = monuments.find((item) => item.id === Number(properties.id));
-    setSelectedLocation(fullItem || properties);
+    setSelectedLocation(fullItem ? { ...fullItem, coordinate: properties.coordinate } : properties);
   };
 
   const toggleFavorite = () => selectedLocation && toggleFavoriteId(selectedLocation.id);
@@ -93,6 +99,8 @@ export default function MapPage() {
     setActiveLayers(new Set(layers.map((item) => item.key)));
     setDistrict('tumu');
   };
+
+  const selectedCoordinate = getLocationCoordinate(selectedLocation);
 
   return (
     <div className="heritage-map-page">
@@ -104,6 +112,7 @@ export default function MapPage() {
             onMapTypeChange={setMapType}
             onFeatureClick={selectFeature}
             showFeatureTooltip
+            showCoordinates
           />
         ) : <div className="map-loading">Harita yükleniyor…</div>}
       </div>
@@ -175,6 +184,11 @@ export default function MapPage() {
               <span>{categoryNames[selectedLocation.category] || 'Eser'}</span>
             </div>
             <p className="map-detail-location"><IconPin size={14} /> {selectedLocation.district}</p>
+            {selectedCoordinate && <div className="map-detail-coordinates" aria-label="Konum koordinatları">
+              <span><small>Enlem</small><strong>{selectedCoordinate.latitude.toFixed(6)}</strong></span>
+              <span><small>Boylam</small><strong>{selectedCoordinate.longitude.toFixed(6)}</strong></span>
+              <b>WGS84 · EPSG:4326</b>
+            </div>}
             <div className="map-detail-meta">
               <span><small>Dönem</small><strong>{selectedLocation.century || selectedLocation.period || 'Bilinmiyor'}</strong></span>
               <span><small>Koruma</small><strong>{selectedLocation.protectionStatus || 'Kayıtlı'}</strong></span>

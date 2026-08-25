@@ -8,7 +8,8 @@ import VectorSource from 'ol/source/Vector';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import GeoJSON from 'ol/format/GeoJSON';
-import { fromLonLat } from 'ol/proj';
+import MousePosition from 'ol/control/MousePosition';
+import { fromLonLat, toLonLat } from 'ol/proj';
 import { Fill, Stroke, Style, Circle as CircleStyle, Text, Icon } from 'ol/style';
 import Cluster from 'ol/source/Cluster';
 import 'ol/ol.css';
@@ -22,6 +23,16 @@ const CATEGORY_LABELS = {
   camii: 'Cami', kilise: 'Kilise', muze: 'Müze', han: 'Han',
   kale: 'Kale', kopru: 'Köprü', doga: 'Doğal Alan', diger: 'Tarihi Eser',
 };
+
+function coordinateDetails(feature) {
+  const geometry = feature?.getGeometry?.();
+  if (!geometry || geometry.getType?.() !== 'Point') return null;
+  const [longitude, latitude] = toLonLat(geometry.getCoordinates());
+  return {
+    latitude: Number(latitude.toFixed(6)),
+    longitude: Number(longitude.toFixed(6)),
+  };
+}
 
 function getCategorySymbol(category) {
   const symbols = {
@@ -117,6 +128,7 @@ export default function OpenLayersMap({
   routeMode = false,
   heatmap = false,
   fitToData = false,
+  showCoordinates = false,
   height = '100%',
 }) {
   const [hoveredFeature, setHoveredFeature] = useState(null);
@@ -155,7 +167,12 @@ export default function OpenLayersMap({
         target: container,
         layers: [osmLayerRef.current, satelliteLayerRef.current, vectorLayer],
         view: new View({ center: HATAY_CENTER, zoom: DEFAULT_ZOOM }),
-        controls: [],
+        controls: showCoordinates ? [new MousePosition({
+          className: 'ol-coordinate-readout',
+          projection: 'EPSG:4326',
+          placeholder: 'Koordinat için harita üzerinde gezinin',
+          coordinateFormat: ([longitude, latitude]) => `Enlem ${latitude.toFixed(6)}  ·  Boylam ${longitude.toFixed(6)}`,
+        })] : [],
       });
 
       mapReadyRef.current = true;
@@ -167,10 +184,9 @@ export default function OpenLayersMap({
         mapRef.current.on('click', (evt) => {
           const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
           if (feature) {
-            const props = feature.get('features')
-              ? feature.get('features')[0]?.getProperties()
-              : feature.getProperties();
-            onFeatureClick(props);
+            const sourceFeature = feature.get('features')?.[0] || feature;
+            const props = sourceFeature.getProperties();
+            onFeatureClick({ ...props, coordinate: coordinateDetails(sourceFeature) });
           }
         });
       }
@@ -199,7 +215,7 @@ export default function OpenLayersMap({
           const tooltipWidth = 218;
           const x = Math.max(8, Math.min(evt.pixel[0] + 14, container.clientWidth - tooltipWidth - 8));
           const y = Math.max(8, Math.min(evt.pixel[1] - 64, container.clientHeight - 76));
-          setHoveredFeature({ properties, x, y });
+          setHoveredFeature({ properties, coordinate: coordinateDetails(groupedFeatures?.[0] || feature), x, y });
         });
       }
 
@@ -289,6 +305,7 @@ export default function OpenLayersMap({
           <small>{hoveredFeature.properties.stopNumber ? `${hoveredFeature.properties.stopNumber}. rota durağı` : (hoveredFeature.properties.categoryLabel || CATEGORY_LABELS[hoveredFeature.properties.category] || 'Kültürel miras')}</small>
           <strong>{hoveredFeature.properties.name}</strong>
           <span>{hoveredFeature.properties.district || 'Hatay'}</span>
+          {hoveredFeature.coordinate && <em>{hoveredFeature.coordinate.latitude.toFixed(6)}, {hoveredFeature.coordinate.longitude.toFixed(6)}</em>}
         </div>
       </div>}
     </div>
