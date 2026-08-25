@@ -3,7 +3,7 @@
   gap: 16px;
   color: var(--text);
 }
-.about-page-state { min-height: 320px; display: grid; place-items: center; color: #63758a; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; font-size: 12px; font-weight: 700; }
+.about-page-state { min-height: 320px; display: grid; place-items: center; color: #63758a; border: 1px solid #dce5ee; border-radius: 12px; background: #fff; font-size: 16px; font-weight: 700; }
 
 .about-hero {
   position: relative;
@@ -31,7 +31,7 @@
   gap: 7px;
   margin-bottom: 17px;
   color: #d9e9ff;
-  font-size: 11px;
+  font-size: 15px !important;
   font-weight: 700;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -50,7 +50,7 @@
   max-width: 590px;
   margin: 19px 0 24px;
   color: #eef5fb;
-  font-size: 14px;
+  font-size: 18px;
   line-height: 1.7;
 }
 
@@ -63,7 +63,7 @@
   min-height: 40px;
   padding: 0 17px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -100,7 +100,7 @@
 }
 
 .about-summary strong { display: block; color: var(--navy-deep); font-size: 20px; line-height: 1; }
-.about-summary small { display: block; margin-top: 5px; color: var(--text-muted); font-size: 10px; }
+.about-summary small { display: block; margin-top: 6px; color: var(--text-muted); font-size: 15px !important; line-height: 1.35; }
 
 .about-intro,
 .about-technology {
@@ -119,7 +119,7 @@
   display: block;
   margin-bottom: 9px;
   color: #1265b4;
-  font-size: 10px;
+  font-size: 14px !important;
   font-weight: 800;
   letter-spacing: .14em;
 }
@@ -135,9 +135,9 @@
 }
 
 .about-section-heading p,
-.about-flow-copy > p { color: var(--text-muted); font-size: 12px; line-height: 1.7; }
+.about-flow-copy > p { color: var(--text-muted); font-size: 17px; line-height: 1.7; }
 .about-intro-copy { columns: 2; column-gap: 32px; }
-.about-intro-copy p { margin: 0; color: #52627a; font-size: 13px; line-height: 1.82; break-inside: avoid; }
+.about-intro-copy p { margin: 0; color: #52627a; font-size: 17px; line-height: 1.72; break-inside: avoid; }
 
 .about-capabilities {
   padding: clamp(30px, 5vw, 56px);
@@ -148,7 +148,7 @@
 .about-section-heading.centered { max-width: 620px; margin: 0 auto 28px; text-align: center; }
 .about-capability-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .about-capability-grid article {
-  min-height: 190px;
+  min-height: 210px;
   padding: 22px;
   border: 1px solid #dae4ef;
   border-radius: 11px;
@@ -156,8 +156,8 @@
   box-shadow: 0 6px 18px rgb(24 59 97 / 5%);
 }
 .about-capability-grid article > span { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 10px; color: #0c61b3; background: #edf6ff; }
-.about-capability-grid h3 { margin: 20px 0 9px; color: var(--navy-deep); font-size: 14px; }
-.about-capability-grid p { margin: 0; color: var(--text-muted); font-size: 11px; line-height: 1.65; }
+.about-capability-grid h3 { margin: 20px 0 9px; color: var(--navy-deep); font-size: 19px; }
+.about-capability-grid p { margin: 0; color: var(--text-muted); font-size: 16px !important; line-height: 1.65; }
 
 .about-data-flow {
   display: grid;
@@ -173,20 +173,20 @@
 .about-flow-copy > p { color: #c5d5e9; }
 .about-data-note { display: flex; gap: 11px; margin-top: 24px; padding: 14px; border: 1px solid rgb(255 255 255 / 15%); border-radius: 9px; background: rgb(255 255 255 / 7%); }
 .about-data-note svg { flex: 0 0 auto; color: #efc36b; }
-.about-data-note strong { display: block; font-size: 11px; }
-.about-data-note small { display: block; margin-top: 4px; color: #b9cae0; font-size: 9px; line-height: 1.5; }
+.about-data-note strong { display: block; font-size: 16px !important; }
+.about-data-note small { display: block; margin-top: 5px; color: #d2ddec; font-size: 15px; line-height: 1.55; }
 .about-process-list { margin: 0; padding: 0; list-style: none; }
 .about-process-list li { display: grid; grid-template-columns: 44px 1fr; gap: 14px; padding: 14px 0; border-bottom: 1px solid rgb(255 255 255 / 12%); }
 .about-process-list li:last-child { border-bottom: 0; }
-.about-process-list b { color: #e4b75d; font-size: 12px; }
-.about-process-list strong { font-size: 12px; }
-.about-process-list p { margin: 5px 0 0; color: #b9cae0; font-size: 10px; line-height: 1.55; }
+.about-process-list b { color: #e4b75d; font-size: 15px; }
+.about-process-list strong { font-size: 17px; }
+.about-process-list p { margin: 6px 0 0; color: #d2ddec; font-size: 15px !important; line-height: 1.6; }
 
 .about-technology { align-items: center; }
 .about-tech-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .about-tech-list article { padding: 17px; border: 1px solid var(--border); border-radius: 9px; background: #f8fafc; }
-.about-tech-list strong { display: block; color: var(--navy-deep); font-size: 12px; }
-.about-tech-list span { display: block; margin-top: 5px; color: var(--text-muted); font-size: 10px; }
+.about-tech-list strong { display: block; color: var(--navy-deep); font-size: 17px; }
+.about-tech-list span { display: block; margin-top: 6px; color: var(--text-muted); font-size: 15px !important; line-height: 1.5; }
 
 .about-closing {
   display: flex;
@@ -199,7 +199,26 @@
   background: linear-gradient(100deg, #fff, #eef6fd);
 }
 .about-closing h2 { font-size: clamp(23px, 2.8vw, 36px); }
-.about-closing a { display: inline-flex; align-items: center; gap: 9px; flex: 0 0 auto; padding: 12px 17px; border-radius: 8px; color: #fff; background: var(--navy); font-size: 11px; font-weight: 700; }
+.about-closing a { display: inline-flex; align-items: center; gap: 9px; flex: 0 0 auto; min-height: 46px; padding: 12px 19px; border-radius: 8px; color: #fff; background: var(--navy); font-size: 16px !important; font-weight: 700; }
+
+/* Hakkında sayfasındaki yardımcı metinler de ileri yaş kullanıcılar için
+   genel okunabilirlik tabanının üzerinde kalmalı. */
+.about-page .about-eyebrow,
+.about-page .about-section-heading > span,
+.about-page .about-flow-copy > span,
+.about-page .about-closing span,
+.about-page .about-summary small,
+.about-page .about-data-note small,
+.about-page .about-process-list p,
+.about-page .about-tech-list span {
+  font-size: 15px !important;
+}
+
+.about-page .about-capability-grid p,
+.about-page .about-data-note strong,
+.about-page .about-closing a {
+  font-size: 16px !important;
+}
 
 @media (max-width: 1100px) {
   .about-hero { padding: 36px; }
