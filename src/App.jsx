@@ -17,6 +17,9 @@ import AdminPanelPage from './pages/AdminPanelPage';
 import AdminModulePlaceholderPage from './pages/AdminModulePlaceholderPage';
 import GisAnalyticsPage from './pages/GisAnalyticsPage';
 import SearchResultsPage from './pages/SearchResultsPage';
+import LoginPage from './pages/LoginPage';
+import ProtectedRoute from './auth/ProtectedRoute';
+import { AuthProvider } from './auth/AuthContext';
 import './App.css';
 
 function ScrollToTop() {
@@ -34,29 +37,33 @@ function ScrollToTop() {
 function App() {
   return (
     <BrowserRouter>
-      <ScrollToTop />
-      <AppLayout>
-        <Routes>
+      <AuthProvider>
+        <ScrollToTop />
+        <AppLayout>
+          <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/harita" element={<MapPage />} />
           <Route path="/tarihi-eserler" element={<MonumentsPage />} />
           <Route path="/tarihi-eserler/:slug" element={<MonumentDetailPage />} />
           <Route path="/kultur-rotalari" element={<RoutesPage />} />
           <Route path="/kultur-rotalari/:slug" element={<RouteDetailPage />} />
-          <Route path="/rota-olustur" element={<RouteBuilderPage />} />
+          <Route path="/rota-olustur" element={<ProtectedRoute><RouteBuilderPage /></ProtectedRoute>} />
           <Route path="/etkinlikler" element={<EventsPage />} />
           <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
-          <Route path="/profil/*" element={<FavoritesPage />} />
+          <Route path="/profil/*" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
           <Route path="/favoriler" element={<Navigate to="/profil" replace />} />
-          <Route path="/yonetim-paneli" element={<AdminPanelPage />} />
-          <Route path="/yonetim-paneli/:module" element={<AdminModulePlaceholderPage />} />
-          <Route path="/cbs-analitik" element={<GisAnalyticsPage />} />
-          <Route path="/bildirimler" element={<NotificationsPage />} />
-          <Route path="/raporlar" element={<GisAnalyticsPage />} />
+          <Route path="/yonetim-paneli" element={<ProtectedRoute roles={['admin', 'editor']}><AdminPanelPage /></ProtectedRoute>} />
+          <Route path="/yonetim-paneli/:module" element={<ProtectedRoute roles={['admin', 'editor']}><AdminModulePlaceholderPage /></ProtectedRoute>} />
+          <Route path="/cbs-analitik" element={<ProtectedRoute roles={['admin', 'editor']}><GisAnalyticsPage /></ProtectedRoute>} />
+          <Route path="/bildirimler" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/raporlar" element={<ProtectedRoute roles={['admin', 'editor']}><GisAnalyticsPage /></ProtectedRoute>} />
           <Route path="/hakkinda" element={<AboutPage />} />
           <Route path="/arama" element={<SearchResultsPage />} />
-        </Routes>
-      </AppLayout>
+          <Route path="/giris" element={<LoginPage />} />
+          <Route path="/yetkisiz" element={<div className="auth-route-loading">Bu sayfayı görüntüleme yetkiniz bulunmuyor.</div>} />
+          </Routes>
+        </AppLayout>
+      </AuthProvider>
     </BrowserRouter>
   );
 }

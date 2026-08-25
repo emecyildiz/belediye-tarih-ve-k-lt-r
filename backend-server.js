@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import { monuments, categoryCounts, monumentsToGeoJSON } from './backend/data/monuments.js';
 import { culturalRoutes } from './backend/data/routes.js';
 import { buildRoutePreview } from './backend/services/cbs/mockCbsProvider.js';
@@ -21,13 +22,62 @@ import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, updateUse
 import { getAboutContent } from './backend/data/aboutContent.js';
 import { getHomeContent } from './backend/data/homeContent.js';
 import { getPayloadSnapshotOrNull } from './backend/services/cms/payloadCms.js';
+import { createAuthRepository } from './backend/auth/repository.js';
+import { createAuthService, AuthenticationError } from './backend/auth/service.js';
+import { DtoValidationError } from './backend/auth/dto.js';
+import { REFRESH_COOKIE_NAME, USER_ROLES, refreshCookieOptions } from './backend/auth/config.js';
+import { authenticateAccessToken, authorizeRoles, parseCookieHeader, serializeCookie } from './backend/auth/middleware.js';
+
+dotenv.config({ path: ['.env', 'cms/.env'] });
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: process.env.PORTAL_ORIGIN || 'http://localhost:5173', credentials: true }));
 app.use(express.json());
+
+const authRepository = await createAuthRepository();
+const authService = createAuthService(authRepository);
 
 const ok = (data, extra = {}) => ({ success: true, data, ...extra });
 const fail = (res, msg, code = 500) => res.status(code).json({ success: false, error: msg });
+const refreshCookie = (token, overrides = {}) => serializeCookie(REFRESH_COOKIE_NAME, token, { ...refreshCookieOptions(), ...overrides });
+const authError = (res, error) => {
+  if (error instanceof DtoValidationError) return res.status(400).json({ success: false, error: error.message, fields: error.fields });
+  if (error instanceof AuthenticationError) return fail(res, error.message, 401);
+  console.error('Kimlik doğrulama hatası:', error);
+  return fail(res, 'Giriş işlemi tamamlanamadı.', 500);
+};
+
+// --- Kimlik Doğrulama ---
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const result = await authService.login(req.body);
+    res.setHeader('Set-Cookie', refreshCookie(result.refreshToken));
+    return res.json(ok(result.response));
+  } catch (error) {
+    return authError(res, error);
+  }
+});
+
+app.post('/api/auth/refresh', async (req, res) => {
+  try {
+    const token = parseCookieHeader(req.headers.cookie)[REFRESH_COOKIE_NAME];
+    const result = await authService.refresh(token);
+    res.setHeader('Set-Cookie', refreshCookie(result.refreshToken));
+    return res.json(ok(result.response));
+  } catch (error) {
+    res.setHeader('Set-Cookie', refreshCookie('', { maxAge: 0 }));
+    return authError(res, error);
+  }
+});
+
+app.post('/api/auth/logout', async (req, res) => {
+  const token = parseCookieHeader(req.headers.cookie)[REFRESH_COOKIE_NAME];
+  await authService.logout(token);
+  res.setHeader('Set-Cookie', refreshCookie('', { maxAge: 0 }));
+  return res.json(ok({ loggedOut: true }));
+});
+
+app.get('/api/auth/me', authenticateAccessToken, (req, res) => res.json(ok(req.auth.user)));
 
 app.get('/api/search', (req, res) => {
   res.json(ok(searchCatalog(req.query)));
@@ -200,7 +250,7 @@ app.get('/api/charts', (_req, res) => res.json(ok(buildChartData({ monuments, ro
 app.get('/api/content/about', (_req, res) => res.json(ok(getAboutContent())));
 app.get('/api/content/home', (_req, res) => res.json(ok(getHomeContent())));
 
-app.get('/api/admin/dashboard', async (_req, res) => {
+app.get('/api/admin/dashboard', authenticateAccessToken, authorizeRoles(USER_ROLES.ADMIN, USER_ROLES.EDITOR), async (_req, res) => {
   const cms = await getPayloadSnapshotOrNull();
   const sources = cms || { monuments, routes: culturalRoutes, events };
   const statisticsData = buildStatistics(sources);
@@ -222,22 +272,23 @@ app.get('/api/admin/dashboard', async (_req, res) => {
   res.json(ok(dashboard));
 });
 
-app.post('/api/admin/reviews/:id/decision', (req, res) => {
+app.post('/api/admin/reviews/:id/decision', authenticateAccessToken, authorizeRoles(USER_ROLES.ADMIN), (req, res) => {
   const reviewed = reviewAdminRecord(req.params.id, req.body?.decision);
   if (!reviewed) return fail(res, 'Onay kaydı veya karar geçersiz', 400);
   return res.json(ok(reviewed));
 });
 
-app.get('/api/user/favorites', (_req, res) => res.json(ok(getUserFavorites())));
-app.get('/api/user/profile-overview', (_req, res) => res.json(ok(getUserProfileOverview({ monuments, routes: culturalRoutes, events }))));
-app.post('/api/user/preferences', (req, res) => res.json(ok(updateUserPreferences(req.body))));
-app.post('/api/user/favorites/:type/:id/toggle', (req, res) => {
+app.get('/api/user/favorites', authenticateAccessToken, resUserFavorites);
+function resUserFavorites(_req, res) { return res.json(ok(getUserFavorites())); }
+app.get('/api/user/profile-overview', authenticateAccessToken, (_req, res) => res.json(ok(getUserProfileOverview({ monuments, routes: culturalRoutes, events }))));
+app.post('/api/user/preferences', authenticateAccessToken, (req, res) => res.json(ok(updateUserPreferences(req.body))));
+app.post('/api/user/favorites/:type/:id/toggle', authenticateAccessToken, (req, res) => {
   const result = toggleUserFavorite(req.params.type, req.params.id, { monuments, routes: culturalRoutes, events });
   if (!result) return fail(res, 'Favori türü veya kayıt geçersiz', 400);
   return res.json(ok(result));
 });
-app.get('/api/user/routes', (_req, res) => res.json(ok(getUserRoutes())));
-app.post('/api/user/routes', (req, res) => {
+app.get('/api/user/routes', authenticateAccessToken, (_req, res) => res.json(ok(getUserRoutes())));
+app.post('/api/user/routes', authenticateAccessToken, (req, res) => {
   const route = saveUserRoute(req.body || {}, monuments);
   if (!route) return fail(res, 'Rota adı ve en az bir geçerli durak gereklidir', 400);
   return res.status(201).json(ok(route));
@@ -253,28 +304,28 @@ app.get('/api/news', (_req, res) => {
   })), { count: 3 }));
 });
 
-app.get('/api/notifications/count', (_req, res) => {
+app.get('/api/notifications/count', authenticateAccessToken, (_req, res) => {
   res.json(ok(notifications.filter((item) => !item.read).length));
 });
 
-app.get('/api/notifications', (_req, res) => {
+app.get('/api/notifications', authenticateAccessToken, (_req, res) => {
   res.json(ok(notifications));
 });
 
-app.post('/api/notifications/:id/read', (req, res) => {
+app.post('/api/notifications/:id/read', authenticateAccessToken, (req, res) => {
   const notification = notifications.find((item) => item.id === Number(req.params.id));
   if (!notification) return fail(res, 'Bildirim bulunamadı', 404);
   notification.read = true;
   return res.json(ok(notification));
 });
 
-app.post('/api/notifications/read-all', (_req, res) => {
+app.post('/api/notifications/read-all', authenticateAccessToken, (_req, res) => {
   notifications.forEach((item) => { item.read = true; });
   res.json(ok(notifications));
 });
 
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ status: 'OK', timestamp: new Date().toISOString(), authRepository: authRepository.kind });
 });
 
 // CRUD placeholder - gerçek DB entegrasyonu için

@@ -85,6 +85,28 @@ npm run dev:cms
 
 Express yönetim API'si önce Payload'a bağlanır. CMS geçici olarak kapalıysa sunum ekranının çökmemesi için yerel örnek veri yedek olarak kullanılır. Payload doğrudan PostgreSQL adaptörünü kullanır; gerçek belediye veritabanı geldiğinde yalnızca gizli `DATABASE_URL` değeri değiştirilir ve portalın GeoJSON sözleşmesi korunur.
 
+## 🔐 Giriş, Roller ve Token Yapısı
+
+Portal kimlik doğrulaması kısa ömürlü access token ve döndürülen refresh token kullanır:
+
+- Access token süresi: **2 dakika**
+- Refresh oturumu süresi: **14 gün**
+- Roller: `citizen`, `editor`, `admin`
+- Refresh token tarayıcı JavaScript'ine açılmaz; `HttpOnly`, `SameSite=Lax` çerezinde tutulur.
+- Refresh token veritabanına açık biçimde değil, SHA-256 özetiyle kaydedilir ve her yenilemede değiştirilir.
+- Parolalar `scrypt` ile tuzlanarak özetlenir.
+- İstek ve yanıtlar DTO eşleyicileri üzerinden doğrulanıp güvenli alanlara dönüştürülür.
+
+`DATABASE_URL` tanımlıysa `tkmbs_portal_users` ve `tkmbs_auth_refresh_sessions` tabloları PostgreSQL üzerinde otomatik hazırlanır. PostgreSQL geliştirme sırasında kapalıysa sunumun tamamen durmaması için bellek içi örnek depo kullanılır; production ortamında veya `AUTH_REQUIRE_DATABASE=true` iken bu yedeğe izin verilmez.
+
+Geliştirme hesapları `.env` içindeki `DEMO_USER_PASSWORD` değerini kullanır:
+
+- `kullanici@tkmbs.local` — vatandaş
+- `editor@tkmbs.local` — içerik editörü
+- `admin@tkmbs.local` — yönetici
+
+Gerçek teslim ortamında `AUTH_SEED_DEMO_USERS=false` yapılmalı, örnek hesaplar kaldırılmalı ve güçlü bir `AUTH_ACCESS_SECRET` tanımlanmalıdır.
+
 ## 📁 Proje Yapısı
 
 ```

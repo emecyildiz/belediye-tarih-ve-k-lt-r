@@ -12,7 +12,7 @@
 const USE_MOCK_DB = true;
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api';
+import { authenticatedFetch } from './authClient';
 
 // Default placeholder resim - fotoğraf yoksa bu gösterilir
 export const DEFAULT_IMAGE = '/assets/default-placeholder.svg';
@@ -120,7 +120,7 @@ function monumentsToGeoJSON(monuments = []) {
 // GERÇEK API FONKSİYONLARI
 // ──────────────────────────────────
 async function fetchAPI(endpoint) {
-  const res = await fetch(`${API_BASE}${endpoint}`);
+  const res = await authenticatedFetch(endpoint);
   if (!res.ok) throw new Error(`API hatası: ${res.status}`);
   const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Bilinmeyen hata');
@@ -128,7 +128,7 @@ async function fetchAPI(endpoint) {
 }
 
 async function sendAPI(endpoint, payload) {
-  const res = await fetch(`${API_BASE}${endpoint}`, {
+  const res = await authenticatedFetch(endpoint, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

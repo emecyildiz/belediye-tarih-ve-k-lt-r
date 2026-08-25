@@ -144,6 +144,15 @@
 }
 .management-link:hover { border-color: #9eb3cd; box-shadow: 0 5px 14px rgb(15 38 72 / 8%); }
 .management-link b { margin-left: 4px; font-size: 16px; }
+.account-menu { position: relative; }
+.account-dropdown { position: absolute; top: calc(100% + 10px); right: 0; width: 230px; padding: 7px; border: 1px solid var(--border); border-radius: 11px; background: #fff; box-shadow: 0 18px 45px rgb(9 30 59 / 18%); }
+.account-dropdown header { padding: 9px 10px 11px; border-bottom: 1px solid #e5ebf1; }
+.account-dropdown header strong,.account-dropdown header span { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.account-dropdown header strong { color: var(--navy-deep); font-size: 14px; }
+.account-dropdown header span { margin-top: 3px; color: #66768a; font-size: 12px; }
+.account-dropdown > button { width: 100%; padding: 10px; color: #294867; border: 0; border-radius: 7px; background: transparent; font-size: 13px; font-weight: 650; text-align: left; }
+.account-dropdown > button:hover { background: #f1f6fb; }
+.account-dropdown > button.account-logout { color: #a3222d; border-top: 1px solid #e8edf2; border-radius: 0 0 7px 7px; }
 @media (max-width: 900px) {
   .portal-topbar {
     grid-template-columns: minmax(0, 1fr) auto;
