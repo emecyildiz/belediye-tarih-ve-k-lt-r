@@ -232,6 +232,12 @@ export function getEvents(params = {}) {
   ));
 }
 
+export function selectNearestEvent(items = events, referenceTime = Date.now()) {
+  const asTime = (item) => new Date(`${item.date}T${item.time || '12:00'}:00`).getTime() || 0;
+  const ordered = [...items].sort((first, second) => asTime(first) - asTime(second));
+  return ordered.find((item) => asTime(item) >= referenceTime) || ordered.at(-1) || null;
+}
+
 export function getEventsPage(params = {}) {
   const asTime = (item) => new Date(`${item.date}T${item.time || '12:00'}:00`).getTime() || 0;
   const filtered = [...getEvents(params)].sort((a, b) => {
@@ -240,7 +246,7 @@ export function getEventsPage(params = {}) {
     if (params.sort === 'newest') return asTime(b) - asTime(a);
     return asTime(a) - asTime(b);
   });
-  const featured = [...events].filter((item) => item.featured).sort((a, b) => asTime(a) - asTime(b)).find((item) => asTime(item) >= Date.now()) || events.find((item) => item.featured) || null;
+  const featured = selectNearestEvent(events);
   return paginate(filtered, params, { facets: { districts: uniqueValues(events, 'district'), categories: countBy(events, 'category'), categoryLabels: Object.fromEntries(events.map((item) => [item.category, item.categoryLabel || item.category])), totalItems: events.length }, featured });
 }
 

@@ -40,12 +40,12 @@
 .event-calendar-card>header span{font-size:13px!important}
 .event-calendar-card>header strong{font-size:16px!important}
 .event-calendar-card>header button{width:32px;height:32px;font-size:19px}
-.event-calendar-card>footer{height:31px;font-size:13px!important}
+.event-calendar-card>footer{height:27px;padding-top:3px;align-items:center;font-size:13px!important}
 .event-calendar-card>footer button{font-size:13px!important}
 .calendar-weekdays{height:25px}
 .calendar-weekdays span{font-size:13px!important}
-.calendar-days{grid-auto-rows:27px}
-.calendar-days button{height:27px;font-size:14px!important}
+.calendar-days{grid-auto-rows:24px}
+.calendar-days button{height:24px;font-size:14px!important}
 .calendar-days button>i b{width:5px;height:5px}
 .event-category-strip{padding:8px;gap:8px}
 .event-category-strip button{height:38px;padding:0 14px;font-size:14px!important}
@@ -73,8 +73,8 @@
 .expanded-calendar-body>aside>div>a strong{font-size:15px!important}
 
 @media(max-width:1100px){.events-overview{grid-template-columns:minmax(0,1fr) minmax(410px,.85fr)}.events-layout{grid-template-columns:220px minmax(0,1fr)}}
-@media(max-width:850px){.events-overview{grid-template-columns:1fr}.events-overview .featured-event{height:250px}.event-calendar-card{height:310px}.calendar-days{grid-auto-rows:32px}.calendar-days button{height:32px}.events-layout{display:block}}
-@media(max-width:560px){.events-overview .featured-event{height:260px}.event-calendar-card{height:324px;padding:14px 12px}.calendar-days{grid-auto-rows:34px}.calendar-days button{height:34px}.event-card-image{height:220px}.event-card-body{min-height:205px}.events-overview .featured-event-content h2{font-size:22px}.events-overview .featured-event-content>p{font-size:14px!important}}
+@media(max-width:850px){.events-overview{grid-template-columns:1fr}.events-overview .featured-event{height:250px}.event-calendar-card{height:310px}.calendar-days{grid-auto-rows:29px}.calendar-days button{height:29px}.events-layout{display:block}}
+@media(max-width:560px){.events-overview .featured-event{height:260px}.event-calendar-card{height:324px;padding:14px 12px}.calendar-days{grid-auto-rows:31px}.calendar-days button{height:31px}.event-card-image{height:220px}.event-card-body{min-height:205px}.events-overview .featured-event-content h2{font-size:22px}.events-overview .featured-event-content>p{font-size:14px!important}}
 
 /* Kart metinlerini koruyup kartların kapladığı alanı azaltır. */
 .events-page .event-results{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
