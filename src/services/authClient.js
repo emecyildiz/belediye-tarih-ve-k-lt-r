@@ -1,4 +1,5 @@
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+const CMS_BASE = (import.meta.env.VITE_CMS_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 let accessToken = null;
 let refreshRequest = null;
@@ -65,6 +66,44 @@ export async function logoutSession() {
   } finally {
     clearAccessToken();
   }
+}
+
+async function parseCmsResponse(response) {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new ApiRequestError(payload.errors?.[0]?.message || payload.message || 'İçerik yönetimi oturumu açılamadı.', response.status);
+  return payload;
+}
+
+export async function loginCmsSession(credentials, expectedUser) {
+  let response;
+  try {
+    response = await fetch(`${CMS_BASE}/api/users/login`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials),
+    });
+  } catch {
+    throw new ApiRequestError('Payload içerik yönetimine ulaşılamadı. Payload ve PostgreSQL servislerini kontrol edin.', 503);
+  }
+  const session = await parseCmsResponse(response);
+  if (!session.user || session.user.email !== expectedUser.email || session.user.role !== expectedUser.role) {
+    await logoutCmsSession();
+    throw new ApiRequestError('Portal ve Payload yönetici hesapları eşleşmiyor.', 403);
+  }
+  return session.user;
+}
+
+export async function logoutCmsSession() {
+  try {
+    await fetch(`${CMS_BASE}/api/users/logout`, { method: 'POST', credentials: 'include' });
+  } catch {
+    // Portal çıkışı, CMS geçici olarak kapalı olsa da tamamlanır.
+  }
+}
+
+export function getCmsAdminUrl() {
+  return `${CMS_BASE}/admin`;
 }
 
 export async function authenticatedFetch(path, options = {}, retry = true) {

@@ -35,6 +35,9 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: postgresAdapter({
+    // Portal kimlik tabloları aynı PostgreSQL veritabanında tutulur.
+    // Otomatik dev push yabancı tabloları silmeye çalışmasın; şema değişiklikleri migration ile uygulanır.
+    push: false,
     pool: {
       connectionString: process.env.DATABASE_URL || '',
     },

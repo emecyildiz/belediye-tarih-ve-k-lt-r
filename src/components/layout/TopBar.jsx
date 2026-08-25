@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { useAuth } from '../../auth/AuthContext';
+import { getCmsAdminUrl } from '../../services/authClient';
 import { IconBell, IconSearch, IconUser } from '../common/Icons';
 import './TopBar.css';
 
@@ -129,6 +130,7 @@ export default function TopBar() {
             <header><strong>{user.name}</strong><span>{user.email}</span></header>
             <button type="button" onClick={() => { setAccountOpen(false); navigate('/profil'); }}>Profilim</button>
             {(user.role === 'admin' || user.role === 'editor') && <button type="button" onClick={() => { setAccountOpen(false); navigate('/yonetim-paneli'); }}>Yönetim alanı</button>}
+            {(user.role === 'admin' || user.role === 'editor') && <button type="button" onClick={() => { window.location.href = getCmsAdminUrl(); }}>Payload içerik yönetimi</button>}
             <button type="button" className="account-logout" onClick={async () => { setAccountOpen(false); await logout(); navigate('/'); }}>Çıkış Yap</button>
           </section>}
         </div>

@@ -99,6 +99,8 @@ Portal kimlik doğrulaması kısa ömürlü access token ve döndürülen refres
 
 `DATABASE_URL` tanımlıysa `tkmbs_portal_users` ve `tkmbs_auth_refresh_sessions` tabloları PostgreSQL üzerinde otomatik hazırlanır. PostgreSQL geliştirme sırasında kapalıysa sunumun tamamen durmaması için bellek içi örnek depo kullanılır; production ortamında veya `AUTH_REQUIRE_DATABASE=true` iken bu yedeğe izin verilmez.
 
+Payload ile portal kimlik tabloları aynı PostgreSQL veritabanını paylaşır. Payload adaptöründe otomatik geliştirme şema itmesi kapalıdır; böylece Payload kendisine ait olmayan `tkmbs_*` tablolarını silmez. Payload şema değişiklikleri `npm run cms:migrate:create` ve `npm run cms:migrate` komutlarıyla uygulanır.
+
 Geliştirme hesapları `.env` içindeki `DEMO_USER_PASSWORD` değerini kullanır:
 
 - `kullanici@tkmbs.local` — vatandaş
@@ -106,6 +108,8 @@ Geliştirme hesapları `.env` içindeki `DEMO_USER_PASSWORD` değerini kullanır
 - `admin@tkmbs.local` — yönetici
 
 Gerçek teslim ortamında `AUTH_SEED_DEMO_USERS=false` yapılmalı, örnek hesaplar kaldırılmalı ve güçlü bir `AUTH_ACCESS_SECRET` tanımlanmalıdır.
+
+Yönetici veya editör portal giriş formunu kullandığında hesap hem portal API'sinde hem Payload'da doğrulanır. İki sistemdeki e-posta ve rol aynı değilse giriş reddedilir. Başarılı yönetim girişinde Payload kendi `HttpOnly` oturum çerezini üretir ve kullanıcı doğrudan `http://localhost:3000/admin` içerik yönetimine gönderilir. Vatandaş hesabı Payload'a gönderilmez ve portal profilinde kalır.
 
 ## 📁 Proje Yapısı
 

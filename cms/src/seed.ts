@@ -10,6 +10,19 @@ loadEnv({ path: new URL('../.env', import.meta.url) })
 const { default: config } = await import('./payload.config')
 const payload = await getPayload({ config })
 
+if (process.env.AUTH_SEED_DEMO_USERS !== 'false') {
+  const demoPassword = process.env.DEMO_USER_PASSWORD || 'Belediye2026!'
+  const demoManagers = [
+    { email: 'admin@tkmbs.local', name: 'Sistem Yöneticisi', role: 'admin' as const },
+    { email: 'editor@tkmbs.local', name: 'İçerik Editörü', role: 'editor' as const },
+  ]
+  for (const manager of demoManagers) {
+    const existing = await payload.find({ collection: 'users', where: { email: { equals: manager.email } }, limit: 1, overrideAccess: true })
+    if (existing.docs[0]) await payload.update({ collection: 'users', id: existing.docs[0].id, data: { ...manager, password: demoPassword }, overrideAccess: true })
+    else await payload.create({ collection: 'users', data: { ...manager, password: demoPassword }, overrideAccess: true })
+  }
+}
+
 function slugify(value: string) {
   return value
     .toLocaleLowerCase('tr-TR')
@@ -144,5 +157,6 @@ await payload.updateGlobal({
   overrideAccess: true,
 })
 
-console.log(`Seed tamamlandı: ${monuments.length} eser, ${culturalRoutes.length} rota, ${events.length} etkinlik.`)
-await payload.db.destroy?.()
+console.log(`Seed tamamlandı: ${monuments.length} eser, ${culturalRoutes.length} rota, ${events.length} etkinlik ve yönetim hesapları.`)
+await payload.destroy()
+process.exit(0)

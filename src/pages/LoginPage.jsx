@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { ApiRequestError } from '../services/authClient';
+import { getCmsAdminUrl } from '../services/authClient';
 import { IconUser } from '../components/common/Icons';
 import './LoginPage.css';
 
@@ -27,6 +28,10 @@ export default function LoginPage() {
       const loggedInUser = await login(form);
       const returnTo = params.get('returnTo');
       const safeReturn = returnTo?.startsWith('/') && !returnTo.startsWith('//') ? returnTo : roleHome(loggedInUser.role);
+      if (!returnTo && (loggedInUser.role === 'admin' || loggedInUser.role === 'editor')) {
+        window.location.assign(getCmsAdminUrl());
+        return;
+      }
       navigate(safeReturn, { replace: true });
     } catch (requestError) {
       setError(requestError.message || 'Giriş yapılamadı.');

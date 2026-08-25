@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { ApiRequestError, loginSession, logoutSession, refreshSession } from '../services/authClient';
+import { ApiRequestError, loginCmsSession, loginSession, logoutCmsSession, logoutSession, refreshSession } from '../services/authClient';
 
 const AuthContext = createContext(null);
 
@@ -27,11 +27,19 @@ export function AuthProvider({ children }) {
     hasRole: (...roles) => Boolean(user && roles.includes(user.role)),
     login: async (credentials) => {
       const session = await loginSession(credentials);
+      if (session.user.role === 'admin' || session.user.role === 'editor') {
+        try {
+          await loginCmsSession(credentials, session.user);
+        } catch (error) {
+          await logoutSession();
+          throw error;
+        }
+      }
       setUser(session.user);
       return session.user;
     },
     logout: async () => {
-      await logoutSession();
+      await Promise.allSettled([logoutSession(), logoutCmsSession()]);
       setUser(null);
     },
   }), [loading, user]);
