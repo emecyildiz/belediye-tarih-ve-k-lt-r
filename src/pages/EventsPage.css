@@ -17,3 +17,61 @@
 @media(max-width:560px){.events-overview .featured-event{height:210px}.events-overview .featured-event-content{width:100%;padding:16px}.events-overview .featured-event-content h2{font-size:16px}.events-overview .featured-event-content>p{max-width:75%}.event-calendar-grid.expanded .calendar-days{grid-auto-rows:36px;gap:2px}.event-calendar-grid.expanded .calendar-days button{height:36px;padding:5px;font-size:8px}.expanded-calendar-body>.event-calendar-grid{padding:9px}}
 .event-calendar-modal{position:fixed;z-index:300;inset:0;padding:18px;display:grid;place-items:center;background:rgb(3 20 42/52%);backdrop-filter:blur(7px);animation:calendar-modal-in .18s ease}.event-calendar-modal .expanded-calendar-panel{width:min(1040px,calc(100vw - 36px));max-height:calc(100dvh - 36px);margin:0;overflow:auto;border-color:rgb(255 255 255/55%);border-radius:13px;box-shadow:0 24px 70px rgb(0 18 42/32%);animation:calendar-panel-in .2s ease}@keyframes calendar-modal-in{from{opacity:0}to{opacity:1}}@keyframes calendar-panel-in{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
 @media(max-width:560px){.event-calendar-modal{padding:10px}.event-calendar-modal .expanded-calendar-panel{width:calc(100vw - 20px);max-height:calc(100dvh - 20px)}.expanded-calendar-panel>header{height:auto;min-height:52px;gap:8px}.expanded-calendar-panel>header>div:first-child{min-width:0}.expanded-calendar-panel>header h2{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.expanded-calendar-panel>header>div:last-child{flex:0 0 auto}}
+
+/* Daha geniş takvim ve okunabilir etkinlik kartları */
+.events-page-header{padding-bottom:14px;margin-bottom:16px}
+.events-page-header>div:first-child{max-width:680px}
+.events-page-header>div:first-child>span{font-size:14px!important}
+.events-page-header p{font-size:15px!important;line-height:1.45}
+.events-header-tools>strong,.events-header-tools label small,.events-header-tools select{font-size:14px!important}
+.events-overview{margin-bottom:16px;grid-template-columns:minmax(0,1.2fr) minmax(460px,.8fr);gap:16px}
+.events-overview .featured-event,.event-calendar-card{height:278px}
+.events-overview .featured-event-content{width:min(590px,72%);padding:26px 28px}
+.events-overview .featured-event-content>span{font-size:13px!important}
+.events-overview .featured-event-content h2{font-size:25px}
+.events-overview .featured-event-content>p{font-size:15px!important;-webkit-line-clamp:2}
+.events-overview .featured-event-content small{font-size:14px!important}
+.events-overview .featured-event-content>a{padding:9px 13px;font-size:14px!important}
+.featured-date{width:72px;height:78px}
+.featured-date strong{font-size:30px}
+.featured-date span{font-size:14px!important}
+.event-calendar-card{padding:14px 16px 12px}
+.event-calendar-card>header{height:49px}
+.event-calendar-card>header span{font-size:13px!important}
+.event-calendar-card>header strong{font-size:16px!important}
+.event-calendar-card>header button{width:32px;height:32px;font-size:19px}
+.event-calendar-card>footer{height:31px;font-size:13px!important}
+.event-calendar-card>footer button{font-size:13px!important}
+.calendar-weekdays{height:25px}
+.calendar-weekdays span{font-size:13px!important}
+.calendar-days{grid-auto-rows:27px}
+.calendar-days button{height:27px;font-size:14px!important}
+.calendar-days button>i b{width:5px;height:5px}
+.event-category-strip{padding:8px;gap:8px}
+.event-category-strip button{height:38px;padding:0 14px;font-size:14px!important}
+.event-category-strip button b{min-width:23px;height:23px;font-size:12px!important}
+.events-layout{grid-template-columns:240px minmax(0,1fr);gap:16px}
+.event-filter-panel{padding:16px;gap:14px}
+.event-filter-panel>header>div,.event-filter-panel>label>span,.event-filter-panel select,.event-search-field input,.clear-event-filters{font-size:14px!important}
+.event-filter-panel select,.event-search-field>div,.clear-event-filters{height:42px}
+.event-results{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.event-card-image{height:210px}
+.event-card-image>span{padding:6px 10px;font-size:13px!important}
+.event-card-date{width:62px;height:70px}
+.event-card-date strong{font-size:25px}
+.event-card-date small{font-size:14px!important}
+.event-card-body{min-height:205px;padding:15px 16px}
+.event-card-status span,.event-card-status small{font-size:14px!important}
+.event-card-body h2{margin-top:8px;font-size:19px}
+.event-card-location{margin-top:9px;gap:7px;font-size:15px!important}
+.event-card-description{margin:10px 0 12px;font-size:15px!important;line-height:1.55}
+.event-card-body footer>span,.event-card-body footer>a{gap:6px;font-size:14px!important}
+.event-list-card svg{width:16px;height:16px}
+.event-calendar-grid.expanded .calendar-weekdays span{font-size:13px!important}
+.event-calendar-grid.expanded .calendar-days button{font-size:15px!important}
+.expanded-calendar-body>aside>div>a span,.expanded-calendar-body>aside>div>a small{font-size:13px!important}
+.expanded-calendar-body>aside>div>a strong{font-size:15px!important}
+
+@media(max-width:1100px){.events-overview{grid-template-columns:minmax(0,1fr) minmax(410px,.85fr)}.events-layout{grid-template-columns:220px minmax(0,1fr)}}
+@media(max-width:850px){.events-overview{grid-template-columns:1fr}.events-overview .featured-event{height:250px}.event-calendar-card{height:310px}.calendar-days{grid-auto-rows:32px}.calendar-days button{height:32px}.events-layout{display:block}}
+@media(max-width:560px){.events-overview .featured-event{height:260px}.event-calendar-card{height:324px;padding:14px 12px}.calendar-days{grid-auto-rows:34px}.calendar-days button{height:34px}.event-card-image{height:220px}.event-card-body{min-height:205px}.events-overview .featured-event-content h2{font-size:22px}.events-overview .featured-event-content>p{font-size:14px!important}}

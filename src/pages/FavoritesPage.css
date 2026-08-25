@@ -7,3 +7,39 @@
 @media(max-width:1120px){.profile-favorites-grid{grid-template-columns:1fr}.profile-side-column{display:grid;grid-template-columns:1fr 1fr}.profile-map-card{min-height:0}.profile-map{height:230px}}
 @media(max-width:760px){.profile-favorites-header{flex-direction:column}.profile-stat-cards{width:100%;grid-template-columns:1fr 1fr}.profile-favorites-header nav{width:calc(100vw - 28px);overflow-x:auto}.profile-bottom-grid,.profile-side-column,.profile-history-layout{grid-template-columns:1fr}.profile-info-layout{grid-template-columns:1fr}.profile-info-fields{grid-template-columns:1fr}.profile-favorite-card{flex-basis:165px}.profile-chart-card{min-height:230px}.profile-settings-card{margin:12px}}
 @media(max-width:480px){.profile-stat-cards{grid-template-columns:1fr}.profile-bottom-grid{grid-template-columns:1fr}.profile-recent>div{grid-template-columns:1fr}.profile-upcoming article{grid-template-columns:60px 34px minmax(0,1fr)}.profile-upcoming article>img{width:60px}.favorite-strip-section>header>div>a{display:none}}
+
+/* Yaşlı kullanıcılar için daha büyük profil kartları ve okunabilir meta bilgiler */
+.favorite-strip-section{margin-bottom:16px}
+.favorite-strip-section>header{height:44px;padding:0 4px}
+.favorite-strip-section h2,.profile-bottom-grid h2,.profile-side-column h2{font-size:18px!important}
+.favorite-strip-section header a,.profile-bottom-grid header a,.profile-map-card header a{font-size:14px!important}
+.favorite-strip-section header button{width:34px;height:34px;font-size:22px}
+.favorite-strip-track{gap:14px;padding-bottom:9px}
+.profile-favorite-card{flex:0 0 clamp(240px,31%,300px);border-radius:11px}
+.profile-favorite-card>a{height:160px}
+.profile-favorite-card>button{right:9px;top:9px;width:34px;height:34px}
+.profile-favorite-card>div{padding:13px 14px 15px}
+.profile-favorite-card small{font-size:13px!important}
+.profile-favorite-card h3{margin:5px 0 9px;font-size:17px!important}
+.profile-favorite-card p,.profile-favorite-card span{gap:6px;font-size:14px!important;line-height:1.45}
+.profile-favorite-card span{margin-top:7px}
+.profile-bottom-grid{grid-template-columns:1fr 1fr;gap:14px}
+.profile-bottom-grid>section>header,.profile-side-column section>header{height:52px;padding:0 14px}
+.profile-upcoming>div{padding:7px 13px}
+.profile-upcoming article{min-height:102px;padding:10px 0;grid-template-columns:96px 54px minmax(0,1fr);gap:11px}
+.profile-upcoming article>img{width:96px;height:76px;border-radius:8px}
+.profile-event-date strong{font-size:24px}
+.profile-event-date span{font-size:13px!important}
+.profile-upcoming article>div:last-child>a{font-size:16px!important}
+.profile-upcoming article small,.profile-upcoming article span{margin-top:7px;gap:6px;font-size:14px!important}
+.profile-recent>div{grid-template-columns:1fr;padding:8px}
+.profile-recent>div>a{padding:8px;grid-template-columns:76px minmax(0,1fr);gap:11px}
+.profile-recent img{width:76px;height:66px;border-radius:7px}
+.profile-recent strong{font-size:15px!important}
+.profile-recent small,.profile-recent time{margin-top:6px;font-size:13px!important}
+.profile-recent>header>span{font-size:13px!important}
+.profile-map-card footer{padding:10px 13px;gap:7px}
+.profile-map-card footer span{font-size:13px!important}
+
+@media(max-width:760px){.profile-favorite-card{flex-basis:min(280px,78vw)}.profile-bottom-grid{grid-template-columns:1fr}.profile-upcoming article{grid-template-columns:86px 48px minmax(0,1fr)}.profile-upcoming article>img{width:86px;height:72px}}
+@media(max-width:480px){.profile-favorite-card{flex-basis:min(270px,82vw)}.profile-upcoming article{grid-template-columns:74px minmax(0,1fr)}.profile-upcoming article>img{width:74px;height:68px}.profile-event-date{display:none}}

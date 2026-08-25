@@ -383,3 +383,74 @@
 .verified-badge {
   font-size: 14px !important;
 }
+
+/* Profil ve etkinlik ekranlarındaki kritik tarih/konum metinleri. */
+.profile-favorite-card small,
+.profile-event-date span,
+.profile-recent small,
+.profile-recent time,
+.profile-recent>header>span,
+.profile-map-card footer span {
+  font-size: 13px !important;
+}
+
+.favorite-strip-section header a,
+.profile-bottom-grid header a,
+.profile-map-card header a,
+.profile-favorite-card p,
+.profile-favorite-card span,
+.profile-upcoming article small,
+.profile-upcoming article span {
+  font-size: 14px !important;
+}
+
+.profile-recent strong { font-size: 15px !important; }
+.profile-upcoming article>div:last-child>a { font-size: 16px !important; }
+.profile-favorite-card h3 { font-size: 17px !important; }
+.favorite-strip-section h2,
+.profile-bottom-grid h2,
+.profile-side-column h2 { font-size: 18px !important; }
+
+.events-page-header>div:first-child>span,
+.events-header-tools>strong,
+.events-header-tools label small,
+.events-header-tools select,
+.events-overview .featured-event-content small,
+.events-overview .featured-event-content>a,
+.featured-date span,
+.event-card-date small,
+.event-card-status span,
+.event-card-status small,
+.event-card-body footer>span,
+.event-card-body footer>a,
+.event-filter-panel>header>div,
+.event-filter-panel>label>span,
+.event-filter-panel select,
+.event-search-field input,
+.clear-event-filters,
+.calendar-days button,
+.event-category-strip button {
+  font-size: 14px !important;
+}
+
+.events-page-header p,
+.events-overview .featured-event-content>p,
+.event-card-location,
+.event-card-description,
+.event-calendar-grid.expanded .calendar-days button,
+.expanded-calendar-body>aside>div>a strong {
+  font-size: 15px !important;
+}
+
+.event-calendar-card>header span,
+.event-calendar-card>footer,
+.event-calendar-card>footer button,
+.calendar-weekdays span,
+.event-card-image>span,
+.event-calendar-grid.expanded .calendar-weekdays span,
+.expanded-calendar-body>aside>div>a span,
+.expanded-calendar-body>aside>div>a small {
+  font-size: 13px !important;
+}
+
+.event-calendar-card>header strong { font-size: 16px !important; }
