@@ -25,6 +25,7 @@ export default function RouteBuilderPage() {
   const [visitMinutes, setVisitMinutes] = useState(25);
   const [query, setQuery] = useState('');
   const [preview, setPreview] = useState(null);
+  const [routingState, setRoutingState] = useState('idle');
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
   const [mapType, setMapType] = useState('map');
@@ -51,8 +52,17 @@ export default function RouteBuilderPage() {
   useEffect(() => {
     let active = true;
     const timer = setTimeout(() => {
+      setRoutingState('loading');
       api.previewRoute({ stopIds: selectedIds, travelMode, visitMinutes: Number(visitMinutes), title })
-        .then((data) => active && setPreview(data));
+        .then((data) => {
+          if (!active) return;
+          setPreview(data);
+          setRoutingState(data?.cbs?.routingStatus === 'unavailable' ? 'unavailable' : 'ready');
+        })
+        .catch(() => {
+          if (!active) return;
+          setRoutingState('unavailable');
+        });
     }, 180);
     return () => { active = false; clearTimeout(timer); };
   }, [selectedIds, travelMode, visitMinutes, title]);
@@ -106,7 +116,7 @@ export default function RouteBuilderPage() {
           <div className="candidate-stops"><header><span>DURAK EKLE</span><label><IconSearch size={14} /><input placeholder="Eser ara…" value={query} onChange={(event) => setQuery(event.target.value)} /></label></header><div>{candidates.slice(0, 20).map((item) => <button type="button" key={item.id} onClick={() => toggleStop(item.id)}><SafeImage src={item.image} alt="" /><span><strong>{item.name}</strong><small>{item.district}</small></span><b>+</b></button>)}</div></div>
         </aside>
 
-        <div className="route-builder-map"><header><div><span>CANLI ÖNİZLEME</span><h2>Haritadan durak seç</h2></div><small>İşaretin üzerine gelerek mekânı inceleyebilir, tıklayarak rotaya ekleyebilirsiniz.</small></header><OpenLayersMap geojson={mapGeoJSON} routeMode showFeatureTooltip mapType={mapType} onMapTypeChange={setMapType} onFeatureClick={(props) => props?.monumentId && toggleStop(props.monumentId)} height="690px" /></div>
+        <div className="route-builder-map"><header><div><span>CANLI ÖNİZLEME</span><h2>Haritadan durak seç</h2></div><div className="route-builder-map-help"><small>İşaretin üzerine gelerek mekânı inceleyebilir, tıklayarak rotaya ekleyebilirsiniz.</small>{selectedIds.length >= 2 && <b className={`routing-state ${routingState}`}>{routingState === 'loading' ? 'Yol hesaplanıyor…' : routingState === 'unavailable' ? 'Yol güzergâhı alınamadı' : 'Yol güzergâhı hazır'}</b>}</div></header><OpenLayersMap geojson={mapGeoJSON} routeMode showFeatureTooltip mapType={mapType} onMapTypeChange={setMapType} onFeatureClick={(props) => props?.monumentId && toggleStop(props.monumentId)} height="690px" /></div>
       </section>
     </div>
   );

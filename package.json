@@ -20,6 +20,7 @@
     "cms:seed": "npm --prefix cms run seed",
     "cms:types": "npm --prefix cms run generate:types",
     "test:data": "node --test backend/data/*.test.js",
+    "test:routing": "node --test backend/services/routing/*.test.js",
     "lint": "eslint src",
     "type-check": "tsc --noEmit"
   },

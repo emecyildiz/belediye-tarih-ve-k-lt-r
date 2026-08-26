@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { monuments, categoryCounts, monumentsToGeoJSON } from './backend/data/monuments.js';
 import { culturalRoutes } from './backend/data/routes.js';
-import { buildRoutePreview } from './backend/services/cbs/mockCbsProvider.js';
+import { buildRoadRoutePreview } from './backend/services/routing/routePreviewService.js';
 import { events, eventCategoryCounts } from './backend/data/events.js';
 import { weather, buildStatistics, buildChartData } from './backend/data/statistics.js';
 import {
@@ -207,8 +207,8 @@ app.get('/api/routes', (req, res) => {
   res.json(ok(filtered, { count: filtered.length }));
 });
 
-app.post('/api/routes/preview', (req, res) => {
-  const preview = buildRoutePreview({
+app.post('/api/routes/preview', async (req, res) => {
+  const preview = await buildRoadRoutePreview({
     monuments,
     stopIds: req.body?.stopIds,
     travelMode: req.body?.travelMode,
@@ -218,18 +218,25 @@ app.post('/api/routes/preview', (req, res) => {
   res.json(ok(preview));
 });
 
-app.get('/api/routes/:id', (req, res) => {
+app.get('/api/routes/:id', async (req, res) => {
   const route = queryRoute(req.params.id);
   if (!route) return fail(res, 'Rota bulunamadı', 404);
-  res.json(ok(route));
+  const preview = await buildRoadRoutePreview({
+    monuments,
+    stopIds: route.monumentIds,
+    travelMode: route.travelMode || 'walking',
+    routeId: route.id,
+    title: route.title,
+  });
+  res.json(ok({ ...route, ...preview }));
 });
 
-app.get('/api/routes/:id/geojson', (req, res) => {
+app.get('/api/routes/:id/geojson', async (req, res) => {
   const route = culturalRoutes.find(
     (r) => r.id === parseInt(req.params.id) || r.slug === req.params.id
   );
   if (!route) return fail(res, 'Rota bulunamadı', 404);
-  const preview = buildRoutePreview({
+  const preview = await buildRoadRoutePreview({
     monuments,
     stopIds: route.monumentIds,
     travelMode: route.travelMode || 'walking',

@@ -64,6 +64,7 @@ export default function RouteDetailPage() {
         </div>
         <div className="route-detail-map-card">
           <OpenLayersMap geojson={route.geojson} routeMode fitToData mapType={mapType} onMapTypeChange={setMapType} height="342px" />
+          {route.cbs?.routingStatus === 'unavailable' && <p className="route-detail-routing-warning">Yol güzergâhı şu anda alınamadı. Haritada yalnızca duraklar gösteriliyor.</p>}
         </div>
       </section>
 
