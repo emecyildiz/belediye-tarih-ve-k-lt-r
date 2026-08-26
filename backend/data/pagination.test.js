@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { getMonumentsPage, getRoutesPage, getEventsPage, getEventCalendar } from './mockDb.js';
+import { getMonument, getMonumentsPage, getRoute, getRoutesPage, getEvent, getEventsPage, getEventCalendar } from './mockDb.js';
 
 test('eser listesi filtrelemeden sonra sayfalanır', () => {
   const first = getMonumentsPage({ page: 1, pageSize: 5 });
@@ -30,4 +30,14 @@ test('etkinlik araması, sayfalama ve aylık takvim aynı kayıtları kullanır'
 
   const calendar = getEventCalendar({ from: '2026-08-01', to: '2026-08-31' });
   assert.ok(calendar.every((item) => item.date >= '2026-08-01' && item.date <= '2026-08-31'));
+});
+
+test('liste kartlarının slug adresleri detay kayıtlarıyla eşleşir', () => {
+  const monumentPage = getMonumentsPage({ page: 1, pageSize: 100 });
+  const routePage = getRoutesPage({ page: 1, pageSize: 100 });
+  const eventPage = getEventsPage({ page: 1, pageSize: 100 });
+
+  assert.ok(monumentPage.items.every((item) => getMonument(item.slug)?.id === item.id));
+  assert.ok(routePage.items.every((item) => getRoute(item.slug)?.id === item.id));
+  assert.ok(eventPage.items.every((item) => getEvent(item.slug || item.id)?.id === item.id));
 });

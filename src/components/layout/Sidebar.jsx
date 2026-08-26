@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import api from '../../services/api';
+import { useAuth } from '../../auth/AuthContext';
 import { NavIcon } from '../common/Icons';
 import './Sidebar.css';
 
@@ -34,26 +35,26 @@ function HataySkyline() {
 }
 
 export default function Sidebar({ open = false, collapsed = false, onExpand, onNavigate }) {
+  const { user, loading: authLoading } = useAuth();
   const [weather, setWeather] = useState({ temp: 24, desc: 'Güneşli', location: 'Antakya' });
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    Promise.all([api.getWeather(), api.getNotificationCount()])
-      .then(([weatherData, count]) => {
-        if (weatherData) setWeather(weatherData);
-        setUnreadCount(Number(count) || 0);
-      })
-      .catch(() => {});
-  }, []);
+    let active = true;
+    api.getWeather().then((weatherData) => { if (active && weatherData) setWeather(weatherData); }).catch(() => {});
+    if (!authLoading && user) api.getNotificationCount().then((count) => { if (active) setUnreadCount(Number(count) || 0); }).catch(() => {});
+    else if (!authLoading) setUnreadCount(0);
+    return () => { active = false; };
+  }, [authLoading, user]);
 
   useEffect(() => {
     const syncCount = (event) => {
       if (Number.isFinite(event.detail?.count)) setUnreadCount(event.detail.count);
-      else api.getNotificationCount().then((count) => setUnreadCount(Number(count) || 0)).catch(() => {});
+      else if (user) api.getNotificationCount().then((count) => setUnreadCount(Number(count) || 0)).catch(() => {});
     };
     window.addEventListener('tkmbs-notifications-updated', syncCount);
     return () => window.removeEventListener('tkmbs-notifications-updated', syncCount);
-  }, []);
+  }, [user]);
 
   const handleNavigate = (event) => {
     if (collapsed && !window.matchMedia('(max-width: 900px)').matches) {

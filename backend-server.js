@@ -10,11 +10,14 @@ import {
   notifications,
   getMonuments as queryMonuments,
   getMonumentsPage,
+  getMonument as queryMonument,
   getRoutes as queryRoutes,
   getRoutesPage,
+  getRoute as queryRoute,
   getEvents as queryEvents,
   getEventsPage,
   getEventCalendar,
+  getEvent as queryEvent,
   searchCatalog,
 } from './backend/data/mockDb.js';
 import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDashboard.js';
@@ -105,7 +108,18 @@ const weatherLabels = {
   96: 'Dolu ihtimalli fırtına', 99: 'Dolu ve fırtına',
 };
 
+const WEATHER_CACHE_MS = Number(process.env.WEATHER_CACHE_MS) || 10 * 60 * 1000;
+let weatherCache = null;
+let weatherRequest = null;
+
 async function fetchAntakyaWeather() {
+  if (weatherCache && Date.now() - weatherCache.cachedAt < WEATHER_CACHE_MS) return weatherCache.data;
+  if (weatherRequest) return weatherRequest;
+  weatherRequest = loadAntakyaWeather().finally(() => { weatherRequest = null; });
+  return weatherRequest;
+}
+
+async function loadAntakyaWeather() {
   if (typeof fetch !== 'function') return { ...weather, live: false };
   const params = new URLSearchParams({
     latitude: '36.2021', longitude: '36.1605',
@@ -120,7 +134,7 @@ async function fetchAntakyaWeather() {
     const current = payload.current || {};
     const daily = payload.daily || {};
     const condition = weatherLabels[current.weather_code] || 'Değişken hava';
-    return {
+    const data = {
       temp: Math.round(current.temperature_2m),
       temperature: Math.round(current.temperature_2m),
       desc: condition,
@@ -138,9 +152,13 @@ async function fetchAntakyaWeather() {
         code: daily.weather_code[index],
       })),
     };
+    weatherCache = { data, cachedAt: Date.now() };
+    return data;
   } catch (error) {
     console.warn('Canlı hava durumu alınamadı:', error.message);
-    return { ...weather, live: false };
+    const data = { ...weather, live: false };
+    weatherCache = { data, cachedAt: Date.now() - WEATHER_CACHE_MS + 60_000 };
+    return data;
   }
 }
 
@@ -173,13 +191,9 @@ app.get('/api/monuments', (req, res) => {
 });
 
 app.get('/api/monuments/:id', (req, res) => {
-  const item = monuments.find((m) => m.id === parseInt(req.params.id));
+  const item = queryMonument(req.params.id);
   if (!item) return fail(res, 'Eser bulunamadı', 404);
-  const nearby = monuments
-    .filter((m) => m.id !== item.id)
-    .slice(0, 3)
-    .map((m) => ({ id: m.id, name: m.name, slug: m.slug, distance: m.distance, image: m.image }));
-  res.json(ok({ ...item, nearby }));
+  res.json(ok(item));
 });
 
 app.get('/api/categories', (_req, res) => {
@@ -205,18 +219,9 @@ app.post('/api/routes/preview', (req, res) => {
 });
 
 app.get('/api/routes/:id', (req, res) => {
-  const route = culturalRoutes.find(
-    (r) => r.id === parseInt(req.params.id) || r.slug === req.params.id
-  );
+  const route = queryRoute(req.params.id);
   if (!route) return fail(res, 'Rota bulunamadı', 404);
-  const preview = buildRoutePreview({
-    monuments,
-    stopIds: route.monumentIds,
-    travelMode: route.travelMode || 'walking',
-    routeId: route.id,
-    title: route.title,
-  });
-  res.json(ok({ ...route, ...preview }));
+  res.json(ok(route));
 });
 
 app.get('/api/routes/:id/geojson', (req, res) => {
@@ -247,7 +252,7 @@ app.get('/api/events', (req, res) => {
 });
 
 app.get('/api/events/:id', (req, res) => {
-  const item = events.find((e) => e.id === parseInt(req.params.id));
+  const item = queryEvent(req.params.id);
   if (!item) return fail(res, 'Etkinlik bulunamadı', 404);
   res.json(ok(item));
 });
