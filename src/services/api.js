@@ -1,15 +1,14 @@
 /**
  * API Servisi - Tak-Çıkar Sistemi
  * 
- * USE_MOCK_DB = true  → Sahte veritabanından veri çeker (geliştirme)
- * USE_MOCK_DB = false → Gerçek backend API'den veri çeker (production)
+ * VITE_USE_MOCK_DB=true yalnızca izole ön yüz geliştirmesinde örnek veri kullanır.
+ * Varsayılan çalışma biçimi Express API → Payload CMS → PostgreSQL zinciridir.
  * 
- * Gerçek veritabanı geldiğinde sadece USE_MOCK_DB = false yapın.
- * Başka hiçbir şeyi değiştirmeye gerek yok.
+ * Belediye tesliminde bu değer kapalı kalmalıdır.
  */
 
 // ━━━ TAK-ÇIKAR ANAHTARI ━━━
-const USE_MOCK_DB = true;
+const USE_MOCK_DB = import.meta.env.VITE_USE_MOCK_DB === 'true';
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { authenticatedFetch } from './authClient';

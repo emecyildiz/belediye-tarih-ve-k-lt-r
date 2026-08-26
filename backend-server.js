@@ -21,7 +21,7 @@ import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDash
 import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
 import { getAboutContent } from './backend/data/aboutContent.js';
 import { getHomeContent } from './backend/data/homeContent.js';
-import { getPayloadSnapshotOrNull } from './backend/services/cms/payloadCms.js';
+import { getPayloadContentStatus, syncPayloadContent } from './backend/services/cms/payloadContentStore.js';
 import { createAuthRepository } from './backend/auth/repository.js';
 import { createAuthService, AuthenticationError } from './backend/auth/service.js';
 import { DtoValidationError } from './backend/auth/dto.js';
@@ -78,6 +78,19 @@ app.post('/api/auth/logout', async (req, res) => {
 });
 
 app.get('/api/auth/me', authenticateAccessToken, (req, res) => res.json(ok(req.auth.user)));
+
+// Halk portalındaki bütün içerik istekleri önce Payload/PostgreSQL önbelleğini yeniler.
+// İlk bağlantı kurulamadığında kod içindeki örnek veriye sessizce dönülmez.
+app.use('/api', async (req, res, next) => {
+  if (req.path.startsWith('/auth/') || req.path === '/health' || req.path === '/weather') return next();
+  try {
+    await syncPayloadContent();
+    return next();
+  } catch (error) {
+    console.error('Payload içerik bağlantısı kurulamadı:', error.message);
+    return fail(res, 'İçerik yönetim sistemi şu anda kullanılamıyor. PostgreSQL ve Payload CMS bağlantısını kontrol edin.', 503);
+  }
+});
 
 app.get('/api/search', (req, res) => {
   res.json(ok(searchCatalog(req.query)));
@@ -251,24 +264,21 @@ app.get('/api/content/about', (_req, res) => res.json(ok(getAboutContent())));
 app.get('/api/content/home', (_req, res) => res.json(ok(getHomeContent())));
 
 app.get('/api/admin/dashboard', authenticateAccessToken, authorizeRoles(USER_ROLES.ADMIN, USER_ROLES.EDITOR), async (_req, res) => {
-  const cms = await getPayloadSnapshotOrNull();
-  const sources = cms || { monuments, routes: culturalRoutes, events };
+  const cmsStatus = getPayloadContentStatus();
+  const sources = { monuments, routes: culturalRoutes, events };
   const statisticsData = buildStatistics(sources);
   const chartsData = buildChartData(sources);
   const dashboard = buildAdminDashboard({ ...sources, statistics: statisticsData, charts: chartsData });
   dashboard.generatedAt = new Date().toISOString();
-  dashboard.geojson = cms?.geojson || monumentsToGeoJSON(monuments);
+  dashboard.geojson = monumentsToGeoJSON(monuments);
   dashboard.cms = {
-    connected: Boolean(cms),
-    source: cms ? 'Payload CMS' : 'Yerel örnek veri',
-    adminUrl: cms?.adminUrl || `${(process.env.PAYLOAD_CMS_URL || 'http://localhost:3000').replace(/\/$/, '')}/admin`,
+    connected: cmsStatus.ready && !cmsStatus.stale,
+    source: 'Payload CMS / PostgreSQL',
+    adminUrl: `${(process.env.PAYLOAD_CMS_URL || 'http://localhost:3000').replace(/\/$/, '')}/admin`,
   };
-  if (cms) {
-    dashboard.pendingReviews = [];
-    dashboard.activity = cms.activity;
-    dashboard.metrics = dashboard.metrics.map((metric) => metric.key === 'pending' ? { ...metric, value: 0, detail: 'Taslaklar Payload üzerinden yönetilir' } : metric);
-    dashboard.systemStatus = dashboard.systemStatus.map((item) => item.key === 'database' ? { ...item, value: 'Payload CMS' } : item);
-  }
+  dashboard.pendingReviews = [];
+  dashboard.metrics = dashboard.metrics.map((metric) => metric.key === 'pending' ? { ...metric, value: 0, detail: 'Taslaklar Payload üzerinden yönetilir' } : metric);
+  dashboard.systemStatus = dashboard.systemStatus.map((item) => item.key === 'database' ? { ...item, value: 'PostgreSQL' } : item);
   res.json(ok(dashboard));
 });
 
@@ -331,7 +341,7 @@ app.post('/api/notifications/read-all', authenticateAccessToken, authorizeRoles(
 });
 
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString(), authRepository: authRepository.kind });
+  res.json({ status: 'OK', timestamp: new Date().toISOString(), authRepository: authRepository.kind, contentRepository: getPayloadContentStatus() });
 });
 
 // CRUD placeholder - gerçek DB entegrasyonu için

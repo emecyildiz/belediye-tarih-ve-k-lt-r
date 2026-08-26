@@ -639,6 +639,30 @@ export interface SiteSetting {
   defaultDistrict?: string | null;
   supportEmail?: string | null;
   contentNotice?: string | null;
+  /**
+   * Ana sayfadaki tanıtım alanları, bölüm başlıkları ve hızlı erişim bağlantıları.
+   */
+  homeContent?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  /**
+   * Hakkında sayfasındaki halka yönelik bütün metin ve bağlantılar.
+   */
+  aboutContent?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -652,6 +676,8 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   defaultDistrict?: T;
   supportEmail?: T;
   contentNotice?: T;
+  homeContent?: T;
+  aboutContent?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

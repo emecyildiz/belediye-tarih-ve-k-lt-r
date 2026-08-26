@@ -5,6 +5,8 @@ import { events } from '../../backend/data/events.js'
 import { notifications } from '../../backend/data/mockDb.js'
 import { monuments } from '../../backend/data/monuments.js'
 import { culturalRoutes } from '../../backend/data/routes.js'
+import { homeContent } from '../../backend/data/homeContent.js'
+import { aboutContent } from '../../backend/data/aboutContent.js'
 loadEnv({ path: new URL('../.env', import.meta.url) })
 
 const { default: config } = await import('./payload.config')
@@ -153,6 +155,8 @@ await payload.updateGlobal({
     municipalityName: 'Hatay Büyükşehir Belediyesi',
     defaultDistrict: 'Antakya',
     contentNotice: 'Portalda yayımlanan eser, rota ve etkinlik içerikleri Payload CMS üzerinden kontrol edilir.',
+    homeContent,
+    aboutContent,
   },
   overrideAccess: true,
 })

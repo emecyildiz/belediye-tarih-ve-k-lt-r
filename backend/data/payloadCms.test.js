@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizePayloadMonument, normalizePayloadRoute, normalizePayloadEvent, monumentsToGeoJSON } from '../services/cms/payloadCms.js';
+import { fetchCollection, normalizePayloadMonument, normalizePayloadRoute, normalizePayloadEvent, normalizePayloadNotification, monumentsToGeoJSON } from '../services/cms/payloadCms.js';
 
 test('Payload eser kaydı portal ve GeoJSON sözleşmesine dönüştürülür', () => {
   const monument = normalizePayloadMonument({ legacyId: 7, name: 'Örnek Eser', slug: 'ornek-eser', category: 'muze', district: 'Antakya', coordinates: { latitude: 36.2, longitude: 36.1 }, gallery: [{ url: '/a.jpg' }], highlights: [{ text: 'Özellik' }] });
@@ -21,4 +21,32 @@ test('Payload etkinlik tarihi portal takvim biçimini korur', () => {
   assert.equal(event.id, 4);
   assert.equal(event.date, '2026-09-03');
   assert.ok(event.dateLabel.includes('2026'));
+});
+
+test('Payload bildirim bağlantısı portal bildirim türüne dönüştürülür', () => {
+  const notification = normalizePayloadNotification({ id: 42, title: 'Yeni rota', message: 'Rota yayımlandı.', type: 'announcement', publishedAt: '2026-08-26T08:00:00.000Z', href: '/kultur-rotalari/yeni-rota' });
+  assert.equal(notification.id, 42);
+  assert.equal(notification.type, 'route');
+  assert.equal(notification.link, '/kultur-rotalari/yeni-rota');
+  assert.equal(notification.read, false);
+});
+
+test('Payload koleksiyonu bütün sayfaları birleştirir', async () => {
+  const originalFetch = globalThis.fetch;
+  const requestedPages = [];
+  globalThis.fetch = async (url) => {
+    const page = Number(new URL(url).searchParams.get('page'));
+    requestedPages.push(page);
+    return new Response(JSON.stringify(page === 1
+      ? { docs: [{ legacyId: 1 }], hasNextPage: true, nextPage: 2 }
+      : { docs: [{ legacyId: 2 }], hasNextPage: false, nextPage: null }),
+    { status: 200, headers: { 'Content-Type': 'application/json' } });
+  };
+  try {
+    const docs = await fetchCollection('monuments');
+    assert.deepEqual(docs.map((item) => item.legacyId), [1, 2]);
+    assert.deepEqual(requestedPages, [1, 2]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
