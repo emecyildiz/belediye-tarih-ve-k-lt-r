@@ -355,8 +355,17 @@ const mockApi = {
   },
 };
 
+// Kullanıcıya özel ve durum değiştiren bildirim işlemleri hiçbir zaman tarayıcıdaki
+// örnek veri modülüne düşmez. Okundu bilgisi backend üzerinden PostgreSQL'de tutulur.
+const persistentNotificationApi = {
+  getNotificationCount: realApi.getNotificationCount,
+  getNotifications: realApi.getNotifications,
+  markNotificationRead: realApi.markNotificationRead,
+  markAllNotificationsRead: realApi.markAllNotificationsRead,
+};
+
 // ──────────────────────────────────
-// EXPORT - Anahtara göre seçim yapar
+// EXPORT - İçerik kaynağını seçer, kullanıcı durumunu daima gerçek API'de tutar
 // ──────────────────────────────────
-export const api = USE_MOCK_DB ? mockApi : realApi;
+export const api = USE_MOCK_DB ? { ...mockApi, ...persistentNotificationApi } : realApi;
 export default api;
