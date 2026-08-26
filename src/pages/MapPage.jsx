@@ -24,6 +24,20 @@ const categoryNames = {
   kale: 'Kale', kopru: 'Köprü', doga: 'Doğal Alan', diger: 'Tarihi Eser',
 };
 
+const travelModes = [
+  { key: 'walking', label: 'Yürüyüş' },
+  { key: 'cycling', label: 'Bisiklet' },
+  { key: 'driving', label: 'Araç' },
+];
+
+function formatRouteMinutes(minutes) {
+  if (!Number.isFinite(Number(minutes))) return '—';
+  const total = Number(minutes);
+  const hours = Math.floor(total / 60);
+  const rest = total % 60;
+  return hours ? `${hours} sa${rest ? ` ${rest} dk` : ''}` : `${rest} dk`;
+}
+
 function getLocationCoordinate(location) {
   if (location?.coordinate) return location.coordinate;
   if (!Array.isArray(location?.coordinates) || location.coordinates.length !== 2) return null;
@@ -40,6 +54,11 @@ export default function MapPage() {
   const [mapType, setMapType] = useState('map');
   const [favorites, toggleFavoriteId] = useFavoriteIds('monument');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [routeMode, setRouteMode] = useState(false);
+  const [routeStopIds, setRouteStopIds] = useState([]);
+  const [routePreview, setRoutePreview] = useState(null);
+  const [routeTravelMode, setRouteTravelMode] = useState('walking');
+  const [routeStatus, setRouteStatus] = useState('idle');
 
   useEffect(() => {
     Promise.all([api.getLocations(), api.getMonuments()])
@@ -49,6 +68,25 @@ export default function MapPage() {
       })
       .catch((error) => console.error('Harita verileri yüklenemedi:', error));
   }, []);
+
+  useEffect(() => {
+    if (!routeMode) return undefined;
+    let active = true;
+    const timer = setTimeout(() => {
+      setRouteStatus(routeStopIds.length >= 2 ? 'loading' : 'waiting');
+      api.previewRoute({ stopIds: routeStopIds, travelMode: routeTravelMode, visitMinutes: 25, title: 'Haritadan Oluşturulan Rota' })
+        .then((data) => {
+          if (!active) return;
+          setRoutePreview(data);
+          setRouteStatus(data?.cbs?.routingStatus === 'unavailable' ? 'unavailable' : (routeStopIds.length >= 2 ? 'ready' : 'waiting'));
+        })
+        .catch(() => {
+          if (!active) return;
+          setRouteStatus('unavailable');
+        });
+    }, 220);
+    return () => { active = false; clearTimeout(timer); };
+  }, [routeMode, routeStopIds, routeTravelMode]);
 
   const districts = useMemo(
     () => [...new Set(monuments.map((item) => item.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr')),
@@ -71,6 +109,22 @@ export default function MapPage() {
     };
   }, [allGeojson, activeLayers, district]);
 
+  const mapGeojson = useMemo(() => {
+    if (!filteredGeojson || !routeMode) return filteredGeojson;
+    const selected = new Set(routeStopIds.map(Number));
+    return {
+      type: 'FeatureCollection',
+      features: [
+        ...filteredGeojson.features.filter((feature) => !selected.has(Number(feature.properties?.id))),
+        ...(routePreview?.geojson?.features || []),
+      ],
+    };
+  }, [filteredGeojson, routeMode, routeStopIds, routePreview]);
+
+  const routeStops = useMemo(() => routeStopIds
+    .map((id) => monuments.find((item) => Number(item.id) === Number(id)))
+    .filter(Boolean), [routeStopIds, monuments]);
+
   const nearby = useMemo(() => {
     if (!selectedLocation) return [];
     return monuments
@@ -89,8 +143,35 @@ export default function MapPage() {
   };
 
   const selectFeature = (properties) => {
-    const fullItem = monuments.find((item) => item.id === Number(properties.id));
+    const featureId = Number(properties.monumentId ?? properties.id);
+    if (routeMode) {
+      if (!Number.isInteger(featureId) || properties.type === 'route-line') return;
+      setRouteStopIds((current) => current.includes(featureId)
+        ? current.filter((id) => id !== featureId)
+        : [...current, featureId]);
+      setSelectedLocation(null);
+      return;
+    }
+    const fullItem = monuments.find((item) => item.id === featureId);
     setSelectedLocation(fullItem ? { ...fullItem, coordinate: properties.coordinate } : properties);
+  };
+
+  const startRouteMode = () => {
+    setRouteMode(true);
+    setSelectedLocation(null);
+    setFiltersOpen(false);
+  };
+
+  const closeRouteMode = () => {
+    setRouteMode(false);
+    setRouteStopIds([]);
+    setRoutePreview(null);
+    setRouteStatus('idle');
+  };
+
+  const openDetailedRouteBuilder = () => {
+    if (routeStopIds.length < 2) return;
+    navigate(`/rota-olustur?stops=${routeStopIds.join(',')}`);
   };
 
   const toggleFavorite = () => selectedLocation && toggleFavoriteId(selectedLocation.id);
@@ -103,16 +184,17 @@ export default function MapPage() {
   const selectedCoordinate = getLocationCoordinate(selectedLocation);
 
   return (
-    <div className="heritage-map-page">
+    <div className={`heritage-map-page ${routeMode ? 'route-planning' : ''}`}>
       <div className="heritage-map-canvas">
         {filteredGeojson ? (
           <OpenLayersMap
-            geojson={filteredGeojson}
+            geojson={mapGeojson}
             mapType={mapType}
             onMapTypeChange={setMapType}
             onFeatureClick={selectFeature}
             showFeatureTooltip
             showCoordinates
+            routeMode={routeMode}
           />
         ) : <div className="map-loading">Harita yükleniyor…</div>}
       </div>
@@ -120,6 +202,8 @@ export default function MapPage() {
       <button type="button" className="mobile-filter-toggle" onClick={() => setFiltersOpen((value) => !value)}>
         ☰ Harita Filtreleri
       </button>
+
+      {!routeMode && <button type="button" className="map-route-start" onClick={startRouteMode}><IconRoute size={18} /> Rota Oluştur</button>}
 
       <aside className={'map-control-panel ' + (filtersOpen ? 'mobile-open' : '')}>
         <header>
@@ -164,7 +248,7 @@ export default function MapPage() {
         </section>
       </aside>
 
-      <section className={'map-legend-card ' + (selectedLocation ? 'detail-visible' : '')}>
+      <section className={'map-legend-card ' + (selectedLocation || routeMode ? 'detail-visible' : '')}>
         <strong>Gösterim</strong>
         {layers.map((layer) => (
           <span key={layer.key}><CategoryMarkerIcon category={layer.key} color={layer.color} size={17} />{layer.label}</span>
@@ -212,6 +296,27 @@ export default function MapPage() {
           </>
         )}
       </aside>
+
+      {routeMode && <section className="map-route-planner" aria-label="Haritadan rota oluşturma">
+        <div className="map-route-planner-heading">
+          <div><span>GEZİ PLANIM</span><strong>{routeStopIds.length ? `${routeStopIds.length} durak seçildi` : 'Haritadaki mekânları seçin'}</strong></div>
+          <button type="button" onClick={closeRouteMode} aria-label="Rota oluşturmayı kapat">×</button>
+        </div>
+        <div className="map-route-mode-buttons" aria-label="Ulaşım türü">
+          {travelModes.map((mode) => <button type="button" key={mode.key} className={routeTravelMode === mode.key ? 'active' : ''} onClick={() => setRouteTravelMode(mode.key)}>{mode.label}</button>)}
+        </div>
+        <div className="map-route-stops">
+          {routeStops.map((stop, index) => <button type="button" key={stop.id} onClick={() => setRouteStopIds((current) => current.filter((id) => id !== stop.id))} title="Duraktan çıkar"><i>{index + 1}</i><span>{stop.name}</span><b>×</b></button>)}
+          {!routeStops.length && <p>İşaretlere dokunarak veya tıklayarak ilk durağınızı ekleyin.</p>}
+        </div>
+        <div className="map-route-summary">
+          <span><small>Mesafe</small><strong>{routePreview?.distanceKm ?? '—'} {routePreview?.distanceKm != null ? 'km' : ''}</strong></span>
+          <span><small>Tahmini süre</small><strong>{formatRouteMinutes(routePreview?.durationMinutes)}</strong></span>
+          <em className={routeStatus}>{routeStatus === 'loading' ? 'Yol hesaplanıyor…' : routeStatus === 'unavailable' ? 'Yol güzergâhı alınamadı' : routeStatus === 'ready' ? 'Gerçek yol güzergâhı hazır' : 'En az iki durak seçin'}</em>
+          <button type="button" className="map-route-clear" disabled={!routeStopIds.length} onClick={() => setRouteStopIds([])}>Temizle</button>
+          <button type="button" className="map-route-continue" disabled={routeStopIds.length < 2 || routeStatus === 'loading'} onClick={openDetailedRouteBuilder}>Ayrıntılı Düzenle →</button>
+        </div>
+      </section>}
 
     </div>
   );

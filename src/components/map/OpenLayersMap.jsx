@@ -135,10 +135,22 @@ export default function OpenLayersMap({
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const vectorSourceRef = useRef(null);
+  const vectorLayerRef = useRef(null);
   const osmLayerRef = useRef(null);
   const satelliteLayerRef = useRef(null);
   const resizeObserverRef = useRef(null);
   const mapReadyRef = useRef(false);
+  const onFeatureClickRef = useRef(onFeatureClick);
+  const routeModeRef = useRef(routeMode);
+
+  useEffect(() => {
+    onFeatureClickRef.current = onFeatureClick;
+  }, [onFeatureClick]);
+
+  useEffect(() => {
+    routeModeRef.current = routeMode;
+    vectorLayerRef.current?.changed?.();
+  }, [routeMode]);
 
   useEffect(() => {
     let pointerLeaveHandler = null;
@@ -154,7 +166,8 @@ export default function OpenLayersMap({
       const layerSource = cluster ? new Cluster({ distance: 40, source: vectorSourceRef.current }) : vectorSourceRef.current;
       const vectorLayer = heatmap
         ? new HeatmapLayer({ source: layerSource, blur: 22, radius: 16, weight: (feature) => Number(feature.get('weight') || 0.72) })
-        : new VectorLayer({ source: layerSource, style: (f) => routeMode ? getRouteStyle(f) : getPinStyle(f, cluster) });
+        : new VectorLayer({ source: layerSource, style: (f) => routeModeRef.current ? getRouteStyle(f) : getPinStyle(f, cluster) });
+      vectorLayerRef.current = vectorLayer;
 
       osmLayerRef.current = new TileLayer({ source: new OSM(), visible: mapType !== 'satellite' });
       satelliteLayerRef.current = new TileLayer({
@@ -177,13 +190,13 @@ export default function OpenLayersMap({
         mapRef.current?.updateSize();
       });
 
-      if (onFeatureClick) {
+      if (onFeatureClickRef.current) {
         mapRef.current.on('click', (evt) => {
           const feature = mapRef.current.forEachFeatureAtPixel(evt.pixel, (f) => f);
           if (feature) {
             const sourceFeature = feature.get('features')?.[0] || feature;
             const props = sourceFeature.getProperties();
-            onFeatureClick({ ...props, coordinate: coordinateDetails(sourceFeature) });
+            onFeatureClickRef.current?.({ ...props, coordinate: coordinateDetails(sourceFeature) });
           }
         });
       }
@@ -257,6 +270,7 @@ export default function OpenLayersMap({
       mapRef.current = null;
       mapReadyRef.current = false;
       vectorSourceRef.current = null;
+      vectorLayerRef.current = null;
     };
   }, []);
 
