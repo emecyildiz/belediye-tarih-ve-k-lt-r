@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import { monuments, categoryCounts, monumentsToGeoJSON } from './backend/data/monuments.js';
 import { culturalRoutes } from './backend/data/routes.js';
 import { buildRoadRoutePreview } from './backend/services/routing/routePreviewService.js';
+import { enrichRoutePageMetrics } from './backend/services/routing/routeListMetrics.js';
 import { events, eventCategoryCounts } from './backend/data/events.js';
 import { weather, buildStatistics, buildChartData } from './backend/data/statistics.js';
 import {
@@ -201,8 +202,11 @@ app.get('/api/categories', (_req, res) => {
 });
 
 // --- Kültürel Rotalar ---
-app.get('/api/routes', (req, res) => {
-  if (req.query.page || req.query.pageSize) return res.json(ok(getRoutesPage(req.query)));
+app.get('/api/routes', async (req, res) => {
+  if (req.query.page || req.query.pageSize) {
+    const page = await enrichRoutePageMetrics(getRoutesPage(req.query), { monuments });
+    return res.json(ok(page));
+  }
   const filtered = queryRoutes(req.query);
   res.json(ok(filtered, { count: filtered.length }));
 });

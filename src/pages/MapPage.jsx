@@ -5,6 +5,7 @@ import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
 import useFavoriteIds from '../hooks/useFavoriteIds';
 import CategoryMarkerIcon from '../components/map/CategoryMarkerIcon';
+import { buildGoogleMapsDirectionsUrl } from '../utils/googleMaps';
 import { IconHeart, IconPin, IconRoute } from '../components/common/Icons';
 import './MapPage.css';
 
@@ -124,6 +125,8 @@ export default function MapPage() {
   const routeStops = useMemo(() => routeStopIds
     .map((id) => monuments.find((item) => Number(item.id) === Number(id)))
     .filter(Boolean), [routeStopIds, monuments]);
+  const routeVisitMinutes = Math.max(0, Number(routePreview?.durationMinutes || 0) - Number(routePreview?.travelMinutes || 0));
+  const googleMapsUrl = useMemo(() => buildGoogleMapsDirectionsUrl(routeStops, routeTravelMode), [routeStops, routeTravelMode]);
 
   const nearby = useMemo(() => {
     if (!selectedLocation) return [];
@@ -311,9 +314,12 @@ export default function MapPage() {
         </div>
         <div className="map-route-summary">
           <span><small>Mesafe</small><strong>{routePreview?.distanceKm ?? '—'} {routePreview?.distanceKm != null ? 'km' : ''}</strong></span>
-          <span><small>Tahmini süre</small><strong>{formatRouteMinutes(routePreview?.durationMinutes)}</strong></span>
+          <span><small>Yol süresi</small><strong>{formatRouteMinutes(routePreview?.travelMinutes)}</strong></span>
+          <span><small>Ziyaretler</small><strong>{formatRouteMinutes(routeVisitMinutes)}</strong></span>
+          <span><small>Gezi toplamı</small><strong>{formatRouteMinutes(routePreview?.durationMinutes)}</strong></span>
           <em className={routeStatus}>{routeStatus === 'loading' ? 'Yol hesaplanıyor…' : routeStatus === 'unavailable' ? 'Yol güzergâhı alınamadı' : routeStatus === 'ready' ? 'Gerçek yol güzergâhı hazır' : 'En az iki durak seçin'}</em>
           <button type="button" className="map-route-clear" disabled={!routeStopIds.length} onClick={() => setRouteStopIds([])}>Temizle</button>
+          {googleMapsUrl && <a className="map-route-google" href={googleMapsUrl} target="_blank" rel="noreferrer">Google Haritalar</a>}
           <button type="button" className="map-route-continue" disabled={routeStopIds.length < 2 || routeStatus === 'loading'} onClick={openDetailedRouteBuilder}>Ayrıntılı Düzenle →</button>
         </div>
       </section>}

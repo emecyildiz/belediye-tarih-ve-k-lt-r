@@ -4,6 +4,7 @@ import api from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
 import { IconClock, IconPin, IconRoute, IconSearch } from '../components/common/Icons';
+import { buildGoogleMapsDirectionsUrl } from '../utils/googleMaps';
 import './RouteBuilderPage.css';
 
 const modes = [{ key: 'walking', label: 'Yürüyüş', icon: '🚶' }, { key: 'cycling', label: 'Bisiklet', icon: '🚲' }, { key: 'driving', label: 'Araç', icon: '🚗' }];
@@ -68,6 +69,8 @@ export default function RouteBuilderPage() {
   }, [selectedIds, travelMode, visitMinutes, title]);
 
   const selected = useMemo(() => selectedIds.map((id) => monuments.find((item) => item.id === id)).filter(Boolean), [selectedIds, monuments]);
+  const googleMapsUrl = useMemo(() => buildGoogleMapsDirectionsUrl(selected, travelMode), [selected, travelMode]);
+  const totalVisitMinutes = Math.max(0, Number(preview?.durationMinutes || 0) - Number(preview?.travelMinutes || 0));
   const candidates = useMemo(() => monuments.filter((item) => !selectedIds.includes(item.id) && item.name.toLocaleLowerCase('tr-TR').includes(query.toLocaleLowerCase('tr-TR'))), [monuments, selectedIds, query]);
   const mapGeoJSON = useMemo(() => ({
     type: 'FeatureCollection',
@@ -97,11 +100,13 @@ export default function RouteBuilderPage() {
   return (
     <div className="route-builder-page">
       <nav className="route-builder-breadcrumb"><Link to="/">Ana Sayfa</Link><b>›</b><Link to="/kultur-rotalari">Kültürel Rotalar</Link><b>›</b><span>Rota Oluştur</span></nav>
-      <header className="route-builder-header"><div><span>GEZİNİ PLANLA</span><h1>Kendi Rotanı Oluştur</h1><p>Görmek istediğiniz yerleri seçin, durak sırasını belirleyin ve gezi planınızı hazırlayın.</p></div><div className="route-builder-actions"><button type="button" className="primary" onClick={saveRoute} disabled={!selectedIds.length}>{saved ? 'Kaydedildi ✓' : 'Rotayı Kaydet'}</button></div></header>
+      <header className="route-builder-header"><div><span>GEZİNİ PLANLA</span><h1>Kendi Rotanı Oluştur</h1><p>Görmek istediğiniz yerleri seçin, durak sırasını belirleyin ve gezi planınızı hazırlayın.</p></div><div className="route-builder-actions">{googleMapsUrl && <a href={googleMapsUrl} target="_blank" rel="noreferrer">Google Haritalar</a>}<button type="button" className="primary" onClick={saveRoute} disabled={!selectedIds.length}>{saved ? 'Kaydedildi ✓' : 'Rotayı Kaydet'}</button></div></header>
 
       <section className="route-builder-summary">
         <article><IconRoute size={18} /><div><small>Mesafe</small><strong>{preview?.distanceKm || 0} km</strong></div></article>
-        <article><IconClock size={18} /><div><small>Toplam süre</small><strong>{formatMinutes(preview?.durationMinutes)}</strong></div></article>
+        <article><IconClock size={18} /><div><small>Yol süresi</small><strong>{formatMinutes(preview?.travelMinutes)}</strong></div></article>
+        <article><IconPin size={18} /><div><small>Ziyaret süresi</small><strong>{formatMinutes(totalVisitMinutes)}</strong></div></article>
+        <article><IconClock size={18} /><div><small>Gezi toplamı</small><strong>{formatMinutes(preview?.durationMinutes)}</strong></div></article>
         <article><IconPin size={18} /><div><small>Durak</small><strong>{selectedIds.length}</strong></div></article>
       </section>
 
