@@ -35,6 +35,7 @@ export async function createInMemoryAuthRepository() {
   const passwordHash = await hashPassword(demoPassword);
   const users = demoUsers(passwordHash);
   const sessions = new Map();
+  const notificationReads = new Map();
 
   return {
     kind: 'in-memory-demo',
@@ -64,6 +65,21 @@ export async function createInMemoryAuthRepository() {
       sessions.forEach((session) => {
         if (session.userId === String(userId) && !session.revokedAt) session.revokedAt = new Date().toISOString();
       });
+    },
+    async listNotificationReadIds(userId) {
+      return [...(notificationReads.get(String(userId)) || new Set())];
+    },
+    async markNotificationRead(userId, notificationId) {
+      const key = String(userId);
+      const reads = notificationReads.get(key) || new Set();
+      reads.add(Number(notificationId));
+      notificationReads.set(key, reads);
+    },
+    async markAllNotificationsRead(userId, notificationIds) {
+      const key = String(userId);
+      const reads = notificationReads.get(key) || new Set();
+      notificationIds.forEach((id) => reads.add(Number(id)));
+      notificationReads.set(key, reads);
     },
   };
 }
@@ -96,6 +112,12 @@ export async function createPostgresAuthRepository(connectionString) {
     );
     CREATE INDEX IF NOT EXISTS tkmbs_auth_sessions_user_id_idx ON tkmbs_auth_refresh_sessions(user_id);
     CREATE INDEX IF NOT EXISTS tkmbs_auth_sessions_expires_at_idx ON tkmbs_auth_refresh_sessions(expires_at);
+    CREATE TABLE IF NOT EXISTS tkmbs_user_notification_reads (
+      user_id uuid NOT NULL REFERENCES tkmbs_portal_users(id) ON DELETE CASCADE,
+      notification_id integer NOT NULL,
+      read_at timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY (user_id, notification_id)
+    );
   `);
 
   if (process.env.AUTH_SEED_DEMO_USERS !== 'false') {
@@ -144,6 +166,25 @@ export async function createPostgresAuthRepository(connectionString) {
     },
     async revokeUserSessions(userId) {
       await pool.query('UPDATE tkmbs_auth_refresh_sessions SET revoked_at = COALESCE(revoked_at, now()) WHERE user_id = $1', [userId]);
+    },
+    async listNotificationReadIds(userId) {
+      const result = await pool.query('SELECT notification_id FROM tkmbs_user_notification_reads WHERE user_id = $1', [userId]);
+      return result.rows.map((row) => Number(row.notification_id));
+    },
+    async markNotificationRead(userId, notificationId) {
+      await pool.query(
+        `INSERT INTO tkmbs_user_notification_reads (user_id, notification_id)
+         VALUES ($1, $2) ON CONFLICT (user_id, notification_id) DO NOTHING`,
+        [userId, notificationId],
+      );
+    },
+    async markAllNotificationsRead(userId, notificationIds) {
+      if (!notificationIds.length) return;
+      await pool.query(
+        `INSERT INTO tkmbs_user_notification_reads (user_id, notification_id)
+         SELECT $1, unnest($2::integer[]) ON CONFLICT (user_id, notification_id) DO NOTHING`,
+        [userId, notificationIds],
+      );
     },
     async close() {
       await pool.end();

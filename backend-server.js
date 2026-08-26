@@ -278,17 +278,17 @@ app.post('/api/admin/reviews/:id/decision', authenticateAccessToken, authorizeRo
   return res.json(ok(reviewed));
 });
 
-app.get('/api/user/favorites', authenticateAccessToken, resUserFavorites);
+app.get('/api/user/favorites', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), resUserFavorites);
 function resUserFavorites(_req, res) { return res.json(ok(getUserFavorites())); }
-app.get('/api/user/profile-overview', authenticateAccessToken, (_req, res) => res.json(ok(getUserProfileOverview({ monuments, routes: culturalRoutes, events }))));
-app.post('/api/user/preferences', authenticateAccessToken, (req, res) => res.json(ok(updateUserPreferences(req.body))));
-app.post('/api/user/favorites/:type/:id/toggle', authenticateAccessToken, (req, res) => {
+app.get('/api/user/profile-overview', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (_req, res) => res.json(ok(getUserProfileOverview({ monuments, routes: culturalRoutes, events }))));
+app.post('/api/user/preferences', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (req, res) => res.json(ok(updateUserPreferences(req.body))));
+app.post('/api/user/favorites/:type/:id/toggle', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (req, res) => {
   const result = toggleUserFavorite(req.params.type, req.params.id, { monuments, routes: culturalRoutes, events });
   if (!result) return fail(res, 'Favori türü veya kayıt geçersiz', 400);
   return res.json(ok(result));
 });
-app.get('/api/user/routes', authenticateAccessToken, (_req, res) => res.json(ok(getUserRoutes())));
-app.post('/api/user/routes', authenticateAccessToken, (req, res) => {
+app.get('/api/user/routes', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (_req, res) => res.json(ok(getUserRoutes())));
+app.post('/api/user/routes', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (req, res) => {
   const route = saveUserRoute(req.body || {}, monuments);
   if (!route) return fail(res, 'Rota adı ve en az bir geçerli durak gereklidir', 400);
   return res.status(201).json(ok(route));
@@ -304,24 +304,30 @@ app.get('/api/news', (_req, res) => {
   })), { count: 3 }));
 });
 
-app.get('/api/notifications/count', authenticateAccessToken, (_req, res) => {
-  res.json(ok(notifications.filter((item) => !item.read).length));
+async function notificationsForUser(userId) {
+  const readIds = new Set(await authRepository.listNotificationReadIds(userId));
+  return notifications.map((item) => ({ ...item, read: item.read || readIds.has(item.id) }));
+}
+
+app.get('/api/notifications/count', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res) => {
+  const items = await notificationsForUser(req.auth.user.id);
+  res.json(ok(items.filter((item) => !item.read).length));
 });
 
-app.get('/api/notifications', authenticateAccessToken, (_req, res) => {
-  res.json(ok(notifications));
+app.get('/api/notifications', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res) => {
+  res.json(ok(await notificationsForUser(req.auth.user.id)));
 });
 
-app.post('/api/notifications/:id/read', authenticateAccessToken, (req, res) => {
+app.post('/api/notifications/:id/read', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res) => {
   const notification = notifications.find((item) => item.id === Number(req.params.id));
   if (!notification) return fail(res, 'Bildirim bulunamadı', 404);
-  notification.read = true;
-  return res.json(ok(notification));
+  await authRepository.markNotificationRead(req.auth.user.id, notification.id);
+  return res.json(ok({ ...notification, read: true }));
 });
 
-app.post('/api/notifications/read-all', authenticateAccessToken, (_req, res) => {
-  notifications.forEach((item) => { item.read = true; });
-  res.json(ok(notifications));
+app.post('/api/notifications/read-all', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res) => {
+  await authRepository.markAllNotificationsRead(req.auth.user.id, notifications.map((item) => item.id));
+  res.json(ok(notifications.map((item) => ({ ...item, read: true }))));
 });
 
 app.get('/api/health', (_req, res) => {

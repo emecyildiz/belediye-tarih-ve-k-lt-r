@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { ApiRequestError, loginCmsSession, loginSession, logoutCmsSession, logoutSession, refreshSession } from '../services/authClient';
 
 const AuthContext = createContext(null);
+const isContentManager = (role) => role === 'admin' || role === 'editor';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -10,7 +11,14 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     let active = true;
     refreshSession()
-      .then((session) => { if (active) setUser(session.user); })
+      .then(async (session) => {
+        if (isContentManager(session.user.role)) {
+          await logoutSession().catch(() => {});
+          if (active) setUser(null);
+          return;
+        }
+        if (active) setUser(session.user);
+      })
       .catch((error) => {
         if (active && (!(error instanceof ApiRequestError) || error.status !== 401)) {
           console.error('Oturum geri yüklenemedi:', error);
@@ -27,13 +35,16 @@ export function AuthProvider({ children }) {
     hasRole: (...roles) => Boolean(user && roles.includes(user.role)),
     login: async (credentials) => {
       const session = await loginSession(credentials);
-      if (session.user.role === 'admin' || session.user.role === 'editor') {
+      if (isContentManager(session.user.role)) {
         try {
           await loginCmsSession(credentials, session.user);
+          await logoutSession().catch(() => {});
         } catch (error) {
           await logoutSession();
           throw error;
         }
+        setUser(null);
+        return session.user;
       }
       setUser(session.user);
       return session.user;

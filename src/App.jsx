@@ -44,12 +44,12 @@ function App() {
           <Route path="/tarihi-eserler/:slug" element={<MonumentDetailPage />} />
           <Route path="/kultur-rotalari" element={<RoutesPage />} />
           <Route path="/kultur-rotalari/:slug" element={<RouteDetailPage />} />
-          <Route path="/rota-olustur" element={<ProtectedRoute><RouteBuilderPage /></ProtectedRoute>} />
+          <Route path="/rota-olustur" element={<ProtectedRoute roles={['citizen']}><RouteBuilderPage /></ProtectedRoute>} />
           <Route path="/etkinlikler" element={<EventsPage />} />
           <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
-          <Route path="/profil/*" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
+          <Route path="/profil/*" element={<ProtectedRoute roles={['citizen']}><FavoritesPage /></ProtectedRoute>} />
           <Route path="/favoriler" element={<Navigate to="/profil" replace />} />
-          <Route path="/bildirimler" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+          <Route path="/bildirimler" element={<ProtectedRoute roles={['citizen']}><NotificationsPage /></ProtectedRoute>} />
           <Route path="/hakkinda" element={<AboutPage />} />
           <Route path="/arama" element={<SearchResultsPage />} />
           <Route path="/giris" element={<LoginPage />} />

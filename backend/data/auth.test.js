@@ -62,3 +62,15 @@ test('refresh çerezi HttpOnly olarak serileştirilir ve tekrar ayrıştırılı
   assert.match(cookie, /SameSite=Lax/);
   assert.equal(parseCookieHeader(cookie).tkmbs_refresh, 'abc def');
 });
+
+test('bildirim okuma durumu kullanıcıya özel saklanır', async () => {
+  const repository = await createInMemoryAuthRepository();
+  const citizenId = '00000000-0000-4000-8000-000000000001';
+  const editorId = '00000000-0000-4000-8000-000000000002';
+
+  await repository.markNotificationRead(citizenId, 1);
+  await repository.markAllNotificationsRead(citizenId, [2, 3]);
+
+  assert.deepEqual((await repository.listNotificationReadIds(citizenId)).sort(), [1, 2, 3]);
+  assert.deepEqual(await repository.listNotificationReadIds(editorId), []);
+});
