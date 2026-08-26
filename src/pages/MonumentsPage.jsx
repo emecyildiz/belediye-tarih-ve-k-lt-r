@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import CategoryMarkerIcon from '../components/map/CategoryMarkerIcon';
 import useFavoriteIds from '../hooks/useFavoriteIds';
+import { useAuth } from '../auth/AuthContext';
 import { IconArrow, IconFilter, IconHeart, IconMonument, IconPin } from '../components/common/Icons';
 import './MonumentsPage.css';
 
@@ -17,6 +18,10 @@ function ViewIcon({ type }) {
 }
 
 export default function MonumentsPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const favoritesOnly = searchParams.get('favoriler') === '1';
+  const { authenticated } = useAuth();
+  const showFavoritesOnly = favoritesOnly && authenticated;
   const [monuments, setMonuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -27,10 +32,11 @@ export default function MonumentsPage() {
   const [view, setView] = useState('grid');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [favorites, toggleFavorite] = useFavoriteIds('monument');
+  const requestPage = (params) => showFavoritesOnly ? api.getFavoriteItems('monument', params) : api.getMonumentsPage(params);
 
   const loadPage = (page, append = false) => {
     if (append) setLoadingMore(true); else setLoading(true);
-    return api.getMonumentsPage({
+    return requestPage({
       page,
       pageSize: 9,
       sort: sortBy,
@@ -48,12 +54,26 @@ export default function MonumentsPage() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    api.getMonumentsPage({ page: 1, pageSize: 9, sort: sortBy, district: filters.district, categories: filters.categories.join(','), period: filters.period, registration: filters.registration })
+    requestPage({ page: 1, pageSize: 9, sort: sortBy, district: filters.district, categories: filters.categories.join(','), period: filters.period, registration: filters.registration })
       .then((data) => { if (active) { setMonuments(data.items || []); setPagination(data.pagination || {}); setFacets(data.facets || {}); } })
       .catch((error) => console.error('Veri yüklenirken hata:', error))
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [filters, sortBy]);
+  }, [showFavoritesOnly, filters, sortBy]);
+
+  const toggleFavoritesOnly = () => {
+    const next = new URLSearchParams(searchParams);
+    if (favoritesOnly) next.delete('favoriler'); else next.set('favoriler', '1');
+    setSearchParams(next);
+  };
+
+  const handleFavorite = async (id) => {
+    const result = await toggleFavorite(id);
+    if (showFavoritesOnly && !result?.favorited) {
+      setMonuments((current) => current.filter((item) => Number(item.id) !== Number(id)));
+      setPagination((current) => ({ ...current, totalItems: Math.max(0, Number(current.totalItems || 0) - 1) }));
+    }
+  };
 
   const districts = facets.districts || [];
   const periods = facets.periods || [];
@@ -80,6 +100,7 @@ export default function MonumentsPage() {
         <div className="monuments-toolbar">
           <span className="result-count"><strong>{pagination.totalItems || 0}</strong> eser bulundu</span>
           <label className="sort-control"><span>Sırala</span><select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="popular">Popüler</option><option value="newest">En Yeni</option><option value="rating">Puana Göre</option><option value="name">Ada Göre</option></select></label>
+          {authenticated && <button type="button" className={`favorites-only-filter ${showFavoritesOnly ? 'active' : ''}`} onClick={toggleFavoritesOnly} aria-pressed={showFavoritesOnly}><IconHeart size={17} /> Favorilerim</button>}
           <div className="view-toggles" aria-label="Görünüm seçimi">
             {['grid', 'list'].map((type) => <button key={type} type="button" className={view === type ? 'active' : ''} onClick={() => setView(type)} aria-label={type === 'grid' ? 'Kart görünümü' : 'Liste görünümü'}><ViewIcon type={type} /></button>)}
           </div>
@@ -110,7 +131,7 @@ export default function MonumentsPage() {
                 const isFavorite = favorites.includes(monument.id);
                 return <article key={monument.id} className="monument-card">
                   <Link to={`/tarihi-eserler/${monument.slug}`} className="monument-card-image" aria-label={`${monument.name} detayları`}><SafeImage src={getImageUrl(monument.image)} alt={monument.name} /><span className="monument-category"><CategoryMarkerIcon category={category} color="currentColor" size={16} />{categoryLabels[category] || 'Eser'}</span></Link>
-                  <button type="button" className={`monument-favorite ${isFavorite ? 'active' : ''}`} onClick={() => toggleFavorite(monument.id)} aria-label={isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'} aria-pressed={isFavorite}><IconHeart size={19} /></button>
+                  <button type="button" className={`monument-favorite ${isFavorite ? 'active' : ''}`} onClick={() => handleFavorite(monument.id)} aria-label={isFavorite ? 'Favorilerden çıkar' : 'Favorilere ekle'} aria-pressed={isFavorite}><IconHeart size={19} /></button>
                   <div className="monument-card-content"><h2><Link to={`/tarihi-eserler/${monument.slug}`}>{monument.name}</Link></h2><div className="monument-meta"><span><IconPin size={13} />{monument.district || 'Hatay'}</span><i /><span>{categoryLabels[category] || 'Tarihi Eser'}</span></div><p>{monument.description || `${monument.name}, Hatay’ın korunması gereken kültürel miras değerlerinden biridir.`}</p><Link to={`/tarihi-eserler/${monument.slug}`} className="monument-detail-link">Detayları İncele <IconArrow size={14} /></Link></div>
                 </article>;
               })}

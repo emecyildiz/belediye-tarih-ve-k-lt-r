@@ -104,14 +104,19 @@ export default function FavoritesPage() {
     route: data.routes.filter((item) => favoriteIds.route?.includes(Number(item.id))),
     event: data.events.filter((item) => favoriteIds.event?.includes(Number(item.id))),
   }), [data, favoriteIds]);
-  const totalFavorites = groups.monument.length + groups.route.length + groups.event.length;
+  // Etkinlikler aşağıda "Bekleyen Etkinliklerim" olarak ayrı izlenir; üst sayaç,
+  // ekrandaki favori eser ve rota koleksiyonlarının toplamını gösterir.
+  const totalFavorites = groups.monument.length + groups.route.length;
   const mapData = useMemo(() => favoriteGeoJSON(groups.monument), [groups.monument]);
   const upcomingEvents = [...groups.event].sort((a, b) => String(a.date).localeCompare(String(b.date))).slice(0, 3);
   const activeTab = location.pathname.endsWith('/bilgiler') ? 'info' : location.pathname.endsWith('/gecmis') ? 'history' : location.pathname.endsWith('/ayarlar') ? 'settings' : 'favorites';
 
   const removeFavorite = async (type, id) => {
     const result = await api.toggleFavorite(type, id);
-    if (result) setFavoriteIds((current) => ({ ...current, [type]: result.ids || [] }));
+    if (result) {
+      setFavoriteIds((current) => ({ ...current, [type]: result.ids || [] }));
+      window.dispatchEvent(new CustomEvent('tkmbs:favorites-changed', { detail: result }));
+    }
   };
 
   const savePreferences = async () => {
@@ -133,8 +138,8 @@ export default function FavoritesPage() {
     <header className="profile-favorites-header"><div><h1>Profil</h1><p>Favorilerinizi, profil bilgilerinizi, geçmiş aktivitelerinizi ve tercihlerinizi yönetin.</p><nav aria-label="Profil bölümleri"><Link to="/profil" className={activeTab === 'favorites' ? 'active' : ''}><IconHeart size={14} /> Favorilerim</Link><Link to="/profil/bilgiler" className={activeTab === 'info' ? 'active' : ''}><IconUser size={14} /> Profil Bilgilerim</Link><Link to="/profil/gecmis" className={activeTab === 'history' ? 'active' : ''}><IconClock size={14} /> Geçmişim</Link><Link to="/profil/ayarlar" className={activeTab === 'settings' ? 'active' : ''}>⚙ Ayarlar</Link></nav></div><section className="profile-stat-cards"><article><IconHeart size={21} /><span><small>Toplam Favori</small><strong>{totalFavorites}</strong><b>İçerik</b></span></article><article><IconBookmark size={21} /><span><small>Geçmiş Ziyaret</small><strong>{overview.visitedCount || 0}</strong><b>İçerik</b></span></article></section></header>
 
     {activeTab === 'favorites' ? <div className="profile-favorites-grid"><main>
-      <FavoriteStrip title="Favori Eserlerim" items={groups.monument} type="monument" onRemove={removeFavorite} allHref="/tarihi-eserler" />
-      <FavoriteStrip title="Favori Rotalarım" items={groups.route} type="route" onRemove={removeFavorite} allHref="/kultur-rotalari" />
+      <FavoriteStrip title="Favori Eserlerim" items={groups.monument} type="monument" onRemove={removeFavorite} allHref="/tarihi-eserler?favoriler=1" />
+      <FavoriteStrip title="Favori Rotalarım" items={groups.route} type="route" onRemove={removeFavorite} allHref="/kultur-rotalari?favoriler=1" />
     </main><aside className="profile-side-column"><section className="profile-chart-card"><header><div><span>AYLIK ZİYARET İSTATİSTİKLERİ</span><h2>İçerik Türüne Göre Ziyaretlerim</h2></div><small>Son 7 ay</small></header><div className="profile-chart-legend"><span><i /> Tarihi eser</span><span><i /> Kültürel rota</span><span><i /> Etkinlik</span></div><TrendChart data={overview.visitTrend} /></section>
       <section className="profile-map-card"><header><div><span>FAVORİ KONUM DAĞILIMI</span><h2>Favori Konumlarım</h2></div><Link to="/harita">Haritada Aç <IconArrow size={10} /></Link></header><div className="profile-map"><OpenLayersMap geojson={mapData} fitToData cluster height="100%" onFeatureClick={(feature) => feature?.slug && navigate(`/tarihi-eserler/${feature.slug}`)} /></div><footer>{groups.monument.slice(0, 3).map((item) => <span key={item.id}><i style={{ background: item.id % 2 ? '#1768b2' : '#c9861b' }} /> {item.name}</span>)}</footer></section>
     </aside><div className="profile-bottom-grid"><section className="profile-upcoming"><header><h2>Bekleyen Etkinliklerim</h2><Link to="/etkinlikler">Tümünü Gör <IconArrow size={10} /></Link></header><div>{upcomingEvents.length ? upcomingEvents.map((item) => <article key={item.id}><SafeImage src={getImageUrl(item.image)} alt={item.title} /><div className="profile-event-date"><strong>{new Date(`${item.date}T12:00:00`).getDate()}</strong><span>{new Intl.DateTimeFormat('tr-TR', { month: 'short' }).format(new Date(`${item.date}T12:00:00`))}</span></div><div><Link to={`/etkinlikler/${item.slug || item.id}`}>{item.title}</Link><small><IconPin size={10} /> {item.district}</small><span><IconClock size={10} /> {item.time} · {dateLabel(item.date)}</span></div></article>) : <p>Favori etkinliğiniz bulunmuyor.</p>}</div></section>

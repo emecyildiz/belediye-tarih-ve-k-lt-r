@@ -194,6 +194,10 @@ const realApi = {
   getAdminDashboard: () => fetchAPI('/admin/dashboard'),
   reviewAdminItem: (id, decision) => sendAPI(`/admin/reviews/${id}/decision`, { decision }),
   getFavorites: () => fetchAPI('/user/favorites'),
+  getFavoriteItems: (type, params = {}) => {
+    const q = new URLSearchParams({ ...params, page: params.page || 1, pageSize: params.pageSize || 9 }).toString();
+    return fetchAPI(`/user/favorites/${type}/items?${q}`);
+  },
   getProfileOverview: () => fetchAPI('/user/profile-overview'),
   updatePreferences: (payload) => sendAPI('/user/preferences', payload),
   toggleFavorite: (type, id) => sendAPI(`/user/favorites/${type}/${id}/toggle`, {}),
@@ -328,10 +332,6 @@ const mockApi = {
     const db = await getMockDb();
     return db.reviewAdminItem(id, decision);
   },
-  getFavorites: async () => {
-    const db = await getMockDb();
-    return db.getFavorites();
-  },
   getProfileOverview: async () => {
     const db = await getMockDb();
     return db.getProfileOverview();
@@ -339,10 +339,6 @@ const mockApi = {
   updatePreferences: async (payload) => {
     const db = await getMockDb();
     return db.savePreferences(payload);
-  },
-  toggleFavorite: async (type, id) => {
-    const db = await getMockDb();
-    return db.toggleFavorite(type, id);
   },
   getCustomRoutes: async () => {
     const db = await getMockDb();
@@ -363,8 +359,14 @@ const persistentNotificationApi = {
   markAllNotificationsRead: realApi.markAllNotificationsRead,
 };
 
+const persistentUserApi = {
+  getFavorites: realApi.getFavorites,
+  getFavoriteItems: realApi.getFavoriteItems,
+  toggleFavorite: realApi.toggleFavorite,
+};
+
 // ──────────────────────────────────
 // EXPORT - İçerik kaynağını seçer, kullanıcı durumunu daima gerçek API'de tutar
 // ──────────────────────────────────
-export const api = USE_MOCK_DB ? { ...mockApi, ...persistentNotificationApi } : realApi;
+export const api = USE_MOCK_DB ? { ...mockApi, ...persistentNotificationApi, ...persistentUserApi } : realApi;
 export default api;

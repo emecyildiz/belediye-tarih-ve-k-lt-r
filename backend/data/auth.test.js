@@ -74,3 +74,20 @@ test('bildirim okuma durumu kullanıcıya özel saklanır', async () => {
   assert.deepEqual((await repository.listNotificationReadIds(citizenId)).sort(), [1, 2, 3]);
   assert.deepEqual(await repository.listNotificationReadIds(editorId), []);
 });
+
+test('favoriler kullanıcıya ve içerik türüne özel saklanır', async () => {
+  const repository = await createInMemoryAuthRepository();
+  const citizenId = '00000000-0000-4000-8000-000000000001';
+  const editorId = '00000000-0000-4000-8000-000000000002';
+  const before = await repository.listFavorites(citizenId);
+
+  assert.equal(before.monument.includes(1), true);
+  const removed = await repository.toggleFavorite(citizenId, 'monument', 1);
+  assert.equal(removed.favorited, false);
+  assert.equal(removed.ids.includes(1), false);
+
+  const added = await repository.toggleFavorite(citizenId, 'monument', 20);
+  assert.equal(added.favorited, true);
+  assert.equal(added.ids.includes(20), true);
+  assert.deepEqual(await repository.listFavorites(editorId), { monument: [], route: [], event: [] });
+});

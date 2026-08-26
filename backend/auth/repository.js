@@ -36,6 +36,9 @@ export async function createInMemoryAuthRepository() {
   const users = demoUsers(passwordHash);
   const sessions = new Map();
   const notificationReads = new Map();
+  const favorites = new Map([
+    ['00000000-0000-4000-8000-000000000001', { monument: new Set([1, 2, 4, 9, 13]), route: new Set([2, 3, 4, 5, 6]), event: new Set([1, 3]) }],
+  ]);
 
   return {
     kind: 'in-memory-demo',
@@ -81,6 +84,21 @@ export async function createInMemoryAuthRepository() {
       notificationIds.forEach((id) => reads.add(Number(id)));
       notificationReads.set(key, reads);
     },
+    async listFavorites(userId) {
+      const userFavorites = favorites.get(String(userId)) || {};
+      return Object.fromEntries(['monument', 'route', 'event'].map((type) => [type, [...(userFavorites[type] || new Set())]]));
+    },
+    async toggleFavorite(userId, type, itemId) {
+      const key = String(userId);
+      const userFavorites = favorites.get(key) || { monument: new Set(), route: new Set(), event: new Set() };
+      const ids = userFavorites[type] || new Set();
+      const numericId = Number(itemId);
+      const favorited = !ids.has(numericId);
+      if (favorited) ids.add(numericId); else ids.delete(numericId);
+      userFavorites[type] = ids;
+      favorites.set(key, userFavorites);
+      return { type, id: numericId, favorited, ids: [...ids] };
+    },
   };
 }
 
@@ -118,6 +136,18 @@ export async function createPostgresAuthRepository(connectionString) {
       read_at timestamptz NOT NULL DEFAULT now(),
       PRIMARY KEY (user_id, notification_id)
     );
+    CREATE TABLE IF NOT EXISTS tkmbs_user_favorites (
+      user_id uuid NOT NULL REFERENCES tkmbs_portal_users(id) ON DELETE CASCADE,
+      item_type varchar(20) NOT NULL CHECK (item_type IN ('monument', 'route', 'event')),
+      item_id integer NOT NULL,
+      created_at timestamptz NOT NULL DEFAULT now(),
+      PRIMARY KEY (user_id, item_type, item_id)
+    );
+    CREATE INDEX IF NOT EXISTS tkmbs_user_favorites_user_type_idx ON tkmbs_user_favorites(user_id, item_type);
+    CREATE TABLE IF NOT EXISTS tkmbs_portal_seed_state (
+      seed_key text PRIMARY KEY,
+      applied_at timestamptz NOT NULL DEFAULT now()
+    );
   `);
 
   if (process.env.AUTH_SEED_DEMO_USERS !== 'false') {
@@ -129,6 +159,32 @@ export async function createPostgresAuthRepository(connectionString) {
          ON CONFLICT (email) DO NOTHING`,
         [user.id, user.name, user.email, user.role, user.passwordHash, user.active],
       );
+    }
+    const seedClient = await pool.connect();
+    try {
+      await seedClient.query('BEGIN');
+      const seedResult = await seedClient.query(
+        `INSERT INTO tkmbs_portal_seed_state (seed_key) VALUES ('citizen-demo-favorites-v2')
+         ON CONFLICT (seed_key) DO NOTHING RETURNING seed_key`,
+      );
+      if (seedResult.rowCount) {
+        await seedClient.query(
+          `INSERT INTO tkmbs_user_favorites (user_id, item_type, item_id)
+           SELECT '00000000-0000-4000-8000-000000000001'::uuid, seed_values.item_type, seed_values.item_id
+           FROM (VALUES
+             ('monument', 1), ('monument', 2), ('monument', 4), ('monument', 9), ('monument', 13),
+             ('route', 2), ('route', 3), ('route', 4), ('route', 5), ('route', 6),
+             ('event', 1), ('event', 3)
+           ) AS seed_values(item_type, item_id)
+           ON CONFLICT DO NOTHING`,
+        );
+      }
+      await seedClient.query('COMMIT');
+    } catch (error) {
+      await seedClient.query('ROLLBACK');
+      throw error;
+    } finally {
+      seedClient.release();
     }
   }
 
@@ -185,6 +241,47 @@ export async function createPostgresAuthRepository(connectionString) {
          SELECT $1, unnest($2::integer[]) ON CONFLICT (user_id, notification_id) DO NOTHING`,
         [userId, notificationIds],
       );
+    },
+    async listFavorites(userId) {
+      const result = await pool.query(
+        `SELECT item_type, item_id FROM tkmbs_user_favorites
+         WHERE user_id = $1 ORDER BY item_type, item_id`,
+        [userId],
+      );
+      const favorites = { monument: [], route: [], event: [] };
+      result.rows.forEach((row) => favorites[row.item_type]?.push(Number(row.item_id)));
+      return favorites;
+    },
+    async toggleFavorite(userId, type, itemId) {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const removed = await client.query(
+          `DELETE FROM tkmbs_user_favorites
+           WHERE user_id = $1 AND item_type = $2 AND item_id = $3 RETURNING item_id`,
+          [userId, type, itemId],
+        );
+        const favorited = removed.rowCount === 0;
+        if (favorited) {
+          await client.query(
+            `INSERT INTO tkmbs_user_favorites (user_id, item_type, item_id)
+             VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
+            [userId, type, itemId],
+          );
+        }
+        const listed = await client.query(
+          `SELECT item_id FROM tkmbs_user_favorites
+           WHERE user_id = $1 AND item_type = $2 ORDER BY item_id`,
+          [userId, type],
+        );
+        await client.query('COMMIT');
+        return { type, id: Number(itemId), favorited, ids: listed.rows.map((row) => Number(row.item_id)) };
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
     },
     async close() {
       await pool.end();

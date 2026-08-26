@@ -21,7 +21,7 @@ import {
   searchCatalog,
 } from './backend/data/mockDb.js';
 import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDashboard.js';
-import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
+import { getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
 import { getAboutContent } from './backend/data/aboutContent.js';
 import { getHomeContent } from './backend/data/homeContent.js';
 import { getPayloadContentStatus, syncPayloadContent } from './backend/services/cms/payloadContentStore.js';
@@ -293,14 +293,30 @@ app.post('/api/admin/reviews/:id/decision', authenticateAccessToken, authorizeRo
   return res.json(ok(reviewed));
 });
 
-app.get('/api/user/favorites', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), resUserFavorites);
-function resUserFavorites(_req, res) { return res.json(ok(getUserFavorites())); }
+const favoriteSources = { monument: monuments, route: culturalRoutes, event: events };
+app.get('/api/user/favorites', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res, next) => {
+  try { return res.json(ok(await authRepository.listFavorites(req.auth.user.id))); } catch (error) { return next(error); }
+});
+app.get('/api/user/favorites/:type/items', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res, next) => {
+  try {
+    if (!favoriteSources[req.params.type]) return fail(res, 'Favori türü geçersiz', 400);
+    const favorites = await authRepository.listFavorites(req.auth.user.id);
+    const params = { ...req.query, ids: (favorites[req.params.type] || []).join(',') };
+    const result = req.params.type === 'monument' ? getMonumentsPage(params)
+      : req.params.type === 'route' ? getRoutesPage(params)
+        : getEventsPage(params);
+    return res.json(ok(result));
+  } catch (error) { return next(error); }
+});
 app.get('/api/user/profile-overview', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (_req, res) => res.json(ok(getUserProfileOverview({ monuments, routes: culturalRoutes, events }))));
 app.post('/api/user/preferences', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (req, res) => res.json(ok(updateUserPreferences(req.body))));
-app.post('/api/user/favorites/:type/:id/toggle', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (req, res) => {
-  const result = toggleUserFavorite(req.params.type, req.params.id, { monuments, routes: culturalRoutes, events });
-  if (!result) return fail(res, 'Favori türü veya kayıt geçersiz', 400);
-  return res.json(ok(result));
+app.post('/api/user/favorites/:type/:id/toggle', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res, next) => {
+  try {
+    const numericId = Number(req.params.id);
+    const source = favoriteSources[req.params.type];
+    if (!source || !Number.isInteger(numericId) || !source.some((item) => Number(item.id) === numericId)) return fail(res, 'Favori türü veya kayıt geçersiz', 400);
+    return res.json(ok(await authRepository.toggleFavorite(req.auth.user.id, req.params.type, numericId)));
+  } catch (error) { return next(error); }
 });
 app.get('/api/user/routes', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (_req, res) => res.json(ok(getUserRoutes())));
 app.post('/api/user/routes', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (req, res) => {

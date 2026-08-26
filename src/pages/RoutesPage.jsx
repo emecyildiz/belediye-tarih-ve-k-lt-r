@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import useFavoriteIds from '../hooks/useFavoriteIds';
+import { useAuth } from '../auth/AuthContext';
 import { IconArrow, IconClock, IconFilter, IconHeart, IconPin, IconRoute } from '../components/common/Icons';
 import './RoutesPage.css';
 
@@ -12,7 +13,7 @@ const categories = [
   { key: 'gastronomi', label: 'Gastronomi', color: '#d56a12' },
   { key: 'inanc', label: 'İnanç', color: '#1e65aa' },
 ];
-const initialFilters = { categories: [], duration: 'tumu', difficulty: 'tumu', district: 'tumu' };
+const initialFilters = { categories: [], duration: 'tumu', district: 'tumu' };
 
 function ViewIcon({ type }) {
   if (type === 'list') return <svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>;
@@ -31,6 +32,10 @@ function ThemeIcon({ category }) {
 
 export default function RoutesPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const favoritesOnly = searchParams.get('favoriler') === '1';
+  const { authenticated } = useAuth();
+  const showFavoritesOnly = favoritesOnly && authenticated;
   const [routes, setRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -42,11 +47,12 @@ export default function RoutesPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [favorites, toggleFavorite] = useFavoriteIds('route');
 
-  const requestParams = (page) => ({ page, pageSize: 9, sort: sortBy, categories: filters.categories.join(','), duration: filters.duration, difficulty: filters.difficulty, district: filters.district });
+  const requestParams = (page) => ({ page, pageSize: 9, sort: sortBy, categories: filters.categories.join(','), duration: filters.duration, district: filters.district });
+  const requestPage = (params) => showFavoritesOnly ? api.getFavoriteItems('route', params) : api.getRoutesPage(params);
 
   const loadMore = () => {
     setLoadingMore(true);
-    api.getRoutesPage(requestParams(pagination.page + 1))
+    requestPage(requestParams(pagination.page + 1))
       .then((data) => { setRoutes((current) => [...current, ...(data.items || [])]); setPagination(data.pagination || {}); setFacets(data.facets || {}); })
       .catch((error) => console.error('Daha fazla rota yüklenemedi:', error))
       .finally(() => setLoadingMore(false));
@@ -55,12 +61,26 @@ export default function RoutesPage() {
   useEffect(() => {
     let active = true;
     setLoading(true);
-    api.getRoutesPage(requestParams(1))
+    requestPage(requestParams(1))
       .then((data) => { if (active) { setRoutes(data.items || []); setPagination(data.pagination || {}); setFacets(data.facets || {}); } })
       .catch((error) => console.error('Rotalar yüklenirken hata:', error))
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [filters, sortBy]);
+  }, [showFavoritesOnly, filters, sortBy]);
+
+  const toggleFavoritesOnly = () => {
+    const next = new URLSearchParams(searchParams);
+    if (favoritesOnly) next.delete('favoriler'); else next.set('favoriler', '1');
+    setSearchParams(next);
+  };
+
+  const handleFavorite = async (id) => {
+    const result = await toggleFavorite(id);
+    if (showFavoritesOnly && !result?.favorited) {
+      setRoutes((current) => current.filter((item) => Number(item.id) !== Number(id)));
+      setPagination((current) => ({ ...current, totalItems: Math.max(0, Number(current.totalItems || 0) - 1) }));
+    }
+  };
 
   const districts = facets.districts || [];
   const categoryCounts = facets.categories || {};
@@ -78,7 +98,7 @@ export default function RoutesPage() {
     <div className="cultural-routes-page">
       <header className="cultural-routes-header">
         <div><span><IconRoute size={14} /> Tematik gezi rehberi</span><h1>Kültürel Rotalar</h1><p>Hatay’ın tarihini, doğasını ve mutfak kültürünü tematik güzergâhlarla keşfedin.</p></div>
-        <div className="cultural-routes-tools"><strong>{pagination.totalItems || 0} rota</strong><label><small>Sırala</small><select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="recommended">Önerilen</option><option value="popular">En Popüler</option><option value="short">Süre: Kısa–Uzun</option><option value="long">Süre: Uzun–Kısa</option><option value="name">Ada Göre</option></select></label><div className="route-view-buttons">{['grid', 'list'].map((type) => <button key={type} type="button" className={view === type ? 'active' : ''} onClick={() => setView(type)} aria-label={type === 'grid' ? 'Kart görünümü' : 'Liste görünümü'}><ViewIcon type={type} /></button>)}</div><button type="button" className="mobile-route-filter" onClick={() => setFiltersOpen(true)}><IconFilter size={15} /> Filtrele</button></div>
+        <div className="cultural-routes-tools"><strong>{pagination.totalItems || 0} rota</strong><label><small>Sırala</small><select value={sortBy} onChange={(event) => setSortBy(event.target.value)}><option value="recommended">Önerilen</option><option value="popular">En Popüler</option><option value="short">Süre: Kısa–Uzun</option><option value="long">Süre: Uzun–Kısa</option><option value="name">Ada Göre</option></select></label>{authenticated && <button type="button" className={`favorites-only-filter ${showFavoritesOnly ? 'active' : ''}`} onClick={toggleFavoritesOnly} aria-pressed={showFavoritesOnly}><IconHeart size={17} /> Favorilerim</button>}<div className="route-view-buttons">{['grid', 'list'].map((type) => <button key={type} type="button" className={view === type ? 'active' : ''} onClick={() => setView(type)} aria-label={type === 'grid' ? 'Kart görünümü' : 'Liste görünümü'}><ViewIcon type={type} /></button>)}</div><button type="button" className="mobile-route-filter" onClick={() => setFiltersOpen(true)}><IconFilter size={15} /> Filtrele</button></div>
       </header>
 
       <div className="cultural-routes-layout">
@@ -87,7 +107,6 @@ export default function RoutesPage() {
           <header><div><IconFilter size={16} /><strong>Filtrele</strong></div><button type="button" onClick={() => setFiltersOpen(false)} aria-label="Filtreleri kapat">×</button></header>
           <fieldset><legend>Rota Teması</legend><label className={!filters.categories.length ? 'selected' : ''}><input type="checkbox" checked={!filters.categories.length} onChange={() => updateFilter('categories', [])} /><i /><b>Tüm Rotalar</b><small>{facets.totalItems || 0}</small></label>{categories.map((item) => <label key={item.key} className={filters.categories.includes(item.key) ? 'selected' : ''}><input type="checkbox" checked={filters.categories.includes(item.key)} onChange={() => toggleCategory(item.key)} /><i /><span className="filter-theme-icon" style={{ color: item.color }}><ThemeIcon category={item.key} /></span><b>{item.label}</b><small>{categoryCounts[item.key] || 0}</small></label>)}</fieldset>
           <label className="route-filter-select"><span>Süre</span><select value={filters.duration} onChange={(event) => updateFilter('duration', event.target.value)}><option value="tumu">Tüm Süreler</option><option value="kisa">1–3 Saat</option><option value="yarim">Yarım Gün</option><option value="tam">Tam Gün</option></select></label>
-          <label className="route-filter-select"><span>Zorluk Seviyesi</span><select value={filters.difficulty} onChange={(event) => updateFilter('difficulty', event.target.value)}><option value="tumu">Tüm Seviyeler</option><option value="kolay">Kolay</option><option value="orta">Orta</option><option value="zor">Zor</option></select></label>
           <label className="route-filter-select"><span>Başlangıç Noktası</span><select value={filters.district} onChange={(event) => updateFilter('district', event.target.value)}><option value="tumu">Tüm İlçeler</option>{districts.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>
           <button type="button" className="route-filter-clear" onClick={clearFilters}>Filtreleri Temizle</button>
         </aside>
@@ -102,7 +121,7 @@ export default function RoutesPage() {
               navigate(`/kultur-rotalari/${route.slug}`);
             };
             return <article className="cultural-route-card" key={route.id} role="link" tabIndex="0" aria-label={`${route.title} rota detayını aç`} onClick={openRoute} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); navigate(`/kultur-rotalari/${route.slug}`); } }}>
-              <div className="cultural-route-image"><SafeImage src={getImageUrl(route.image)} alt={route.title} /><span style={{ background: category.color }}><ThemeIcon category={route.category} /></span><button type="button" className={favorite ? 'active' : ''} onClick={() => toggleFavorite(route.id)} aria-label={favorite ? 'Favorilerden çıkar' : 'Favoriye ekle'}><IconHeart size={18} /></button></div>
+              <div className="cultural-route-image"><SafeImage src={getImageUrl(route.image)} alt={route.title} /><span style={{ background: category.color }}><ThemeIcon category={route.category} /></span><button type="button" className={favorite ? 'active' : ''} onClick={() => handleFavorite(route.id)} aria-label={favorite ? 'Favorilerden çıkar' : 'Favoriye ekle'}><IconHeart size={18} /></button></div>
               <div className="cultural-route-content"><div className="route-card-heading"><span>{route.categoryLabel || category.label}</span><small>{route.difficultyLabel || route.difficulty}</small></div><h2>{route.title}</h2><div className="route-stop-names"><IconPin size={13} />{stopNames.length ? stopNames.slice(0, 4).join(' · ') : `${route.district} başlangıç noktası`}</div><p>{route.description}</p><footer><div><span><IconClock size={13} />{route.duration}</span><span><IconRoute size={13} />{route.distance}</span><span>{route.stops || stopNames.length} durak</span></div><Link to={`/kultur-rotalari/${route.slug}`}>Detayları Gör <IconArrow size={13} /></Link></footer></div>
             </article>;
           })}</div> : <div className="route-page-state empty"><IconRoute size={34} /><strong>Bu filtrelere uygun rota bulunamadı</strong><button type="button" onClick={clearFilters}>Filtreleri Temizle</button></div>}

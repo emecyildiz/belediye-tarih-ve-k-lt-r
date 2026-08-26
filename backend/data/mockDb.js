@@ -4,7 +4,7 @@ import { events, eventCategoryCounts } from './events.js';
 import { statistics, weather, chartData, buildStatistics, buildChartData } from './statistics.js';
 import { buildRoutePreview } from '../services/cbs/mockCbsProvider.js';
 import { buildAdminDashboard, reviewAdminRecord } from './adminDashboard.js';
-import { getUserFavorites, toggleUserFavorite, getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './userData.js';
+import { getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './userData.js';
 import { aboutContent, getAboutContent as queryAboutContent } from './aboutContent.js';
 import { homeContent, getHomeContent as queryHomeContent } from './homeContent.js';
 
@@ -61,8 +61,10 @@ export function paginate(items, params = {}, extra = {}) {
 export function getMonuments(params = {}) {
   const query = String(params.search || '').trim().toLocaleLowerCase('tr-TR');
   const categories = selectedValues(params.categories || params.category);
+  const ids = params.ids === undefined ? null : new Set(selectedValues(params.ids).map(Number).filter(Number.isInteger));
   return monuments.filter((item) => (
-    (!categories.length || categories.includes('tumu') || categories.includes(item.category))
+    (ids === null || ids.has(Number(item.id)))
+    && (!categories.length || categories.includes('tumu') || categories.includes(item.category))
     && (!params.type || params.type === 'tumu' || item.type === params.type)
     && (!params.district || params.district === 'tumu' || item.district === params.district)
     && (!params.period || params.period === 'tumu' || item.period === params.period)
@@ -78,7 +80,8 @@ export function getMonumentsPage(params = {}) {
     if (params.sort === 'rating') return (b.rating || 0) - (a.rating || 0);
     return (b.reviewCount || b.rating || 0) - (a.reviewCount || a.rating || 0);
   });
-  return paginate(filtered, params, { facets: { districts: uniqueValues(monuments, 'district'), periods: uniqueValues(monuments, 'period'), categories: countBy(monuments, 'category'), totalItems: monuments.length } });
+  const scope = params.ids === undefined ? monuments : getMonuments({ ids: params.ids });
+  return paginate(filtered, params, { facets: { districts: uniqueValues(scope, 'district'), periods: uniqueValues(scope, 'period'), categories: countBy(scope, 'category'), totalItems: scope.length } });
 }
 
 const architectureByCategory = {
@@ -161,8 +164,10 @@ export function getMonument(idOrSlug) {
 
 export function getRoutes(params = {}) {
   const categories = selectedValues(params.categories || params.category);
+  const ids = params.ids === undefined ? null : new Set(selectedValues(params.ids).map(Number).filter(Number.isInteger));
   return culturalRoutes.filter((item) => (
-    (!categories.length || categories.includes('tumu') || categories.includes(item.category))
+    (ids === null || ids.has(Number(item.id)))
+    && (!categories.length || categories.includes('tumu') || categories.includes(item.category))
     && (!params.difficulty || params.difficulty === 'tumu' || item.difficulty === params.difficulty)
     && (!params.district || params.district === 'tumu' || item.district === params.district)
     && (!params.duration || params.duration === 'tumu' || durationGroup(item.duration) === params.duration)
@@ -194,7 +199,8 @@ export function getRoutesPage(params = {}) {
     if (params.sort === 'name') return a.title.localeCompare(b.title, 'tr');
     return a.id - b.id;
   }).map((route) => ({ ...route, stopNames: (route.monumentIds || []).map((id) => monumentIndex.get(id)?.name).filter(Boolean) }));
-  return paginate(filtered, params, { facets: { districts: uniqueValues(culturalRoutes, 'district'), categories: countBy(culturalRoutes, 'category'), totalItems: culturalRoutes.length } });
+  const scope = params.ids === undefined ? culturalRoutes : getRoutes({ ids: params.ids });
+  return paginate(filtered, params, { facets: { districts: uniqueValues(scope, 'district'), categories: countBy(scope, 'category'), totalItems: scope.length } });
 }
 
 export function getRoute(idOrSlug) {
@@ -224,8 +230,10 @@ export function previewRoute(params = {}) {
 export function getEvents(params = {}) {
   const query = String(params.search || '').trim().toLocaleLowerCase('tr-TR');
   const now = Date.now();
+  const ids = params.ids === undefined ? null : new Set(selectedValues(params.ids).map(Number).filter(Number.isInteger));
   return events.filter((item) => (
-    (!params.category || params.category === 'tumu' || item.category === params.category)
+    (ids === null || ids.has(Number(item.id)))
+    && (!params.category || params.category === 'tumu' || item.category === params.category)
     && (!params.district || params.district === 'tumu' || item.district === params.district)
     && (!params.period || params.period === 'tumu' || (params.period === 'yaklasan' ? new Date(`${item.date}T${item.time || '12:00'}:00`).getTime() >= now : new Date(`${item.date}T${item.time || '12:00'}:00`).getTime() < now))
     && (!query || includesText(`${item.title} ${item.description} ${item.venue} ${item.district}`, query))
@@ -246,8 +254,9 @@ export function getEventsPage(params = {}) {
     if (params.sort === 'newest') return asTime(b) - asTime(a);
     return asTime(a) - asTime(b);
   });
-  const featured = selectNearestEvent(events);
-  return paginate(filtered, params, { facets: { districts: uniqueValues(events, 'district'), categories: countBy(events, 'category'), categoryLabels: Object.fromEntries(events.map((item) => [item.category, item.categoryLabel || item.category])), totalItems: events.length }, featured });
+  const scope = params.ids === undefined ? events : getEvents({ ids: params.ids });
+  const featured = selectNearestEvent(scope);
+  return paginate(filtered, params, { facets: { districts: uniqueValues(scope, 'district'), categories: countBy(scope, 'category'), categoryLabels: Object.fromEntries(scope.map((item) => [item.category, item.categoryLabel || item.category])), totalItems: scope.length }, featured });
 }
 
 export function getEventCalendar(params = {}) {
@@ -377,14 +386,6 @@ export function reviewAdminItem(id, decision) {
   return reviewAdminRecord(id, decision);
 }
 
-export function getFavorites() {
-  return getUserFavorites();
-}
-
-export function toggleFavorite(type, id) {
-  return toggleUserFavorite(type, id, { monuments, routes: culturalRoutes, events });
-}
-
 export function getProfileOverview() {
   return getUserProfileOverview({ monuments, routes: culturalRoutes, events });
 }
@@ -436,8 +437,6 @@ export default {
   getCharts,
   getAdminDashboard,
   reviewAdminItem,
-  getFavorites,
-  toggleFavorite,
   getProfileOverview,
   savePreferences,
   getCustomRoutes,
