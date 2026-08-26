@@ -22,7 +22,6 @@ export const NAV_ITEMS = [
   { path: '/kultur-rotalari', label: 'Kültürel Rotalar', icon: 'route' },
   { path: '/etkinlikler', label: 'Etkinlikler', icon: 'calendar' },
   { path: '/profil', label: 'Profil', icon: 'user' },
-  { path: '/yonetim-paneli', label: 'Yönetim Paneli', icon: 'settings' },
 ];
 
 export const CATEGORY_LABELS = {

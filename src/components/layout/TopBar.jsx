@@ -129,8 +129,7 @@ export default function TopBar() {
           {user && accountOpen && <section className="account-dropdown">
             <header><strong>{user.name}</strong><span>{user.email}</span></header>
             <button type="button" onClick={() => { setAccountOpen(false); navigate('/profil'); }}>Profilim</button>
-            {(user.role === 'admin' || user.role === 'editor') && <button type="button" onClick={() => { setAccountOpen(false); navigate('/yonetim-paneli'); }}>Yönetim alanı</button>}
-            {(user.role === 'admin' || user.role === 'editor') && <button type="button" onClick={() => { window.location.href = getCmsAdminUrl(); }}>Payload içerik yönetimi</button>}
+            {(user.role === 'admin' || user.role === 'editor') && <button type="button" onClick={() => { setAccountOpen(false); window.location.href = getCmsAdminUrl(); }}>İçerik yönetimi</button>}
             <button type="button" className="account-logout" onClick={async () => { setAccountOpen(false); await logout(); navigate('/'); }}>Çıkış Yap</button>
           </section>}
         </div>

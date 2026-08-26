@@ -13,9 +13,6 @@ import EventDetailPage from './pages/EventDetailPage';
 import FavoritesPage from './pages/FavoritesPage';
 import NotificationsPage from './pages/NotificationsPage';
 import AboutPage from './pages/AboutPage';
-import AdminPanelPage from './pages/AdminPanelPage';
-import AdminModulePlaceholderPage from './pages/AdminModulePlaceholderPage';
-import GisAnalyticsPage from './pages/GisAnalyticsPage';
 import SearchResultsPage from './pages/SearchResultsPage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './auth/ProtectedRoute';
@@ -52,15 +49,12 @@ function App() {
           <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
           <Route path="/profil/*" element={<ProtectedRoute><FavoritesPage /></ProtectedRoute>} />
           <Route path="/favoriler" element={<Navigate to="/profil" replace />} />
-          <Route path="/yonetim-paneli" element={<ProtectedRoute roles={['admin', 'editor']}><AdminPanelPage /></ProtectedRoute>} />
-          <Route path="/yonetim-paneli/:module" element={<ProtectedRoute roles={['admin', 'editor']}><AdminModulePlaceholderPage /></ProtectedRoute>} />
-          <Route path="/cbs-analitik" element={<ProtectedRoute roles={['admin', 'editor']}><GisAnalyticsPage /></ProtectedRoute>} />
           <Route path="/bildirimler" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-          <Route path="/raporlar" element={<ProtectedRoute roles={['admin', 'editor']}><GisAnalyticsPage /></ProtectedRoute>} />
           <Route path="/hakkinda" element={<AboutPage />} />
           <Route path="/arama" element={<SearchResultsPage />} />
           <Route path="/giris" element={<LoginPage />} />
           <Route path="/yetkisiz" element={<div className="auth-route-loading">Bu sayfayı görüntüleme yetkiniz bulunmuyor.</div>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppLayout>
       </AuthProvider>

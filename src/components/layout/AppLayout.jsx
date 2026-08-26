@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import AdminSidebar from './AdminSidebar';
 import TopBar from './TopBar';
 import './AppLayout.css';
 
@@ -9,7 +8,6 @@ export default function AppLayout({ children }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const { pathname } = useLocation();
-  const adminLayout = pathname.startsWith('/yonetim-paneli') || pathname === '/raporlar' || pathname === '/cbs-analitik';
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 
@@ -35,9 +33,7 @@ export default function AppLayout({ children }) {
       <div className="app-brand">
         <img src="/assets/image6.png" alt="Hatay Büyükşehir Belediyesi" />
       </div>
-      {adminLayout
-        ? <AdminSidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={handleSidebarNavigate} />
-        : <Sidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={handleSidebarNavigate} />}
+      <Sidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={handleSidebarNavigate} />
       <button
         type="button"
         className="sidebar-layout-toggle"

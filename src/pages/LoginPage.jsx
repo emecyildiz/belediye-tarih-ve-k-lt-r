@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { ApiRequestError } from '../services/authClient';
@@ -6,7 +6,7 @@ import { getCmsAdminUrl } from '../services/authClient';
 import { IconUser } from '../components/common/Icons';
 import './LoginPage.css';
 
-const roleHome = (role) => role === 'admin' || role === 'editor' ? '/yonetim-paneli' : '/profil';
+const isContentManager = (role) => role === 'admin' || role === 'editor';
 
 export default function LoginPage() {
   const { user, loading, login } = useAuth();
@@ -17,7 +17,16 @@ export default function LoginPage() {
   const [fields, setFields] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
-  if (!loading && user) return <Navigate to={roleHome(user.role)} replace />;
+  useEffect(() => {
+    if (!loading && user && isContentManager(user.role)) {
+      window.location.replace(getCmsAdminUrl());
+    }
+  }, [loading, user]);
+
+  if (!loading && user) {
+    if (isContentManager(user.role)) return <div className="auth-route-loading">İçerik yönetimine yönlendiriliyorsunuz…</div>;
+    return <Navigate to="/profil" replace />;
+  }
 
   const submit = async (event) => {
     event.preventDefault();
@@ -26,12 +35,12 @@ export default function LoginPage() {
     setFields({});
     try {
       const loggedInUser = await login(form);
-      const returnTo = params.get('returnTo');
-      const safeReturn = returnTo?.startsWith('/') && !returnTo.startsWith('//') ? returnTo : roleHome(loggedInUser.role);
-      if (!returnTo && (loggedInUser.role === 'admin' || loggedInUser.role === 'editor')) {
-        window.location.assign(getCmsAdminUrl());
+      if (isContentManager(loggedInUser.role)) {
+        window.location.replace(getCmsAdminUrl());
         return;
       }
+      const returnTo = params.get('returnTo');
+      const safeReturn = returnTo?.startsWith('/') && !returnTo.startsWith('//') ? returnTo : '/profil';
       navigate(safeReturn, { replace: true });
     } catch (requestError) {
       setError(requestError.message || 'Giriş yapılamadı.');
