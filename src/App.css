@@ -175,8 +175,13 @@ img { display: block; max-width: 100%; }
 .map-type-preview.standard { background-image:url('https://tile.openstreetmap.org/10/614/401.png'); }
 .map-type-toggle strong { display:block; padding-bottom:1px; }
 
-.drag-scroll { cursor: grab; touch-action: pan-y; user-select: none; }
-.drag-scroll.drag-scroll-y { touch-action: pan-x; }
+.drag-scroll {
+  cursor: grab;
+  touch-action: pan-x pan-y pinch-zoom;
+  -webkit-overflow-scrolling: touch;
+  user-select: none;
+}
+.drag-scroll.drag-scroll-y { touch-action: pan-x pan-y pinch-zoom; }
 .drag-scroll.is-dragging { cursor: grabbing; scroll-snap-type: none !important; }
 .drag-scroll.is-dragging a, .drag-scroll.is-dragging img { pointer-events: none; }
 
