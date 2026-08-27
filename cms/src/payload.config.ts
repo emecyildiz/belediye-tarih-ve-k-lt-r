@@ -28,7 +28,6 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     components: {
-      beforeDashboard: ['/components/ReportsDashboard'],
       beforeNavLinks: ['/components/ReportsNavLink'],
       views: {
         reports: {
