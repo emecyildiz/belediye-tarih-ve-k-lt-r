@@ -1,41 +1,40 @@
 import { DefaultTemplate } from '@payloadcms/next/templates'
 import { Gutter } from '@payloadcms/ui'
+import { redirect } from 'next/navigation'
 import type { AdminViewServerProps } from 'payload'
 import React from 'react'
 
 import ReportsDashboard from './ReportsDashboard'
 
 export default async function ReportsView({
-  i18n,
   initPageResult,
-  locale,
   params,
-  payload,
-  permissions,
   searchParams,
-  user,
-  viewActions,
-  viewType,
 }: AdminViewServerProps) {
+  const { permissions, req, visibleEntities } = initPageResult
+
+  if (!req.user || !permissions.canAccessAdmin) {
+    redirect('/admin/login')
+  }
+
   return (
     <DefaultTemplate
-      i18n={i18n}
-      locale={locale}
+      i18n={req.i18n}
+      locale={initPageResult.locale}
       params={params}
-      payload={payload}
+      payload={req.payload}
       permissions={permissions}
-      req={initPageResult.req}
+      req={req}
       searchParams={searchParams}
-      user={user}
-      viewActions={viewActions}
-      viewType={viewType}
+      user={req.user}
+      viewType="reports"
       visibleEntities={{
-        collections: initPageResult.visibleEntities.collections,
-        globals: initPageResult.visibleEntities.globals,
+        collections: visibleEntities.collections,
+        globals: visibleEntities.globals,
       }}
     >
       <Gutter className="tkmbs-report-view">
-        <ReportsDashboard payload={payload} />
+        <ReportsDashboard payload={req.payload} />
       </Gutter>
     </DefaultTemplate>
   )
