@@ -139,6 +139,7 @@ async function sendAPI(endpoint, payload) {
 }
 
 const realApi = {
+  trackPageView: (payload) => sendAPI('/analytics/page-view', payload),
   search: (params = {}) => {
     const q = new URLSearchParams(params).toString();
     return fetchAPI(`/search${q ? `?${q}` : ''}`);
@@ -219,6 +220,7 @@ async function getMockDb() {
 
 // Mock API - gerçek API ile aynı arayüzü kullanır
 const mockApi = {
+  trackPageView: (payload) => realApi.trackPageView(payload),
   search: async (params = {}) => {
     const db = await getMockDb();
     return db.searchCatalog(params);
@@ -365,8 +367,12 @@ const persistentUserApi = {
   toggleFavorite: realApi.toggleFavorite,
 };
 
+const persistentAnalyticsApi = {
+  trackPageView: realApi.trackPageView,
+};
+
 // ──────────────────────────────────
 // EXPORT - İçerik kaynağını seçer, kullanıcı durumunu daima gerçek API'de tutar
 // ──────────────────────────────────
-export const api = USE_MOCK_DB ? { ...mockApi, ...persistentNotificationApi, ...persistentUserApi } : realApi;
+export const api = USE_MOCK_DB ? { ...mockApi, ...persistentNotificationApi, ...persistentUserApi, ...persistentAnalyticsApi } : realApi;
 export default api;

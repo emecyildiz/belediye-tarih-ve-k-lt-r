@@ -17,6 +17,7 @@ import SearchResultsPage from './pages/SearchResultsPage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './auth/ProtectedRoute';
 import { AuthProvider } from './auth/AuthContext';
+import api from './services/api';
 import './App.css';
 
 function ScrollToTop() {
@@ -31,11 +32,47 @@ function ScrollToTop() {
   return null;
 }
 
+function anonymousId(storage, key) {
+  try {
+    const existing = storage.getItem(key);
+    if (existing) return existing;
+    const value = globalThis.crypto?.randomUUID?.();
+    if (!value) return null;
+    storage.setItem(key, value);
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+function PageAnalyticsTracker() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    const visitorId = anonymousId(localStorage, 'tkmbs_visitor_id');
+    const sessionId = anonymousId(sessionStorage, 'tkmbs_session_id');
+    if (!visitorId || !sessionId) return undefined;
+
+    const dedupeKey = `tkmbs_page_view:${pathname}`;
+    const previous = Number(sessionStorage.getItem(dedupeKey) || 0);
+    if (Date.now() - previous < 2_000) return undefined;
+    sessionStorage.setItem(dedupeKey, String(Date.now()));
+
+    const timer = setTimeout(() => {
+      api.trackPageView({ visitorId, sessionId, path: pathname }).catch(() => {});
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [pathname]);
+
+  return null;
+}
+
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <ScrollToTop />
+        <PageAnalyticsTracker />
         <AppLayout>
           <Routes>
           <Route path="/" element={<HomePage />} />

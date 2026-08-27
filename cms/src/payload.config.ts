@@ -27,6 +27,9 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    components: {
+      beforeDashboard: ['/components/ReportsDashboard'],
+    },
   },
   collections: [Users, Media, Monuments, CulturalRoutes, Events, Notifications],
   globals: [SiteSettings],

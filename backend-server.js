@@ -32,6 +32,7 @@ import { createAuthService, AuthenticationError } from './backend/auth/service.j
 import { DtoValidationError } from './backend/auth/dto.js';
 import { REFRESH_COOKIE_NAME, USER_ROLES, refreshCookieOptions } from './backend/auth/config.js';
 import { authenticateAccessToken, authorizeRoles, parseCookieHeader, serializeCookie } from './backend/auth/middleware.js';
+import { AnalyticsValidationError, normalizePageView } from './backend/analytics/event.js';
 
 dotenv.config({ path: ['.env', 'cms/.env'] });
 
@@ -41,6 +42,7 @@ app.use(express.json());
 
 const authRepository = await createAuthRepository();
 const authService = createAuthService(authRepository);
+const analyticsRateLimits = new Map();
 
 const ok = (data, extra = {}) => ({ success: true, data, ...extra });
 const fail = (res, msg, code = 500) => res.status(code).json({ success: false, error: msg });
@@ -84,10 +86,32 @@ app.post('/api/auth/logout', async (req, res) => {
 
 app.get('/api/auth/me', authenticateAccessToken, (req, res) => res.json(ok(req.auth.user)));
 
+// IP adresi veya hassas konum saklanmaz. Tarayıcı yalnızca rastgele ziyaretçi ve
+// oturum kimliği gönderir; raporlar bu anonim olaylardan üretilir.
+app.post('/api/analytics/page-view', async (req, res, next) => {
+  try {
+    const event = normalizePageView(req.body);
+    const rateKey = event.visitorId;
+    const now = Date.now();
+    const current = analyticsRateLimits.get(rateKey);
+    if (!current || now - current.startedAt >= 60_000) analyticsRateLimits.set(rateKey, { startedAt: now, count: 1 });
+    else if (current.count >= 60) return fail(res, 'Analitik istek sınırı aşıldı.', 429);
+    else current.count += 1;
+    if (analyticsRateLimits.size > 10_000) {
+      for (const [key, value] of analyticsRateLimits) if (now - value.startedAt >= 60_000) analyticsRateLimits.delete(key);
+    }
+    await authRepository.recordAnalyticsEvent(event);
+    return res.status(201).json(ok({ recorded: true }));
+  } catch (error) {
+    if (error instanceof AnalyticsValidationError) return fail(res, error.message, 400);
+    return next(error);
+  }
+});
+
 // Halk portalındaki bütün içerik istekleri önce Payload/PostgreSQL önbelleğini yeniler.
 // İlk bağlantı kurulamadığında kod içindeki örnek veriye sessizce dönülmez.
 app.use('/api', async (req, res, next) => {
-  if (req.path.startsWith('/auth/') || req.path === '/health' || req.path === '/weather') return next();
+  if (req.path.startsWith('/auth/') || req.path.startsWith('/analytics/') || req.path === '/health' || req.path === '/weather') return next();
   try {
     await syncPayloadContent();
     return next();

@@ -36,6 +36,7 @@ export async function createInMemoryAuthRepository() {
   const users = demoUsers(passwordHash);
   const sessions = new Map();
   const notificationReads = new Map();
+  const analyticsEvents = new Map();
   const favorites = new Map([
     ['00000000-0000-4000-8000-000000000001', { monument: new Set([1, 2, 4, 9, 13]), route: new Set([2, 3, 4, 5, 6]), event: new Set([1, 3]) }],
   ]);
@@ -99,6 +100,10 @@ export async function createInMemoryAuthRepository() {
       favorites.set(key, userFavorites);
       return { type, id: numericId, favorited, ids: [...ids] };
     },
+    async recordAnalyticsEvent(event) {
+      if (!analyticsEvents.has(event.dedupeKey)) analyticsEvents.set(event.dedupeKey, { ...event });
+      return { recorded: true };
+    },
   };
 }
 
@@ -144,6 +149,22 @@ export async function createPostgresAuthRepository(connectionString) {
       PRIMARY KEY (user_id, item_type, item_id)
     );
     CREATE INDEX IF NOT EXISTS tkmbs_user_favorites_user_type_idx ON tkmbs_user_favorites(user_id, item_type);
+    CREATE TABLE IF NOT EXISTS tkmbs_analytics_events (
+      id uuid PRIMARY KEY,
+      event_type varchar(32) NOT NULL CHECK (event_type IN ('page_view')),
+      visitor_id uuid NOT NULL,
+      session_id uuid NOT NULL,
+      path varchar(240) NOT NULL,
+      content_type varchar(20) CHECK (content_type IN ('monument', 'route', 'event')),
+      content_slug varchar(160),
+      dedupe_key char(64),
+      occurred_at timestamptz NOT NULL DEFAULT now(),
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+    CREATE INDEX IF NOT EXISTS tkmbs_analytics_events_occurred_at_idx ON tkmbs_analytics_events(occurred_at DESC);
+    CREATE INDEX IF NOT EXISTS tkmbs_analytics_events_path_idx ON tkmbs_analytics_events(path);
+    CREATE INDEX IF NOT EXISTS tkmbs_analytics_events_visitor_idx ON tkmbs_analytics_events(visitor_id, occurred_at DESC);
+    CREATE UNIQUE INDEX IF NOT EXISTS tkmbs_analytics_events_dedupe_idx ON tkmbs_analytics_events(dedupe_key) WHERE dedupe_key IS NOT NULL;
     CREATE TABLE IF NOT EXISTS tkmbs_portal_seed_state (
       seed_key text PRIMARY KEY,
       applied_at timestamptz NOT NULL DEFAULT now()
@@ -282,6 +303,16 @@ export async function createPostgresAuthRepository(connectionString) {
       } finally {
         client.release();
       }
+    },
+    async recordAnalyticsEvent(event) {
+      await pool.query(
+        `INSERT INTO tkmbs_analytics_events
+          (id, event_type, visitor_id, session_id, path, content_type, content_slug, occurred_at, dedupe_key)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT DO NOTHING`,
+        [event.id, event.eventType, event.visitorId, event.sessionId, event.path, event.contentType, event.contentSlug, event.occurredAt, event.dedupeKey],
+      );
+      return { recorded: true };
     },
     async close() {
       await pool.end();

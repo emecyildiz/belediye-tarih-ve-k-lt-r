@@ -11,6 +11,7 @@ Bu klasör Hatay Tarihi ve Kültürel Miras Bilgi Sistemi'nin içerik yönetim u
 - Medya dosyaları
 - Portal ayarları
 - Yönetici ve içerik editörü hesapları
+- PostgreSQL tabanlı anonim ziyaret ve içerik performansı raporları
 
 ## İlk kurulum
 
@@ -22,7 +23,7 @@ npm run seed
 npm run dev
 ```
 
-Yönetim ekranı `http://localhost:3000/admin` adresindedir. İlk çalıştırmada belediyenin gerçek yönetici hesabı arayüzden oluşturulur; seed komutu kullanıcı veya parola üretmez.
+Yönetim ekranı `http://localhost:3000/admin` adresindedir. Belediye ortamında ilk gerçek yönetici hesabı arayüzden oluşturulur. Yerel örnek hesaplar yalnızca `AUTH_SEED_DEMO_USERS=true` olduğunda seed tarafından hazırlanır.
 
 ## Veri aktarımı
 
@@ -46,8 +47,14 @@ npm run migrate:create
 npm run migrate
 ```
 
+## Raporlama
+
+Payload ana ekranındaki **Raporlama ve Analitik** bölümü sabit sayaç kullanmaz. Portalın anonim sayfa görüntüleme olaylarını `tkmbs_analytics_events`, kullanıcıları `tkmbs_portal_users`, favorileri `tkmbs_user_favorites` ve içerik sayılarını Payload koleksiyonlarından okur.
+
+Ziyaret kaydında IP adresi veya kesin konum saklanmaz. Tarayıcı tarafından üretilen rastgele ziyaretçi ve oturum kimlikleri kullanılır. Aynı oturumun kısa süreli yinelenen istekleri veritabanında tekilleştirilir.
+
 ## Yönetim sorumlulukları
 
-- Payload: içerik ekleme, düzenleme, silme, medya, kullanıcı ve yetkilendirme
-- TKMBS özel yönetim paneli: harita, özet göstergeler, istatistikler ve raporlama
+- Payload: içerik ekleme, düzenleme, silme, medya, kullanıcı, yetkilendirme ve raporlama
+- TKMBS eski özel yönetim paneli: kaynak kodu korunur ancak aktif yönetim akışında kullanılmaz
 - Halk portalı: Payload REST API üzerinden yayımlanan onaylı içerikleri gösterir
