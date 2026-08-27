@@ -1,21 +1,43 @@
 const DEFAULT_CMS_URL = 'http://localhost:3000';
 const REQUEST_TIMEOUT_MS = Number(process.env.PAYLOAD_REQUEST_TIMEOUT_MS) || 5000;
+const TRANSIENT_RETRY_DELAY_MS = Number(process.env.PAYLOAD_RETRY_DELAY_MS) || 800;
 const PAGE_SIZE = 100;
 
 function getCmsUrl() {
   return (process.env.PAYLOAD_CMS_URL || DEFAULT_CMS_URL).replace(/\/$/, '');
 }
 
-async function fetchJson(path) {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  try {
-    const response = await fetch(`${getCmsUrl()}${path}`, { signal: controller.signal });
-    if (!response.ok) throw new Error(`Payload ${path}: HTTP ${response.status}`);
-    return await response.json();
-  } finally {
-    clearTimeout(timeout);
+function isTransientFailure(error) {
+  return !error.status || error.status === 408 || error.status === 425 || error.status === 429 || error.status >= 500;
+}
+
+export async function fetchJson(path, options = {}) {
+  const fetchImpl = options.fetchImpl || fetch;
+  const attempts = Math.max(1, Math.min(3, Number(options.attempts) || 2));
+  const retryDelayMs = options.retryDelayMs ?? TRANSIENT_RETRY_DELAY_MS;
+  let lastError;
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    try {
+      const response = await fetchImpl(`${getCmsUrl()}${path}`, { signal: controller.signal });
+      if (!response.ok) {
+        const error = new Error(`Payload ${path}: HTTP ${response.status}`);
+        error.status = response.status;
+        throw error;
+      }
+      return await response.json();
+    } catch (error) {
+      lastError = error;
+      if (attempt === attempts || !isTransientFailure(error)) throw error;
+    } finally {
+      clearTimeout(timeout);
+    }
+    await new Promise((resolve) => setTimeout(resolve, retryDelayMs * attempt));
   }
+
+  throw lastError;
 }
 
 export async function fetchCollection(slug, { depth = 0, sort = 'legacyId' } = {}) {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { fetchCollection, normalizePayloadMonument, normalizePayloadRoute, normalizePayloadEvent, normalizePayloadNotification, monumentsToGeoJSON } from '../services/cms/payloadCms.js';
+import { fetchCollection, fetchJson, normalizePayloadMonument, normalizePayloadRoute, normalizePayloadEvent, normalizePayloadNotification, monumentsToGeoJSON } from '../services/cms/payloadCms.js';
 
 test('Payload eser kaydı portal ve GeoJSON sözleşmesine dönüştürülür', () => {
   const monument = normalizePayloadMonument({ legacyId: 7, name: 'Örnek Eser', slug: 'ornek-eser', category: 'muze', district: 'Antakya', coordinates: { latitude: 36.2, longitude: 36.1 }, gallery: [{ url: '/a.jpg' }], highlights: [{ text: 'Özellik' }] });
@@ -49,4 +49,32 @@ test('Payload koleksiyonu bütün sayfaları birleştirir', async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test('Payload ilk geçici 503 yanıtından sonra yalnızca bir kez yeniden dener', async () => {
+  let requestCount = 0;
+  const data = await fetchJson('/api/monuments', {
+    retryDelayMs: 0,
+    fetchImpl: async () => {
+      requestCount += 1;
+      return new Response(requestCount === 1 ? 'hazırlanıyor' : JSON.stringify({ docs: [] }), {
+        status: requestCount === 1 ? 503 : 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    },
+  });
+  assert.deepEqual(data, { docs: [] });
+  assert.equal(requestCount, 2);
+});
+
+test('Payload kalıcı istemci hatalarını yeniden denemez', async () => {
+  let requestCount = 0;
+  await assert.rejects(() => fetchJson('/api/olmayan-kaynak', {
+    retryDelayMs: 0,
+    fetchImpl: async () => {
+      requestCount += 1;
+      return new Response('bulunamadı', { status: 404 });
+    },
+  }), /HTTP 404/);
+  assert.equal(requestCount, 1);
 });
