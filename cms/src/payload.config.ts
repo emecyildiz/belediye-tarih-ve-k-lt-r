@@ -29,6 +29,13 @@ export default buildConfig({
     },
     components: {
       beforeDashboard: ['/components/ReportsDashboard'],
+      beforeNavLinks: ['/components/ReportsNavLink'],
+      views: {
+        reports: {
+          Component: '/components/ReportsView',
+          path: '/raporlar',
+        },
+      },
     },
   },
   collections: [Users, Media, Monuments, CulturalRoutes, Events, Notifications],

@@ -1,4 +1,4 @@
-import type { ServerProps } from 'payload'
+import type { Payload } from 'payload'
 import Link from 'next/link'
 import React from 'react'
 
@@ -25,7 +25,7 @@ function pageLabel(path: string, labels: Map<string, string>) {
   return staticLabels[path] || path
 }
 
-export default async function ReportsDashboard({ payload }: ServerProps) {
+export default async function ReportsDashboard({ payload }: { payload: Payload }) {
   const [monumentCount, routeCount, eventCount, managerCount, monuments, routes, events] = await Promise.all([
     payload.count({ collection: 'monuments', overrideAccess: true }),
     payload.count({ collection: 'cultural-routes', overrideAccess: true }),
