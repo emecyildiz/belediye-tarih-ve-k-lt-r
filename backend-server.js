@@ -5,6 +5,7 @@ import { monuments, categoryCounts, monumentsToGeoJSON } from './backend/data/mo
 import { culturalRoutes } from './backend/data/routes.js';
 import { buildRoadRoutePreview } from './backend/services/routing/routePreviewService.js';
 import { enrichRoutePageMetrics } from './backend/services/routing/routeListMetrics.js';
+import { routingProviderMetadata } from './backend/services/routing/routingProvider.js';
 import { events, eventCategoryCounts } from './backend/data/events.js';
 import { weather, buildStatistics, buildChartData } from './backend/data/statistics.js';
 import {
@@ -373,7 +374,7 @@ app.post('/api/notifications/read-all', authenticateAccessToken, authorizeRoles(
 });
 
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString(), authRepository: authRepository.kind, contentRepository: getPayloadContentStatus() });
+  res.json({ status: 'OK', timestamp: new Date().toISOString(), authRepository: authRepository.kind, contentRepository: getPayloadContentStatus(), routingProvider: routingProviderMetadata() });
 });
 
 // CRUD placeholder - gerçek DB entegrasyonu için

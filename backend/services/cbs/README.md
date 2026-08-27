@@ -1,9 +1,11 @@
 # CBS sağlayıcı sözleşmesi
 
-Uygulamanın gerçek API akışı OSRM sağlayıcısıyla çalışır. `mockCbsProvider`
-yalnızca izole testler ve yol servisi sözleşmesini hazırlamak için korunur.
+Uygulamanın gerçek API akışı belediye CBS yol ağına bağlı değildir. Varsayılan
+sağlayıcı, Hatay OpenStreetMap verisiyle yerelde çalışan GraphHopper servisidir.
+`mockCbsProvider` yalnızca izole testler ve yol servisi sözleşmesini hazırlamak
+için korunur.
 
-Gerçek belediye CBS entegrasyonunda aynı cevap şekli korunmalıdır:
+Rota sağlayıcısı değiştirildiğinde aynı cevap şekli korunmalıdır:
 
 - `distanceKm`
 - `travelMinutes`
@@ -13,16 +15,18 @@ Gerçek belediye CBS entegrasyonunda aynı cevap şekli korunmalıdır:
 - `geojson` (`GeoJSON FeatureCollection`)
 - `cbs.provider` ve `cbs.coordinateSystem`
 
-Belediye altyapısına göre yeni sağlayıcı WFS, WMS, REST, PostGIS veya pgRouting
-üzerinden uygulanabilir. React ve OpenLayers bileşenleri değiştirilmemelidir;
-yalnızca `/api/routes/preview` servisinin kullandığı sağlayıcı değiştirilir.
+React ve OpenLayers bileşenleri rota motorundan bağımsızdır; yalnızca
+`/api/routes/preview` servisinin kullandığı sağlayıcı değiştirilir.
 
-Gerçek rota önizlemeleri `backend/services/routing` katmanında OSRM üzerinden
-OpenStreetMap yol geometrisiyle oluşturulur ve `cbs.followsRoadNetwork: true`
+Gerçek rota önizlemeleri `backend/services/routing` katmanında GraphHopper
+üzerinden OpenStreetMap yol geometrisiyle oluşturulur ve
+`cbs.followsRoadNetwork: true`
 olarak işaretlenir. Servis erişilemezse yanıltıcı bir kuş uçuşu çizgi üretilmez;
 yalnızca duraklar gösterilir ve `cbs.routingStatus: unavailable` döner.
 
-Yerel geliştirmede herkese açık OSRM örnek sunucusu kullanılabilir. Bu sunucu
-araç profiliyle hazırlandığı için yaya ve bisiklet süreleri yol mesafesinden
-tahmin edilir. Belediye tesliminde `OSRM_BASE_URL` ile kurumun kendi OSRM
-sunucusu, profil değişkenleriyle de gerçek yaya/bisiklet profilleri seçilebilir.
+GraphHopper `car`, `bike` ve `foot` profillerini ayrı çalıştırır. Bu nedenle
+yaya yolları, bisiklet yolları ve araç erişim kısıtları OSM etiketlerine göre
+farklı güzergâhlar üretebilir. Eski OSRM sağlayıcısı yalnızca kontrollü geçiş
+ve geriye uyumluluk için `ROUTING_PROVIDER=osrm` seçeneğiyle korunur. Hatay PBF
+dosyası kurulana kadar ortam değişkeni yoksa geliştirme sistemi OSRM ile açılır;
+teslim yapılandırmasında `ROUTING_PROVIDER=graphhopper` açıkça kullanılır.

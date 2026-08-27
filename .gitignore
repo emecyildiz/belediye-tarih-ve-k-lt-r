@@ -5,6 +5,8 @@ cms/node_modules/
 cms/.next/
 cms/cms.db*
 cms/media/
+routing/data/
+routing/graph-cache/
 
 # Yerel ayarlar ve gizli bilgiler
 .env

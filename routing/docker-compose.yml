@@ -1,0 +1,22 @@
+services:
+  graphhopper:
+    build:
+      context: .
+      args:
+        GRAPHHOPPER_VERSION: '11.0'
+    restart: unless-stopped
+    environment:
+      JAVA_TOOL_OPTIONS: -Xms512m -Xmx2g
+    ports:
+      - '8989:8989'
+    volumes:
+      - type: bind
+        source: ./data/hatay.osm.pbf
+        target: /data/hatay.osm.pbf
+        read_only: true
+        bind:
+          create_host_path: false
+      - graphhopper-cache:/data/graph-cache
+
+volumes:
+  graphhopper-cache:

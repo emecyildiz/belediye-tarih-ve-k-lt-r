@@ -1,5 +1,5 @@
 import { buildRoutePreview } from '../cbs/mockCbsProvider.js';
-import { requestOsrmRoute } from './osrmRoutingProvider.js';
+import { requestConfiguredRoute, routingProviderMetadata } from './routingProvider.js';
 
 function pointFeatures(stops, routeId) {
   return stops.map((item) => ({
@@ -17,6 +17,7 @@ export async function buildRoadRoutePreview(options, dependencies = {}) {
   const base = buildRoutePreview(options);
   const { stops, routeId, title, travelMode } = base;
   const visitMinutes = Number(options.visitMinutes) || 25;
+  const providerMetadata = routingProviderMetadata();
 
   if (stops.length < 2) {
     return {
@@ -27,14 +28,14 @@ export async function buildRoadRoutePreview(options, dependencies = {}) {
       geometry: null,
       geojson: { type: 'FeatureCollection', features: pointFeatures(stops, routeId) },
       cbs: {
-        provider: 'osrm', dataSource: 'OpenStreetMap yol ağı', followsRoadNetwork: false,
+        ...providerMetadata, followsRoadNetwork: false,
         routingStatus: 'waiting-for-stops', coordinateSystem: 'EPSG:4326', replaceable: true,
       },
     };
   }
 
   try {
-    const roadRoute = await (dependencies.routeProvider || requestOsrmRoute)({ stops, travelMode });
+    const roadRoute = await (dependencies.routeProvider || requestConfiguredRoute)({ stops, travelMode });
     const lineFeature = {
       type: 'Feature',
       properties: {
@@ -75,7 +76,7 @@ export async function buildRoadRoutePreview(options, dependencies = {}) {
       geometry: null,
       geojson: { type: 'FeatureCollection', features: pointFeatures(stops, routeId) },
       cbs: {
-        provider: 'osrm', dataSource: 'OpenStreetMap yol ağı', followsRoadNetwork: false,
+        ...providerMetadata, followsRoadNetwork: false,
         routingStatus: 'unavailable', coordinateSystem: 'EPSG:4326', replaceable: true,
       },
       routingMessage: 'Yol güzergâhı şu anda alınamadı. Duraklar kuş uçuşu çizgiyle birleştirilmedi.',
