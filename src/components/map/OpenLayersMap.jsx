@@ -8,6 +8,7 @@ import VectorSource from 'ol/source/Vector';
 import OSM from 'ol/source/OSM';
 import XYZ from 'ol/source/XYZ';
 import GeoJSON from 'ol/format/GeoJSON';
+import { createEmpty, extend, isEmpty } from 'ol/extent';
 import { fromLonLat, toLonLat } from 'ol/proj';
 import { Fill, Stroke, Style, Circle as CircleStyle, Text, Icon } from 'ol/style';
 import Cluster from 'ol/source/Cluster';
@@ -127,6 +128,7 @@ export default function OpenLayersMap({
   routeMode = false,
   heatmap = false,
   fitToData = false,
+  fitToRouteOnce = false,
   showCoordinates = false,
   height = '100%',
 }) {
@@ -142,6 +144,7 @@ export default function OpenLayersMap({
   const mapReadyRef = useRef(false);
   const onFeatureClickRef = useRef(onFeatureClick);
   const routeModeRef = useRef(routeMode);
+  const routeFitCompletedRef = useRef(false);
 
   useEffect(() => {
     onFeatureClickRef.current = onFeatureClick;
@@ -286,19 +289,31 @@ export default function OpenLayersMap({
         featureProjection: 'EPSG:3857',
       });
       vectorSourceRef.current.addFeatures(features);
-      if (fitToData && features.length && mapRef.current) {
+      const shouldFitRoute = fitToRouteOnce && !routeFitCompletedRef.current;
+      if ((fitToData || shouldFitRoute) && features.length && mapRef.current) {
+        const featuresToFit = shouldFitRoute
+          ? features.filter((feature) => ['route-line', 'route-stop'].includes(feature.get('type')))
+          : features;
+        const fitExtent = createEmpty();
+        featuresToFit.forEach((feature) => {
+          const geometry = feature.getGeometry?.();
+          if (geometry) extend(fitExtent, geometry.getExtent());
+        });
+
+        if (isEmpty(fitExtent)) return;
         requestAnimationFrame(() => {
-          mapRef.current?.getView().fit(vectorSourceRef.current.getExtent(), {
-            padding: [48, 48, 48, 48],
-            duration: 250,
-            maxZoom: 15,
+          mapRef.current?.getView().fit(fitExtent, {
+            padding: [72, 72, 72, 72],
+            duration: 320,
+            maxZoom: 16,
           });
         });
+        if (shouldFitRoute) routeFitCompletedRef.current = true;
       }
     } catch (error) {
       console.error('GeoJSON parse error:', error, geojson);
     }
-  }, [geojson, fitToData]);
+  }, [geojson, fitToData, fitToRouteOnce]);
 
   useEffect(() => {
     if (osmLayerRef.current && satelliteLayerRef.current) {
