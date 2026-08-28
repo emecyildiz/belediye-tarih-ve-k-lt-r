@@ -12,6 +12,7 @@ const USE_MOCK_DB = import.meta.env.VITE_USE_MOCK_DB === 'true';
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 import { authenticatedFetch } from './authClient';
+import { requestWithTransientRetry } from './apiRetry';
 
 // Default placeholder resim - fotoğraf yoksa bu gösterilir
 export const DEFAULT_IMAGE = '/assets/default-placeholder.svg';
@@ -119,7 +120,7 @@ function monumentsToGeoJSON(monuments = []) {
 // GERÇEK API FONKSİYONLARI
 // ──────────────────────────────────
 async function fetchAPI(endpoint) {
-  const res = await authenticatedFetch(endpoint);
+  const res = await requestWithTransientRetry(() => authenticatedFetch(endpoint));
   if (!res.ok) throw new Error(`API hatası: ${res.status}`);
   const json = await res.json();
   if (!json.success) throw new Error(json.error || 'Bilinmeyen hata');

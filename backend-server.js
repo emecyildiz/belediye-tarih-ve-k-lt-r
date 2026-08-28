@@ -27,6 +27,7 @@ import { getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserR
 import { getAboutContent } from './backend/data/aboutContent.js';
 import { getHomeContent } from './backend/data/homeContent.js';
 import { getPayloadContentStatus, syncPayloadContent } from './backend/services/cms/payloadContentStore.js';
+import { waitForPayloadContent } from './backend/services/cms/payloadStartup.js';
 import { createAuthRepository } from './backend/auth/repository.js';
 import { createAuthService, AuthenticationError } from './backend/auth/service.js';
 import { DtoValidationError } from './backend/auth/dto.js';
@@ -407,8 +408,22 @@ app.put('/api/locations/:id', (req, res) => res.json(ok(null, { message: `Konum 
 app.delete('/api/locations/:id', (req, res) => res.json(ok(null, { message: `Konum ${req.params.id} silindi` })));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`\n🚀 TKMBS Backend: http://localhost:${PORT}`);
-  console.log(`📍 GeoJSON: http://localhost:${PORT}/api/locations`);
-  console.log(`🏛️  Eserler: http://localhost:${PORT}/api/monuments\n`);
-});
+try {
+  console.log('⏳ Payload CMS ve PostgreSQL içerikleri bekleniyor...');
+  const contentStatus = await waitForPayloadContent({
+    load: () => syncPayloadContent({ force: true }),
+    onRetry: ({ attempt, delayMs, error }) => {
+      console.warn(`Payload henüz hazır değil (deneme ${attempt}); ${delayMs} ms sonra tekrar denenecek: ${error.message}`);
+    },
+  });
+
+  app.listen(PORT, () => {
+    console.log(`✅ Payload içeriği hazır (${contentStatus.startupAttempts} deneme, ${contentStatus.counts.monuments} eser)`);
+    console.log(`\n🚀 TKMBS Backend: http://localhost:${PORT}`);
+    console.log(`📍 GeoJSON: http://localhost:${PORT}/api/locations`);
+    console.log(`🏛️  Eserler: http://localhost:${PORT}/api/monuments\n`);
+  });
+} catch (error) {
+  console.error(`❌ TKMBS Backend başlatılamadı: ${error.message}`);
+  process.exitCode = 1;
+}
