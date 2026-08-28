@@ -81,7 +81,7 @@ function App() {
           <Route path="/tarihi-eserler/:slug" element={<MonumentDetailPage />} />
           <Route path="/kultur-rotalari" element={<RoutesPage />} />
           <Route path="/kultur-rotalari/:slug" element={<RouteDetailPage />} />
-          <Route path="/rota-olustur" element={<ProtectedRoute roles={['citizen']}><RouteBuilderPage /></ProtectedRoute>} />
+          <Route path="/rota-olustur" element={<RouteBuilderPage />} />
           <Route path="/etkinlikler" element={<EventsPage />} />
           <Route path="/etkinlikler/:slug" element={<EventDetailPage />} />
           <Route path="/profil/*" element={<ProtectedRoute roles={['citizen']}><FavoritesPage /></ProtectedRoute>} />

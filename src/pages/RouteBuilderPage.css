@@ -8,7 +8,8 @@
 
 .route-builder-actions a{height:36px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;color:#174b7b;border:1px solid #bfcfdf;border-radius:8px;background:#fff;font-size:10px;font-weight:800;white-space:nowrap}
 .route-builder-actions a:hover{border-color:#6f9bc3;background:#f3f8fc}
+.route-builder-save-area{display:grid;justify-items:end;gap:6px}.route-builder-save-error{max-width:330px;color:#b42334;font-size:12px;font-weight:700;text-align:right}
 .route-builder-summary{grid-template-columns:repeat(5,minmax(105px,1fr))}
 @media(max-width:1050px){.route-builder-summary{grid-template-columns:repeat(3,minmax(105px,1fr))}}
-@media(max-width:800px){.route-builder-actions a{flex:1}.route-builder-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:800px){.route-builder-save-area,.route-builder-actions{width:100%}.route-builder-save-area{justify-items:stretch}.route-builder-save-error{text-align:left}.route-builder-actions a{flex:1}.route-builder-summary{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:520px){.route-builder-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.route-builder-summary article:nth-child(3){grid-column:auto}.route-builder-summary article:last-child{grid-column:1/-1}}

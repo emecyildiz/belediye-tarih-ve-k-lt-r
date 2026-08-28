@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 import api from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
@@ -8,6 +9,7 @@ import { buildGoogleMapsDirectionsUrl } from '../utils/googleMaps';
 import './RouteBuilderPage.css';
 
 const modes = [{ key: 'walking', label: 'Yürüyüş', icon: '🚶' }, { key: 'cycling', label: 'Bisiklet', icon: '🚲' }, { key: 'driving', label: 'Araç', icon: '🚗' }];
+const ROUTE_DRAFT_KEY = 'tkmbs_route_builder_draft';
 
 function formatMinutes(minutes = 0) {
   const hours = Math.floor(minutes / 60);
@@ -16,9 +18,13 @@ function formatMinutes(minutes = 0) {
 }
 
 export default function RouteBuilderPage() {
+  const { loading: authLoading, user } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [params] = useSearchParams();
   const sourceRoute = params.get('route');
   const sourceStops = params.get('stops');
+  const returnTo = `${location.pathname}${location.search}`;
   const [monuments, setMonuments] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [title, setTitle] = useState('Yeni Kültür Rotası');
@@ -29,6 +35,8 @@ export default function RouteBuilderPage() {
   const [routingState, setRoutingState] = useState('idle');
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
   const [mapType, setMapType] = useState('map');
 
   useEffect(() => {
@@ -37,7 +45,22 @@ export default function RouteBuilderPage() {
       .then(([items, route]) => {
         if (!active) return;
         setMonuments(items);
-        if (route) {
+        let draft = null;
+        try {
+          const storedDraft = JSON.parse(sessionStorage.getItem(ROUTE_DRAFT_KEY) || 'null');
+          if (storedDraft?.returnTo === returnTo) draft = storedDraft;
+          sessionStorage.removeItem(ROUTE_DRAFT_KEY);
+        } catch {
+          // Gizli/katı tarayıcı modlarında depolama kapalı olabilir.
+        }
+
+        if (draft) {
+          const draftIds = [...new Set((draft.selectedIds || []).map(Number).filter(Number.isInteger))];
+          setTitle(String(draft.title || 'Yeni Kültür Rotası'));
+          setSelectedIds(draftIds.filter((id) => items.some((item) => item.id === id)));
+          setTravelMode(modes.some((mode) => mode.key === draft.travelMode) ? draft.travelMode : 'walking');
+          setVisitMinutes(Number(draft.visitMinutes) || 25);
+        } else if (route) {
           setTitle(`${route.title} - Kopya`);
           setSelectedIds((route.stops || []).map((item) => item.monumentId));
           setTravelMode(route.travelMode || 'walking');
@@ -48,7 +71,7 @@ export default function RouteBuilderPage() {
       })
       .finally(() => active && setLoading(false));
     return () => { active = false; };
-  }, [sourceRoute, sourceStops]);
+  }, [returnTo, sourceRoute, sourceStops]);
 
   useEffect(() => {
     let active = true;
@@ -89,10 +112,28 @@ export default function RouteBuilderPage() {
     return next;
   });
   const saveRoute = async () => {
-    const result = await api.saveCustomRoute({ title, selectedIds, travelMode, visitMinutes, preview });
-    if (result) {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2200);
+    setSaveError('');
+    if (!user) {
+      try {
+        sessionStorage.setItem(ROUTE_DRAFT_KEY, JSON.stringify({ returnTo, title, selectedIds, travelMode, visitMinutes }));
+      } catch {
+        // Depolama kapalı olsa da kullanıcı giriş yapıp rota sayfasına dönebilir.
+      }
+      navigate(`/giris?returnTo=${encodeURIComponent(returnTo)}`);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const result = await api.saveCustomRoute({ title, selectedIds, travelMode, visitMinutes, preview });
+      if (result) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2200);
+      }
+    } catch (error) {
+      setSaveError(error?.message || 'Rota kaydedilemedi. Lütfen tekrar deneyin.');
+    } finally {
+      setSaving(false);
     }
   };
   if (loading) return <div className="route-builder-state"><span /><strong>Rota oluşturucu hazırlanıyor…</strong></div>;
@@ -100,7 +141,7 @@ export default function RouteBuilderPage() {
   return (
     <div className="route-builder-page">
       <nav className="route-builder-breadcrumb"><Link to="/">Ana Sayfa</Link><b>›</b><Link to="/kultur-rotalari">Kültürel Rotalar</Link><b>›</b><span>Rota Oluştur</span></nav>
-      <header className="route-builder-header"><div><span>GEZİNİ PLANLA</span><h1>Kendi Rotanı Oluştur</h1><p>Görmek istediğiniz yerleri seçin, durak sırasını belirleyin ve gezi planınızı hazırlayın.</p></div><div className="route-builder-actions">{googleMapsUrl && <a href={googleMapsUrl} target="_blank" rel="noreferrer">Google Haritalar</a>}<button type="button" className="primary" onClick={saveRoute} disabled={!selectedIds.length}>{saved ? 'Kaydedildi ✓' : 'Rotayı Kaydet'}</button></div></header>
+      <header className="route-builder-header"><div><span>GEZİNİ PLANLA</span><h1>Kendi Rotanı Oluştur</h1><p>Görmek istediğiniz yerleri seçin, durak sırasını belirleyin ve gezi planınızı hazırlayın.</p></div><div className="route-builder-save-area"><div className="route-builder-actions">{googleMapsUrl && <a href={googleMapsUrl} target="_blank" rel="noreferrer">Google Haritalar</a>}<button type="button" className="primary" onClick={saveRoute} disabled={!selectedIds.length || authLoading || saving}>{saving ? 'Kaydediliyor…' : saved ? 'Kaydedildi ✓' : 'Rotayı Kaydet'}</button></div>{saveError && <small className="route-builder-save-error" role="alert">{saveError}</small>}</div></header>
 
       <section className="route-builder-summary">
         <article><IconRoute size={18} /><div><small>Mesafe</small><strong>{preview?.distanceKm || 0} km</strong></div></article>
