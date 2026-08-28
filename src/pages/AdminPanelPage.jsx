@@ -4,7 +4,7 @@ import api from '../services/api';
 import OpenLayersMap from '../components/map/OpenLayersMap';
 import {
   IconArrow, IconCalendar, IconClock, IconDocument, IconInfo,
-  IconMap, IconMonument, IconPin, IconRoute,
+  IconMonument, IconPin, IconRoute,
 } from '../components/common/Icons';
 import './AdminPanelPage.css';
 

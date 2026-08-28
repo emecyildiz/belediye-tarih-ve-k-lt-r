@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import api from '../services/api';
 import OpenLayersMap from '../components/map/OpenLayersMap';
-import { IconCalendar, IconClock, IconDocument, IconMap, IconRoute, IconUser } from '../components/common/Icons';
+import { IconCalendar, IconClock, IconDocument, IconUser } from '../components/common/Icons';
 import './GisAnalyticsPage.css';
 
 const numberFormat = new Intl.NumberFormat('tr-TR');

@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
 import useDragScroll from '../hooks/useDragScroll';
-import { IconArrow, IconBookmark, IconCalendar, IconClock, IconHeart, IconMonument, IconPin, IconRoute, IconUser } from '../components/common/Icons';
+import { IconArrow, IconBookmark, IconClock, IconHeart, IconPin, IconRoute, IconUser } from '../components/common/Icons';
 import './FavoritesPage.css';
 
 const kindConfig = {
