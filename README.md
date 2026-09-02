@@ -1,456 +1,306 @@
-# 🏛️ Belediye Portalı - GeoJSON Harita Sistemi
+# TKMBS — Tarihi ve Kültürel Miras Bilgi Sistemi
 
-Modern bir belediye web portalı projesi, **React**, **Node.js**, **OpenLayers** ve **GeoJSON** kullanılarak geliştirilmiştir. Staj projesi olarak, mock veri ile başlar ve sonradan gerçek veritabanı entegrasyonu yapılabilir.
+Hatay Büyükşehir Belediyesi için geliştirilen TKMBS; tarihi eserleri, kültürel rotaları, etkinlikleri ve konum tabanlı bilgileri halk arayüzünde sunan; içerik yönetimini Payload CMS üzerinden gerçekleştiren bir web uygulamasıdır.
 
-## 🎯 Proje Özellikleri
+> Projenin mimarisi, bütün klasörleri, API uçları, veri modeli, roller, güvenlik, harita/rota sistemi, canlı kurulum ve teslim adımları için [Ayrıntılı Proje ve Devir-Teslim Raporu](./DETAYLI_PROJE_RAPORU.md) esas alınmalıdır.
 
-### Frontend (React + OpenLayers)
-- ✅ **İnteraktif Harita** - OpenLayers ile GeoJSON desteği
-- ✅ **Kategoriye Göre Filtreleme** - Kültür, yeşil alan, eğitim, spor vb.
-- ✅ **Konum Detayları** - Tıkla ve görüntüle
-- ✅ **İstatistikler** - Şehir bilgileri dashboard
-- ✅ **Haberler** - Son duyurular ve güncellemeler
-- ✅ **Responsive Design** - Mobil uyumlu arayüz
-- ✅ **Dark Mode** - Koyu tema desteği
+## İçindekiler
 
-### Backend (Node.js + Express)
-- ✅ **RESTful API** - Tüm veri erişimi
-- ✅ **GeoJSON Support** - Coğrafi veri formatı
-- ✅ **Mock Data** - Hızlı başlangıç
-- ✅ **CORS Enabled** - Cross-origin istekleri destekler
-- ✅ **Modüler Yapı** - Veritabanı entegrasyonu kolay
+- [Temel bileşenler](#temel-bilesenler)
+- [GitHub deposunda bulunmayan dosyalar](#github-deposunda-bulunmayan-dosyalar)
+- [Gereksinimler](#gereksinimler)
+- [İlk kurulum](#ilk-kurulum)
+- [Projeyi çalıştırma](#projeyi-calistirma)
+- [Projeyi kapatma](#projeyi-kapatma)
+- [Uygulama adresleri](#uygulama-adresleri)
+- [Veri hazırlama](#veri-hazirlama)
+- [Test ve derleme](#test-ve-derleme)
+- [Güvenlik notları](#guvenlik-notlari)
+- [Teslim kontrol listesi](#teslim-kontrol-listesi)
 
-## 📦 Teknoloji Stack
+<a id="temel-bilesenler"></a>
+## Temel bileşenler
 
+| Katman | Teknoloji | Görev |
+|---|---|---|
+| Halk portalı | React 18 + Vite | Eser, rota, etkinlik, harita, profil ve kullanıcı ekranları |
+| Harita | OpenLayers 9 + GeoJSON | Harita katmanları, semboller, kümeler, koordinatlar ve rota geometrileri |
+| Portal API | Node.js + Express | DTO, kimlik doğrulama, favori, bildirim, kişisel rota ve içerik API'leri |
+| İçerik yönetimi | Payload CMS 3 + Next.js | Tarihi eser, kültürel rota, etkinlik, medya, bildirim, kullanıcı ve rapor yönetimi |
+| Veritabanı | PostgreSQL 16 | CMS içeriği, kullanıcılar, oturumlar, favoriler, bildirim durumları ve analitik |
+| Rota motoru | GraphHopper 11 | Yerel OpenStreetMap verisi üzerinde araç yolu hesaplama |
+| Hava durumu | Open-Meteo | Antakya için güncel hava bilgisi |
+
+Yerel geliştirmede kullanılan varsayılan servisler:
+
+| Servis | Adres/port |
+|---|---|
+| React portalı | `http://localhost:5173` |
+| Express API | `http://localhost:5000` |
+| Payload yönetimi | `http://localhost:3000/admin` |
+| PostgreSQL | `127.0.0.1:5432` |
+| GraphHopper | `127.0.0.1:8989` |
+
+<a id="github-deposunda-bulunmayan-dosyalar"></a>
+## GitHub deposunda bulunmayan dosyalar
+
+GitHub deposunun tamamı indirilmelidir; ancak aşağıdaki güvenlik, boyut veya çalışma zamanı verileri bilerek Git'e eklenmez:
+
+| Dosya/veri | Neden Git'te değil? | Teslim/kurulum yöntemi |
+|---|---|---|
+| Kök `.env` | Parola ve gizli anahtar içerir | `.env.example` kopyalanır ve kuruma özel değerlerle doldurulur |
+| `cms/.env` | Payload ve PostgreSQL sırlarını içerir | `cms/.env.example` kopyalanır ve doldurulur |
+| `routing/data/hatay.osm.pbf` | Büyük OpenStreetMap yol verisidir | Ayrı dosya olarak bu konuma yerleştirilir |
+| `cms/media/` | Payload'a yüklenen görsellerdir | Medya yedeğinden veya kalıcı nesne depolamasından geri yüklenir |
+| PostgreSQL içeriği | Çalışma zamanı ve kurum verisidir | SQL/özel-format yedekten geri yüklenir veya seed/migration çalıştırılır |
+| `node_modules/` | Yeniden kurulabilir bağımlılıklardır | `npm install` komutlarıyla oluşturulur |
+| `dist/`, `cms/.next/` | Yeniden üretilebilir derleme çıktılarıdır | Build sırasında otomatik oluşturulur |
+| `routing/graph-cache/` | PBF'den üretilen rota grafiğidir | GraphHopper ilk açılışında yeniden oluşturur |
+
+Bu ek dosyalar olmadan beklenen davranış:
+
+- `.env` dosyaları olmadan güvenli kimlik ve servis bağlantıları kurulamaz.
+- PostgreSQL olmadan Payload ve kalıcı portal kullanıcı işlemleri çalışmaz.
+- Hatay PBF/GraphHopper olmadan yol ağı rotası hesaplanamaz; portal yanıltıcı kuş uçuşu rota çizmez.
+- `cms/media` olmadan veritabanındaki medya kayıtları bulunsa bile yerel görseller eksik görünebilir.
+- İnternet olmadan mevcut OSM/Esri temel harita karoları ve Open-Meteo hava verisi alınamaz. PBF dosyası yalnızca çevrimdışı rota hesabı sağlar; çevrimdışı temel harita sağlamaz.
+
+<a id="gereksinimler"></a>
+## Gereksinimler
+
+- Git
+- Node.js 20 veya üzeri
+- npm
+- Docker Desktop ve Docker Compose
+- PBF ve GraphHopper önbelleği için yeterli disk alanı
+- İlk bağımlılık kurulumu, çevrimiçi harita ve hava durumu için internet bağlantısı
+
+Windows'ta Docker kullanan servislerden önce Docker Desktop tamamen açılmış olmalıdır.
+
+<a id="ilk-kurulum"></a>
+## İlk kurulum
+
+### 1. Depoyu indirin
+
+```powershell
+git clone https://github.com/emecyildiz/belediye-tarih-ve-k-lt-r.git
+cd belediye-tarih-ve-k-lt-r
 ```
-Frontend:
-├── React 18.2          # UI Framework
-├── OpenLayers 9.0      # Harita kütüphanesi
-├── Vite 8.2            # Build tool (hızlı geliştirme)
-└── CSS3                # Styling
 
-Backend:
-├── Node.js 20+         # Runtime
-├── Express 4.18        # Web framework
-├── CORS 2.8            # Cross-origin middleware
-└── JSON                # Data format
+Private depo kullanılıyorsa teslim alan kişinin GitHub hesabına erişim yetkisi verilmelidir.
 
-Veri:
-└── GeoJSON Format      # Coğrafi veri standartı
-```
+### 2. Bağımlılıkları kurun
 
-## 🚀 Hızlı Başlangıç
+Bu komutların ikisi de proje kökünde çalıştırılır:
 
-### 1. Yükle ve Kur
-```bash
+```powershell
 npm install
+npm --prefix cms install
 ```
 
-### 2. Geliştirme Sunucusu Başlat
-```bash
-# Backend + Frontend beraber
-npm run dev:full
+### 3. Ortam dosyalarını hazırlayın
 
-# Veya ayrı ayrı:
-# Terminal 1
+```powershell
+Copy-Item .env.example .env
+Copy-Item cms/.env.example cms/.env
+```
+
+Kopyalanan dosyalardaki örnek değerler production parolası değildir. En az şu değerler kuruma özel hazırlanmalıdır:
+
+- PostgreSQL kullanıcı adı, parola ve bağlantı adresi
+- `PAYLOAD_SECRET`
+- `AUTH_ACCESS_SECRET`
+- `TWO_FACTOR_SECRET`
+- İzin verilen portal/CMS origin adresleri
+
+`PAYLOAD_SECRET`, `AUTH_ACCESS_SECRET` ve `TWO_FACTOR_SECRET` birbirinden farklı, rastgele ve en az 32 karakter olmalıdır. Refresh token ayrıca imzalanan bir JWT değildir; rastgele üretilir ve veritabanında yalnız özeti saklanır. Gerçek değerleri Git'e göndermeyin.
+
+### 4. Hatay rota verisini ekleyin
+
+GraphHopper'ın beklediği dosya:
+
+```text
+routing/data/hatay.osm.pbf
+```
+
+Dosya adı veya yolu değiştirilirse `routing/config.yml` ve ilgili ortam ayarı birlikte güncellenmelidir. İlk GraphHopper açılışı yol grafiğini oluşturduğu için normalden uzun sürebilir.
+
+<a id="projeyi-calistirma"></a>
+## Projeyi çalıştırma
+
+Bütün komutlar, aksi özellikle belirtilmedikçe, depo kökünde çalıştırılır.
+
+### Önerilen başlatma sırası
+
+#### Terminal 1 — PostgreSQL
+
+```powershell
+npm run cms:db:start
+```
+
+#### Terminal 2 — GraphHopper
+
+```powershell
+npm run routing:start
+```
+
+İlk açılışta `routing:logs` ile grafiğin hazır olduğu kontrol edilebilir:
+
+```powershell
+npm run routing:logs
+```
+
+#### Terminal 3 — Payload CMS
+
+```powershell
+npm run cms:dev
+```
+
+Terminalde `Ready` mesajı görülmeden sonraki servise geçilmemesi önerilir.
+
+#### Terminal 4 — Express API
+
+```powershell
 npm run server
+```
 
-# Terminal 2
+Sağlık kontrolü:
+
+```powershell
+Invoke-RestMethod http://localhost:5000/api/health
+```
+
+#### Terminal 5 — React portalı
+
+```powershell
 npm run dev
 ```
 
-### 3. Tarayıcıda Aç
-- **Frontend**: http://localhost:5173
-- **Backend API**: http://localhost:5000/api/locations
+### Birleşik geliştirme komutu
 
-## 🗂️ Payload CMS ile İçerik Yönetimi
+PostgreSQL ve GraphHopper hazır olduktan sonra portal, API ve CMS birlikte de başlatılabilir:
 
-Payload CMS, ana Vite uygulamasından bağımsız olarak `cms/` klasöründe çalışır ve PostgreSQL kullanır. Gizli bağlantı ayarları Git'e eklenmez.
-
-```bash
-# İlk kurulum
-npm --prefix cms install
-npm --prefix cms run db:start
-npm run cms:seed
-npm run cms:media:migrate
-
-# Portal + Express API + Payload CMS
+```powershell
 npm run dev:cms
 ```
 
-- **Payload Yönetimi**: http://localhost:3000/admin
-- **Payload REST API**: http://localhost:3000/api
-- **Özel Yönetim Özeti**: http://localhost:5173/yonetim-paneli
+Ayrı terminaller hata kaynağını ve servis loglarını takip etmeyi kolaylaştırdığı için teslim/test sırasında önerilen yöntemdir.
 
-İlk yönetici hesabı herkese açık `/admin` ekranından oluşturulmaz. Güvenilir kurulum ortamında geçici olarak `AUTH_SEED_DEMO_USERS=true` ve en az 12 karakterli `DEMO_USER_PASSWORD` tanımlanıp `cms:seed` çalıştırılır; ilk giriş ve parola değişiminden sonra seed ayarı tekrar `false` yapılır. Eser, rota, etkinlik, bildirim ve portal ayarları Payload üzerinden yönetilir. `cms:seed` komutu aynı kayıtları çoğaltmaz; `legacyId` alanıyla mevcut veriyi günceller.
+<a id="projeyi-kapatma"></a>
+## Projeyi kapatma
 
-Express API içerikleri Payload ve PostgreSQL'den okur; bağlantı kurulmadan içerik isteklerini hazır kabul etmez. Payload doğrudan PostgreSQL adaptörünü kullanır; gerçek belediye veritabanı geldiğinde yalnızca gizli `DATABASE_URL` değeri değiştirilir ve portalın GeoJSON sözleşmesi korunur.
+Önce `npm run dev`, `npm run server` ve `npm run cms:dev` çalışan terminallerin her birinde `Ctrl+C` kullanın. Ardından proje kökünde:
 
-Eser, rota ve etkinlik görselleri Payload Medya koleksiyonuna ilişkilidir. Geliştirmede dosyalar `cms/media` klasöründe, alternatif metin, kaynak/lisans bilgileri ve içerik ilişkileri PostgreSQL'de tutulur. Belediye kurulumunda medya klasörü kalıcı depolama ve yedekleme planına dahil edilmelidir.
-
-## 🔐 Giriş, Roller ve Token Yapısı
-
-Portal kimlik doğrulaması kısa ömürlü access token ve döndürülen refresh token kullanır:
-
-- Access token süresi: **2 dakika**
-- Refresh oturumu süresi: **14 gün**
-- Roller: `citizen`, `editor`, `admin`
-- Refresh token tarayıcı JavaScript'ine açılmaz; `HttpOnly`, `SameSite=Lax` çerezinde tutulur.
-- Refresh token veritabanına açık biçimde değil, SHA-256 özetiyle kaydedilir ve her yenilemede değiştirilir.
-- Parolalar `scrypt` ile tuzlanarak özetlenir.
-- İstek ve yanıtlar DTO eşleyicileri üzerinden doğrulanıp güvenli alanlara dönüştürülür.
-- Yönetici ve editör hesaplarında Google Authenticator uyumlu TOTP iki adımlı doğrulama zorunludur.
-- İlk yönetim girişinde QR kod gösterilir; sonraki girişlerde 30 saniyelik 6 haneli kod doğrulanmadan access/refresh token veya Payload oturumu üretilmez.
-- TOTP anahtarı PostgreSQL'de açık metin tutulmaz; AES-256-GCM ile şifrelenir. Aynı doğrulama kodunun tekrar kullanılmasına izin verilmez.
-- İlk kurulumda sekiz tek kullanımlık kurtarma kodu oluşturulur; veritabanında yalnızca imzalı özetleri saklanır.
-- Beş hatalı 2FA denemesi hesabı beş dakika kilitler. Kurulum tamamlanınca önceki portal oturumları iptal edilir.
-- Giriş, 2FA doğrulama, kurtarma kodu ve yönetici sıfırlama olayları parola/IP saklanmadan `tkmbs_security_audit` tablosuna yazılır.
-
-`tkmbs_portal_users` ve `tkmbs_auth_refresh_sessions` tabloları PostgreSQL üzerinde otomatik hazırlanır. Veritabanı bağlantısı yoksa API güvenli biçimde başlatılmaz. Bellek içi örnek depo yalnızca yerel testte `AUTH_ALLOW_IN_MEMORY=true` ve güçlü bir `DEMO_USER_PASSWORD` birlikte verilerek açıkça etkinleştirilebilir.
-
-Payload ile portal kimlik tabloları aynı PostgreSQL veritabanını paylaşır. Payload adaptöründe otomatik geliştirme şema itmesi kapalıdır; böylece Payload kendisine ait olmayan `tkmbs_*` tablolarını silmez. Payload şema değişiklikleri `npm run cms:migrate:create` ve `npm run cms:migrate` komutlarıyla uygulanır.
-
-Geliştirme hesapları `.env` içindeki `DEMO_USER_PASSWORD` değerini kullanır:
-
-- `kullanici@tkmbs.local` — vatandaş
-- `editor@tkmbs.local` — içerik editörü
-- `admin@tkmbs.local` — yönetici
-
-Gerçek teslim ortamında `AUTH_SEED_DEMO_USERS=false` yapılmalı, örnek hesaplar kaldırılmalı ve birbirinden farklı, en az 32 karakterli `AUTH_ACCESS_SECRET`, `TWO_FACTOR_SECRET` ve `PAYLOAD_SECRET` tanımlanmalıdır.
-
-Yönetici veya editör portal giriş formunu kullandığında parola ve Google Authenticator kodu doğrulanır; ardından hesap Payload'da da doğrulanır. İki sistemdeki e-posta ve rol aynı değilse giriş reddedilir. Portal API'sinin yalnızca 60 saniye geçerli imzalı 2FA kanıtı olmadan Payload'ın doğrudan giriş uç noktası oturum açmaz. Başarılı yönetim girişinde Payload kendi `HttpOnly` oturum çerezini üretir ve kullanıcı doğrudan `http://localhost:3000/admin` içerik yönetimine gönderilir. Vatandaş hesabı Payload'a gönderilmez ve portal profilinde kalır.
-
-Payload içindeki **Portal Kullanıcıları** ekranı PostgreSQL hesaplarını canlı listeler. Yalnızca yönetici rolü hesapları aktif/pasif yapabilir, 2FA kurulumunu sıfırlayabilir ve bu işlemler sırasında açık portal/Payload oturumları kapatılır.
-
-## 📁 Proje Yapısı
-
-```
-belediye-portal/
-├── 📄 backend-server.js      # Express API server (Mock veri)
-├── 📄 App.jsx               # Ana React component
-├── 📄 App.css               # Global stiller
-├── 📄 main.jsx              # React entry point
-├── 📄 index.html            # HTML şablonu
-├── 📄 package.json          # Bağımlılıklar
-├── 📄 vite.config.js        # Vite yapılandırması
-│
-├── 📁 src/components/
-│   ├── MapPage.jsx          # Harita bileşeni
-│   ├── MapPage.css          # Harita stilleri
-│   ├── Header.jsx           # Üst navigasyon
-│   ├── Header.css
-│   ├── NewsSection.jsx      # Haberler bölümü
-│   ├── NewsSection.css
-│   ├── Footer.jsx           # Alt bilgi
-│   └── Footer.css
-│
-├── 📄 SETUP_GUIDE.md        # Detaylı kurulum rehberi
-└── 📄 README.md             # Bu dosya
+```powershell
+npm run routing:stop
+npm run cms:db:stop
 ```
 
-## 🗺️ Harita İşlevleri
+<a id="uygulama-adresleri"></a>
+## Uygulama adresleri
 
-### OpenLayers Entegrasyonu
-```javascript
-// Harita başlatma
-const map = new Map({
-  target: 'map',
-  layers: [tileLayer, vectorLayer],
-  view: new View({
-    center: [longitude, latitude],
-    zoom: 13
-  })
-});
+- Halk portalı: [http://localhost:5173](http://localhost:5173)
+- Payload yönetim paneli: [http://localhost:3000/admin](http://localhost:3000/admin)
+- Payload REST API: [http://localhost:3000/api](http://localhost:3000/api)
+- Express sağlık kontrolü: [http://localhost:5000/api/health](http://localhost:5000/api/health)
+- GraphHopper bilgi uç noktası: [http://localhost:8989/info](http://localhost:8989/info)
+
+Yönetici ve editör hesapları portalın `/giris` ekranında parola ve Google Authenticator doğrulamasını tamamladıktan sonra Payload'a yönlendirilir. Vatandaş hesapları Payload'a erişemez.
+
+<a id="veri-hazirlama"></a>
+## Veri hazırlama
+
+### Migration
+
+PostgreSQL başladıktan sonra:
+
+```powershell
+npm run cms:migrate
 ```
 
-### GeoJSON Yükleme
-```javascript
-// API'den GeoJSON çek
-fetch('/api/locations')
-  .then(res => res.json())
-  .then(data => {
-    const features = new GeoJSON()
-      .readFeatures(data);
-    vectorSource.addFeatures(features);
-  });
+### Örnek içerik
+
+Yalnız geliştirme veya kontrollü sunum ortamında `.env` ayarları hazırlandıktan sonra:
+
+```powershell
+npm run cms:seed
 ```
 
-### Filtreleme
-```javascript
-// Türe göre filtrele
-const filtered = features.filter(f => 
-  f.getProperties().type === 'park'
-);
+Demo kullanıcı ve parola ayarları production ortamında kapatılmalı ve örnek hesaplar kaldırılmalıdır.
+
+### Eski görselleri Payload medyasına aktarma
+
+```powershell
+npm run cms:media:migrate
 ```
 
-## 🔗 API Endpoints
+Gerçek belediye verileri geldiğinde eser, rota, etkinlik, bildirim ve portal içerikleri Payload koleksiyonlarına aktarılmalıdır. Portalın beklediği alanlar ve GeoJSON sözleşmesi [ayrıntılı raporda](./DETAYLI_PROJE_RAPORU.md) açıklanmıştır.
 
-### Harita Verileri
-```
-GET /api/locations              # Tüm konumlar (GeoJSON)
-GET /api/locations/:id          # Belirli konum detayı
-GET /api/locations/type/:type   # Tipe göre filtreleme
-```
+<a id="test-ve-derleme"></a>
+## Test ve derleme
 
-### Diğer Veriler
-```
-GET /api/statistics             # Şehir istatistikleri
-GET /api/news                   # Haber listesi
-GET /api/health                 # API sağlık kontrolü
-```
+### Portal ve backend
 
-### Yönetim Endpoints (İleri)
-```
-POST   /api/locations           # Yeni konum ekle
-PUT    /api/locations/:id       # Konumu güncelle
-DELETE /api/locations/:id       # Konumu sil
-POST   /api/news                # Haber ekle
-```
-
-## 📊 GeoJSON Veri Formatı
-
-```json
-{
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "type": "Feature",
-      "id": 1,
-      "properties": {
-        "name": "Konum Adı",
-        "type": "kültür",
-        "description": "Kısa açıklama",
-        "address": "Sokak ve No",
-        "phone": "Telefon",
-        "email": "email@example.com",
-        "working_hours": "09:00-18:00",
-        "image": "https://example.com/image.jpg"
-      },
-      "geometry": {
-        "type": "Point",
-        "coordinates": [35.3267, 36.8969]
-      }
-    }
-  ]
-}
-```
-
-## 💻 Geliştirme Talimatları
-
-### Yeni Konum Ekle
-
-1. **Backend'de mock veri güncelle** (`backend-server.js`):
-```javascript
-{
-  type: "Feature",
-  id: 5,
-  properties: {
-    name: "Yeni Konum",
-    type: "spor",
-    // ... diğer özellikler
-  },
-  geometry: {
-    type: "Point",
-    coordinates: [longitude, latitude]
-  }
-}
-```
-
-2. **Sunucuyu yeniden başlat** - Veriler otomatik yüklenir
-
-### Stil Değiştir
-
-**Harita pin renkleri** (`MapPage.jsx`):
-```javascript
-const colorMap = {
-  kültür: '#FF6B6B',
-  yeşil_alan: '#51CF66',
-  eğitim: '#4C6EF5',
-  spor: '#FFD43B'
-};
-```
-
-**Tema renkleri** (`App.css`):
-```css
-:root {
-  --primary: #667eea;
-  --secondary: #764ba2;
-  --success: #51CF66;
-  --danger: #FF6B6B;
-}
-```
-
-### Yeni Sayfa Ekle
-
-1. `src/components/` içinde yeni component oluştur
-2. `App.jsx`'e import et
-3. Route ekle ve navigation'ı güncelle
-
-## 🔄 Veritabanı Entegrasyonu
-
-### MongoDB Örneği
-
-```javascript
-// backend-server.js
-const mongoose = require('mongoose');
-
-const locationSchema = new mongoose.Schema({
-  name: String,
-  type: String,
-  coordinates: [Number],
-  properties: Object
-});
-
-const Location = mongoose.model('Location', locationSchema);
-
-app.get('/api/locations', async (req, res) => {
-  const locations = await Location.find();
-  res.json({ success: true, data: locations });
-});
-```
-
-### PostgreSQL Örneği
-
-```javascript
-const pool = require('./db-connection');
-
-app.get('/api/locations', async (req, res) => {
-  const result = await pool.query(
-    'SELECT * FROM locations'
-  );
-  res.json({ success: true, data: result.rows });
-});
-```
-
-## 📱 Responsive Tasarım
-
-Proje mobil uyumlu:
-- **Desktop**: 1200px+
-- **Tablet**: 768px - 1199px
-- **Mobil**: < 768px
-
-Test et:
-```bash
-npm run dev  # Tarayıcıda F12 aç, responsive mode aç
-```
-
-## 🎨 Özelleştirme
-
-### Logo ve Başlık
-`Header.jsx`:
-```jsx
-<h1>🏛️ Belediye Portalı</h1>
-```
-
-### Harita Koordinatları
-`MapPage.jsx`:
-```javascript
-center: [3925255, 4405524],  // Web Mercator
-zoom: 13
-```
-
-### Renkler
-`Header.css`:
-```css
-background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-```
-
-## 🧪 Test Etme
-
-### Harita Testi
-1. http://localhost:5173 aç
-2. Harita yüklendiğini kontrol et
-3. Filtre butonlarını tıkla
-4. Konumlara tıkla
-
-### API Testi
-```bash
-curl http://localhost:5000/api/locations
-curl http://localhost:5000/api/statistics
-curl http://localhost:5000/api/news
-```
-
-### Dark Mode Testi
-Sağ üstteki 🌙 butonuna tıkla
-
-## 🚢 Production'a Alma
-
-```bash
-# Build
+```powershell
+npm run test:data
+npm run test:routing
+npm run lint
 npm run build
-
-# Build'i test et
-npm run preview
-
-# Production'da çalıştır
-NODE_ENV=production node backend-server.js
 ```
 
-## 📝 Checklist
+### Payload CMS
 
-Proje sunumuna hazırlanırken:
+PostgreSQL açıkken:
 
-- [ ] Tüm mock veriler güncellendi
-- [ ] Logo ve başlık özelleştirildi
-- [ ] Harita koordinatları doğru
-- [ ] Tüm linkler çalışıyor
-- [ ] Dark mode test edildi
-- [ ] Mobil uyum test edildi
-- [ ] API endpoint'leri çalışıyor
-- [ ] Hata mesajları kontrol edildi
-
-## 🐛 Yaygın Sorunlar
-
-### Problem: Harita yüklenmiyorsa
-**Çözüm**: Backend'in çalışıp çalışmadığını kontrol et
-```bash
-curl http://localhost:5000/api/health
+```powershell
+npm --prefix cms run lint
+npm --prefix cms run test:int
+npm --prefix cms run build
 ```
 
-### Problem: CORS hatası alıyorsam
-**Çözüm**: `backend-server.js`'de `app.use(cors());` var mı kontrol et
+OneDrive altında `Bulut dosya sağlayıcısı çalışmıyor` veya Turbopack `.next` önbellek hatası görülürse projeyi OneDrive dışındaki yerel bir geliştirme dizinine taşımak en güvenli çözümdür. `cms/.next` yalnızca yeniden üretilebilir önbellektir; servisler kapalıyken temizlenip yeniden oluşturulabilir.
 
-### Problem: Stil yüklenmiyorsa
-**Çözüm**: CSS import'larını kontrol et
-```javascript
-import './MapPage.css';
-```
+<a id="guvenlik-notlari"></a>
+## Güvenlik notları
 
-### Problem: Port zaten kullanımda
-**Çözüm**: Port değiştir
-```bash
-# Backend
-PORT=5001 npm run server
+- `.env`, `cms/.env`, veritabanı yedeği, recovery kodları ve gerçek kullanıcı verileri Git'e gönderilmez.
+- Access token süresi 2 dakika; döndürülen refresh oturumu süresi 14 gündür.
+- Refresh token `HttpOnly` çerezde tutulur ve veritabanına açık biçimde kaydedilmez.
+- Yönetici ve editör için Google Authenticator uyumlu TOTP iki adımlı doğrulama zorunludur.
+- Payload rol/yetki kuralları içerik silme ve yönetim işlemlerini sınırlar.
+- Veritabanı yoksa backend sessizce bellek içi demo veritabanına düşmez.
+- Production'da HTTPS, reverse proxy, güvenli çerezler, merkezi log, yedekleme ve kurumun parola politikasına uygun secret yönetimi kurulmalıdır.
+- Private GitHub deposu secret saklama alanı değildir.
 
-# Frontend (vite.config.js)
-server: { port: 5174 }
-```
+<a id="teslim-kontrol-listesi"></a>
+## Teslim kontrol listesi
 
-## 📚 Kaynaklar
+- [ ] GitHub deposuna erişim teslim alan kişiye verildi.
+- [ ] Depo klonlandı ve iki bağımlılık kurulumu tamamlandı.
+- [ ] Kök `.env` güvenli kanaldan hazırlandı.
+- [ ] `cms/.env` güvenli kanaldan hazırlandı.
+- [ ] PostgreSQL veritabanı/backup teslim edildi veya migration ve seed planlandı.
+- [ ] `cms/media` yedeği veya production medya depolaması teslim edildi.
+- [ ] `routing/data/hatay.osm.pbf` ayrıca teslim edildi.
+- [ ] PostgreSQL, GraphHopper, Payload, Express ve React servisleri sırayla doğrulandı.
+- [ ] Yönetici 2FA kurulumu ve recovery kodu teslim prosedürü tamamlandı.
+- [ ] Portal ve CMS test/build komutları çalıştırıldı.
+- [ ] Alan adı, HTTPS, reverse proxy, yedekleme ve log planı kurum tarafından belirlendi.
+- [ ] [Ayrıntılı Proje ve Devir-Teslim Raporu](./DETAYLI_PROJE_RAPORU.md) teslim alan teknik kişi tarafından incelendi.
 
-- [OpenLayers Belgeleri](https://openlayers.org/)
-- [React Belgeleri](https://react.dev/)
-- [Express.js Rehberi](https://expressjs.com/)
-- [GeoJSON Spesifikasyonu](https://geojson.org/)
-- [Vite Belgeleri](https://vitejs.dev/)
+## Ana teknik belge
 
-## 👥 İlişkili Dosyalar
+Bu README hızlı kurulum ve teslim özeti sağlar. Aşağıdaki konuların ayrıntıları için ana belgeyi kullanın:
 
-- `SETUP_GUIDE.md` - Detaylı kurulum talimatları
-- `backend-server.js` - API sunucusu
-- `MapPage.jsx` - Harita bileşeni
-- `App.jsx` - Ana uygulama
+- Tüm klasör ve önemli dosyaların görevleri
+- Sayfalar ve React route yapısı
+- Express ve Payload API uç noktaları
+- Payload koleksiyonları ve PostgreSQL tabloları
+- Token, refresh, rol ve iki adımlı doğrulama akışları
+- OpenLayers, GeoJSON, koordinat sistemi ve harita sembolleri
+- GraphHopper, OSM/PBF ve Google Haritalar aktarımı
+- Raporlama ve analitik veri bütünlüğü
+- Ortam değişkenlerinin tam listesi
+- Canlı kurulum, yedekleme, sorun giderme ve bilinen sınırlamalar
 
-## 📧 İletişim ve Destek
-
-Sorular veya sorunlar için:
-1. Hata mesajını oku
-2. Tarayıcı console'unu kontrol et (F12)
-3. Network tab'ında istekleri kontrol et
-4. Backend log'unu kontrol et
-
----
-
-**Başarılar! 🎉 Projenin başarısını diliyoruz.**
-
-*Son güncelleme: 2024*
+➡️ [DETAYLI_PROJE_RAPORU.md dosyasını aç](./DETAYLI_PROJE_RAPORU.md)
