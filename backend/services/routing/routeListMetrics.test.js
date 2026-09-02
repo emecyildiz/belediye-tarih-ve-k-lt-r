@@ -18,7 +18,7 @@ test('rota kartındaki mesafe ve süreyi yol ağı önizlemesiyle eşitler', asy
     }),
   });
   assert.equal(result.items[0].distance, '5.4 km');
-  assert.equal(result.items[0].duration, '2 sa 1 dk');
+  assert.equal(result.items[0].duration, '1 sa 11 dk');
   assert.equal(result.items[0].travelMinutes, 71);
   assert.deepEqual(result.pagination, page.pagination);
 });

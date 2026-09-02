@@ -5,6 +5,7 @@ import type { AdminViewServerProps } from 'payload'
 import React from 'react'
 
 import ReportsDashboard from './ReportsDashboard'
+import { parseReportFilters } from '../reporting/reportFilters'
 
 export default async function ReportsView({
   initPageResult,
@@ -16,6 +17,10 @@ export default async function ReportsView({
   if (!req.user || !permissions.canAccessAdmin) {
     redirect('/admin/login')
   }
+  if (req.user.role !== 'admin') redirect('/admin')
+
+  const resolvedSearchParams = (await searchParams) || {}
+  const filters = parseReportFilters(resolvedSearchParams as Record<string, unknown>)
 
   return (
     <DefaultTemplate
@@ -34,7 +39,7 @@ export default async function ReportsView({
       }}
     >
       <Gutter className="tkmbs-report-view">
-        <ReportsDashboard payload={req.payload} />
+        <ReportsDashboard payload={req.payload} filters={filters} />
       </Gutter>
     </DefaultTemplate>
   )

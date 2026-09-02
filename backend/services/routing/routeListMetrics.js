@@ -13,7 +13,7 @@ function formatMinutes(minutes) {
 }
 
 function cacheKey(route) {
-  return [route.id, route.updatedAt, route.travelMode || 'walking', ...(route.monumentIds || [])].join(':');
+  return [route.id, route.updatedAt, 'driving', ...(route.monumentIds || [])].join(':');
 }
 
 async function enrichRoute(route, monuments, previewBuilder, useCache) {
@@ -23,7 +23,7 @@ async function enrichRoute(route, monuments, previewBuilder, useCache) {
   const preview = await previewBuilder({
     monuments,
     stopIds: route.monumentIds,
-    travelMode: route.travelMode || 'walking',
+    travelMode: 'driving',
     routeId: route.id,
     title: route.title,
   });
@@ -34,10 +34,10 @@ async function enrichRoute(route, monuments, previewBuilder, useCache) {
   const enriched = {
     ...route,
     distance: `${preview.distanceKm} km`,
-    duration: formatMinutes(preview.durationMinutes),
+    duration: formatMinutes(preview.travelMinutes),
     distanceKm: preview.distanceKm,
     travelMinutes: preview.travelMinutes,
-    durationMinutes: preview.durationMinutes,
+    durationMinutes: preview.travelMinutes,
     routingStatus: 'ready',
   };
   if (useCache) metricCache.set(key, { route: enriched, expiresAt: Date.now() + READY_CACHE_MS });

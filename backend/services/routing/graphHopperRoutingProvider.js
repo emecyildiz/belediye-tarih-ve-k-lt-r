@@ -17,15 +17,6 @@ function positiveNumber(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-function profileFor(travelMode) {
-  const profiles = {
-    driving: process.env.GRAPHHOPPER_PROFILE_DRIVING || 'car',
-    cycling: process.env.GRAPHHOPPER_PROFILE_CYCLING || 'bike',
-    walking: process.env.GRAPHHOPPER_PROFILE_WALKING || 'foot',
-  };
-  return profiles[travelMode] || profiles.walking;
-}
-
 function validCoordinatePair(value) {
   return Array.isArray(value)
     && value.length >= 2
@@ -53,7 +44,7 @@ function writeCache(key, value) {
 
 export async function requestGraphHopperRoute({
   stops,
-  travelMode = 'walking',
+  travelMode: _travelMode,
   fetchImpl = globalThis.fetch,
   baseUrl = process.env.GRAPHHOPPER_BASE_URL || DEFAULT_BASE_URL,
   timeoutMs = positiveNumber(process.env.ROUTING_REQUEST_TIMEOUT_MS, DEFAULT_TIMEOUT_MS),
@@ -69,7 +60,8 @@ export async function requestGraphHopperRoute({
     throw new GraphHopperRoutingError('Sunucuda yol servisine bağlanacak ağ istemcisi bulunamadı.');
   }
 
-  const profile = profileFor(travelMode);
+  const travelMode = 'driving';
+  const profile = process.env.GRAPHHOPPER_PROFILE_DRIVING || 'car';
   const key = cacheKey(profile, stops);
   const cached = readCache(key, cacheMs);
   if (cached) return { ...cached, cached: true };

@@ -1,22 +1,24 @@
 'use client'
 
-import Link from 'next/link'
+import { Link, NavGroup, useAuth } from '@payloadcms/ui'
 import { usePathname } from 'next/navigation'
 import React from 'react'
 
-import './ReportsNavLink.scss'
-
 export default function ReportsNavLink() {
   const pathname = usePathname()
+  const { user } = useAuth()
   const active = pathname === '/admin/raporlar'
+  if (user?.role !== 'admin') return null
+  const label = <>
+    {active && <div className="nav__link-indicator" />}
+    <span className="nav__link-label">Raporlar ve Analitik</span>
+  </>
 
   return (
-    <div className="tkmbs-report-nav">
-      <span className="tkmbs-report-nav__group">Raporlama</span>
-      <Link className={active ? 'is-active' : ''} href="/admin/raporlar" aria-current={active ? 'page' : undefined}>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2" /></svg>
-        <span>Raporlar ve Analitik</span>
-      </Link>
-    </div>
+    <NavGroup label="Raporlama">
+      {active
+        ? <div className="nav__link" id="nav-reports">{label}</div>
+        : <Link className="nav__link" href="/admin/raporlar" id="nav-reports" prefetch={false}>{label}</Link>}
+    </NavGroup>
   )
 }

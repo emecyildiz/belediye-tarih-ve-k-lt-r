@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
 import { monuments, categoryCounts, monumentsToGeoJSON } from './backend/data/monuments.js';
 import { culturalRoutes } from './backend/data/routes.js';
 import { buildRoadRoutePreview } from './backend/services/routing/routePreviewService.js';
@@ -23,42 +24,74 @@ import {
   searchCatalog,
 } from './backend/data/mockDb.js';
 import { buildAdminDashboard, reviewAdminRecord } from './backend/data/adminDashboard.js';
-import { getUserProfileOverview, updateUserPreferences, getUserRoutes, saveUserRoute } from './backend/data/userData.js';
+import { getUserProfileOverview, updateUserPreferences } from './backend/data/userData.js';
 import { getAboutContent } from './backend/data/aboutContent.js';
 import { getHomeContent } from './backend/data/homeContent.js';
 import { getPayloadContentStatus, syncPayloadContent } from './backend/services/cms/payloadContentStore.js';
 import { waitForPayloadContent } from './backend/services/cms/payloadStartup.js';
 import { createAuthRepository } from './backend/auth/repository.js';
-import { createAuthService, AuthenticationError } from './backend/auth/service.js';
+import { createAuthService, AuthenticationError, RegistrationError } from './backend/auth/service.js';
 import { DtoValidationError } from './backend/auth/dto.js';
 import { REFRESH_COOKIE_NAME, USER_ROLES, refreshCookieOptions } from './backend/auth/config.js';
 import { authenticateAccessToken, authorizeRoles, parseCookieHeader, serializeCookie } from './backend/auth/middleware.js';
 import { AnalyticsValidationError, normalizePageView } from './backend/analytics/event.js';
+import { createRateLimit } from './backend/security/rateLimit.js';
 
 dotenv.config({ path: ['.env', 'cms/.env'] });
 
 const app = express();
+app.disable('x-powered-by');
+app.use(helmet());
 app.use(cors({ origin: process.env.PORTAL_ORIGIN || 'http://localhost:5173', credentials: true }));
 app.use(express.json());
+app.use('/api/auth', (_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store');
+  next();
+});
 
 const authRepository = await createAuthRepository();
 const authService = createAuthService(authRepository);
 const analyticsRateLimits = new Map();
+const loginRateLimit = createRateLimit({ limit: 10, windowMs: 15 * 60_000 });
+const registrationRateLimit = createRateLimit({ limit: 5, windowMs: 60 * 60_000 });
+const refreshRateLimit = createRateLimit({ limit: 60, windowMs: 15 * 60_000 });
+const routePreviewRateLimit = createRateLimit({ limit: 30, windowMs: 60_000, message: 'Rota istek sınırı aşıldı.' });
 
 const ok = (data, extra = {}) => ({ success: true, data, ...extra });
 const fail = (res, msg, code = 500) => res.status(code).json({ success: false, error: msg });
 const refreshCookie = (token, overrides = {}) => serializeCookie(REFRESH_COOKIE_NAME, token, { ...refreshCookieOptions(), ...overrides });
 const authError = (res, error) => {
   if (error instanceof DtoValidationError) return res.status(400).json({ success: false, error: error.message, fields: error.fields });
+  if (error instanceof RegistrationError) return res.status(409).json({ success: false, error: error.message, fields: error.fields });
   if (error instanceof AuthenticationError) return fail(res, error.message, 401);
   console.error('Kimlik doğrulama hatası:', error);
   return fail(res, 'Giriş işlemi tamamlanamadı.', 500);
 };
 
 // --- Kimlik Doğrulama ---
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/register', registrationRateLimit, async (req, res) => {
+  try {
+    const result = await authService.register(req.body);
+    res.setHeader('Set-Cookie', refreshCookie(result.refreshToken));
+    return res.status(201).json(ok(result.response));
+  } catch (error) {
+    return authError(res, error);
+  }
+});
+
+app.post('/api/auth/login', loginRateLimit, async (req, res) => {
   try {
     const result = await authService.login(req.body);
+    if (result.refreshToken) res.setHeader('Set-Cookie', refreshCookie(result.refreshToken));
+    return res.json(ok(result.response));
+  } catch (error) {
+    return authError(res, error);
+  }
+});
+
+app.post('/api/auth/two-factor/verify', loginRateLimit, async (req, res) => {
+  try {
+    const result = await authService.completeTwoFactor(req.body);
     res.setHeader('Set-Cookie', refreshCookie(result.refreshToken));
     return res.json(ok(result.response));
   } catch (error) {
@@ -66,7 +99,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.post('/api/auth/refresh', async (req, res) => {
+app.post('/api/auth/refresh', refreshRateLimit, async (req, res) => {
   try {
     const token = parseCookieHeader(req.headers.cookie)[REFRESH_COOKIE_NAME];
     const result = await authService.refresh(token);
@@ -237,12 +270,11 @@ app.get('/api/routes', async (req, res) => {
   res.json(ok(filtered, { count: filtered.length }));
 });
 
-app.post('/api/routes/preview', async (req, res) => {
+app.post('/api/routes/preview', routePreviewRateLimit, async (req, res) => {
   const preview = await buildRoadRoutePreview({
     monuments,
     stopIds: req.body?.stopIds,
-    travelMode: req.body?.travelMode,
-    visitMinutes: req.body?.visitMinutes,
+    travelMode: 'driving',
     title: req.body?.title,
   });
   res.json(ok(preview));
@@ -254,7 +286,7 @@ app.get('/api/routes/:id', async (req, res) => {
   const preview = await buildRoadRoutePreview({
     monuments,
     stopIds: route.monumentIds,
-    travelMode: route.travelMode || 'walking',
+    travelMode: 'driving',
     routeId: route.id,
     title: route.title,
   });
@@ -269,7 +301,7 @@ app.get('/api/routes/:id/geojson', async (req, res) => {
   const preview = await buildRoadRoutePreview({
     monuments,
     stopIds: route.monumentIds,
-    travelMode: route.travelMode || 'walking',
+    travelMode: 'driving',
     routeId: route.id,
     title: route.title,
   });
@@ -355,11 +387,47 @@ app.post('/api/user/favorites/:type/:id/toggle', authenticateAccessToken, author
     return res.json(ok(await authRepository.toggleFavorite(req.auth.user.id, req.params.type, numericId)));
   } catch (error) { return next(error); }
 });
-app.get('/api/user/routes', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (_req, res) => res.json(ok(getUserRoutes())));
-app.post('/api/user/routes', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), (req, res) => {
-  const route = saveUserRoute(req.body || {}, monuments);
-  if (!route) return fail(res, 'Rota adı ve en az bir geçerli durak gereklidir', 400);
-  return res.status(201).json(ok(route));
+async function normalizeUserRouteInput(payload = {}) {
+  const title = String(payload.title || '').trim().replace(/\s+/g, ' ').slice(0, 120);
+  const selectedIds = [...new Set((Array.isArray(payload.selectedIds) ? payload.selectedIds : []).map(Number))]
+    .filter((id) => Number.isInteger(id) && monuments.some((item) => Number(item.id) === id));
+  if (title.length < 2 || !selectedIds.length || selectedIds.length > 50) return null;
+  const preview = await buildRoadRoutePreview({ monuments, stopIds: selectedIds, travelMode: 'driving', title });
+  return { title, selectedIds, travelMode: 'driving', preview };
+}
+
+app.get('/api/user/routes', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res, next) => {
+  try { return res.json(ok(await authRepository.listUserRoutes(req.auth.user.id))); } catch (error) { return next(error); }
+});
+app.get('/api/user/routes/:id', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res, next) => {
+  try {
+    if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) return fail(res, 'Rota kimliği geçersiz.', 400);
+    const route = await authRepository.findUserRoute(req.auth.user.id, req.params.id);
+    return route ? res.json(ok(route)) : fail(res, 'Kayıtlı rota bulunamadı.', 404);
+  } catch (error) { return next(error); }
+});
+app.post('/api/user/routes', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res, next) => {
+  try {
+    const input = await normalizeUserRouteInput(req.body);
+    if (!input) return fail(res, 'Rota adı ve en az bir geçerli durak gereklidir.', 400);
+    return res.status(201).json(ok(await authRepository.createUserRoute(req.auth.user.id, input)));
+  } catch (error) { return next(error); }
+});
+app.patch('/api/user/routes/:id', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res, next) => {
+  try {
+    if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) return fail(res, 'Rota kimliği geçersiz.', 400);
+    const input = await normalizeUserRouteInput(req.body);
+    if (!input) return fail(res, 'Rota adı ve en az bir geçerli durak gereklidir.', 400);
+    const route = await authRepository.updateUserRoute(req.auth.user.id, req.params.id, input);
+    return route ? res.json(ok(route)) : fail(res, 'Güncellenecek rota bulunamadı.', 404);
+  } catch (error) { return next(error); }
+});
+app.delete('/api/user/routes/:id', authenticateAccessToken, authorizeRoles(USER_ROLES.CITIZEN), async (req, res, next) => {
+  try {
+    if (!/^[0-9a-f-]{36}$/i.test(req.params.id)) return fail(res, 'Rota kimliği geçersiz.', 400);
+    const deleted = await authRepository.deleteUserRoute(req.auth.user.id, req.params.id);
+    return deleted ? res.json(ok({ id: req.params.id, deleted: true })) : fail(res, 'Silinecek rota bulunamadı.', 404);
+  } catch (error) { return next(error); }
 });
 
 app.get('/api/news', (_req, res) => {
@@ -402,12 +470,8 @@ app.get('/api/health', (_req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString(), authRepository: authRepository.kind, contentRepository: getPayloadContentStatus(), routingProvider: routingProviderMetadata() });
 });
 
-// CRUD placeholder - gerçek DB entegrasyonu için
-app.post('/api/locations', (_req, res) => res.json(ok(null, { message: 'Konum eklendi' })));
-app.put('/api/locations/:id', (req, res) => res.json(ok(null, { message: `Konum ${req.params.id} güncellendi` })));
-app.delete('/api/locations/:id', (req, res) => res.json(ok(null, { message: `Konum ${req.params.id} silindi` })));
-
 const PORT = process.env.PORT || 5000;
+const HOST = process.env.HOST || '127.0.0.1';
 try {
   console.log('⏳ Payload CMS ve PostgreSQL içerikleri bekleniyor...');
   const contentStatus = await waitForPayloadContent({
@@ -417,7 +481,7 @@ try {
     },
   });
 
-  app.listen(PORT, () => {
+  app.listen(PORT, HOST, () => {
     console.log(`✅ Payload içeriği hazır (${contentStatus.startupAttempts} deneme, ${contentStatus.counts.monuments} eser)`);
     console.log(`\n🚀 TKMBS Backend: http://localhost:${PORT}`);
     console.log(`📍 GeoJSON: http://localhost:${PORT}/api/locations`);

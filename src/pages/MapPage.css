@@ -394,8 +394,11 @@
 @media(max-width:900px){.map-route-start{top:12px;right:12px}.map-route-planner{right:12px;bottom:12px;left:12px}.app-shell:has(.heritage-map-page.route-planning)>.sidebar-layout-toggle{display:none}}
 @media(max-width:700px){.map-route-planner{grid-template-columns:1fr 1fr}.map-route-stops{grid-column:1/-1}.map-route-summary{flex-wrap:wrap}.map-route-summary em{flex:1 1 180px}.heritage-map-page.route-planning .map-type-toggle{bottom:204px}}
 @media(max-width:520px){.map-route-start{top:62px;min-height:39px;padding:0 12px}.map-route-planner{padding:10px;grid-template-columns:1fr;gap:8px}.map-route-mode-buttons,.map-route-stops,.map-route-summary{grid-column:1}.map-route-stops>button{min-width:135px}.map-route-summary>span{min-width:calc(50% - 5px)}.map-route-summary em{flex-basis:100%}.map-route-summary>button{flex:1}.heritage-map-page.route-planning .map-type-toggle{display:none}}
+
+.map-route-readonly-stop{min-width:145px;padding:6px 9px;display:flex;align-items:center;gap:7px;color:#274865;border:1px solid #dce5ed;border-radius:8px;background:#f7fafc;font-size:12px;font-weight:700;white-space:nowrap}.map-route-readonly-stop i{width:22px;height:22px;display:grid;place-items:center;color:#fff;border-radius:50%;background:#1768b2;font-size:11px;font-style:normal}.map-route-planner.route-view-only{border-color:#9ebbd7}
 .map-route-summary>.map-route-google{min-height:36px;padding:0 13px;display:inline-flex;align-items:center;justify-content:center;color:#174b7b;border:1px solid #bfd0df;border-radius:7px;background:#fff;font-size:12px;font-weight:800;white-space:nowrap}
 .map-route-summary>.map-route-google:hover{border-color:#6e9ac2;background:#f3f8fc}
 @media(max-width:1200px){.map-route-summary{gap:7px}.map-route-summary>span{min-width:90px;padding-right:8px}}
 @media(max-width:700px){.heritage-map-page.route-planning .map-type-toggle{bottom:248px}}
 @media(max-width:520px){.map-route-summary>.map-route-google,.map-route-summary>button{flex:1 1 calc(50% - 5px)}}
+.map-route-summary>.map-route-google{min-height:42px;padding:0 17px;color:#fff;border-color:#0b4f91;border-radius:9px;background:linear-gradient(135deg,#0b5ba5,#07386e);box-shadow:0 6px 16px rgb(4 45 91/20%);font-size:13px}.map-route-summary>.map-route-google:hover{color:#fff;border-color:#0d68bb;background:linear-gradient(135deg,#0d68bb,#08427f)}

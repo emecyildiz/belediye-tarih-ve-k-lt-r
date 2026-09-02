@@ -7,7 +7,7 @@ const stops = [
   { coordinates: [36.208, 36.17] },
 ];
 
-test('GraphHopper yaya profilini ve GeoJSON yol geometrisini kullanır', async () => {
+test('GraphHopper yalnızca araç profilini ve GeoJSON yol geometrisini kullanır', async () => {
   clearGraphHopperRoutingCache();
   let requestedUrl = '';
   const result = await requestGraphHopperRoute({
@@ -31,7 +31,8 @@ test('GraphHopper yaya profilini ve GeoJSON yol geometrisini kullanır', async (
     },
   });
   const url = new URL(requestedUrl);
-  assert.equal(url.searchParams.get('profile'), 'foot');
+  assert.equal(url.searchParams.get('profile'), 'car');
+  assert.equal(result.requestedTravelMode, 'driving');
   assert.deepEqual(url.searchParams.getAll('point'), ['36.2021,36.1605', '36.208,36.17']);
   assert.equal(result.distanceKm, 1.45);
   assert.equal(result.travelMinutes, 17);
@@ -39,7 +40,7 @@ test('GraphHopper yaya profilini ve GeoJSON yol geometrisini kullanır', async (
   assert.equal(result.durationMethod, 'routing-profile');
 });
 
-test('araç ve bisiklet istekleri birbirinden farklı profile gider', async () => {
+test('eski ulaşım türleri gönderilse de araç profili kullanılır', async () => {
   clearGraphHopperRoutingCache();
   const profiles = [];
   const fetchImpl = async (url) => {
@@ -48,5 +49,5 @@ test('araç ve bisiklet istekleri birbirinden farklı profile gider', async () =
   };
   await requestGraphHopperRoute({ stops, travelMode: 'driving', fetchImpl, baseUrl: 'http://routing.test' });
   await requestGraphHopperRoute({ stops, travelMode: 'cycling', fetchImpl, baseUrl: 'http://routing.test' });
-  assert.deepEqual(profiles, ['car', 'bike']);
+  assert.deepEqual(profiles, ['car']);
 });

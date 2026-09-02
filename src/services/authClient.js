@@ -3,6 +3,7 @@ const CMS_BASE = (import.meta.env.VITE_CMS_URL || 'http://localhost:3000').repla
 
 let accessToken = null;
 let refreshRequest = null;
+let cmsLogoutRequest = null;
 
 export class ApiRequestError extends Error {
   constructor(message, status = 0, fields = {}) {
@@ -40,6 +41,21 @@ async function rawAuthRequest(path, options = {}) {
 
 export async function loginSession(credentials) {
   const session = await rawAuthRequest('/auth/login', { method: 'POST', body: JSON.stringify(credentials) });
+  if (session.accessToken) setAccessToken(session.accessToken);
+  return session;
+}
+
+export async function registerSession(registration) {
+  const session = await rawAuthRequest('/auth/register', { method: 'POST', body: JSON.stringify(registration) });
+  if (session.accessToken) setAccessToken(session.accessToken);
+  return session;
+}
+
+export async function completeTwoFactorSession(challengeToken, code) {
+  const session = await rawAuthRequest('/auth/two-factor/verify', {
+    method: 'POST',
+    body: JSON.stringify({ challengeToken, code }),
+  });
   setAccessToken(session.accessToken);
   return session;
 }
@@ -74,14 +90,14 @@ async function parseCmsResponse(response) {
   return payload;
 }
 
-export async function loginCmsSession(credentials, expectedUser) {
+export async function loginCmsSession(credentials, expectedUser, twoFactorProof) {
   let response;
   try {
     response = await fetch(`${CMS_BASE}/api/users/login`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
+      body: JSON.stringify({ ...credentials, twoFactorProof }),
     });
   } catch {
     throw new ApiRequestError('Payload içerik yönetimine ulaşılamadı. Payload ve PostgreSQL servislerini kontrol edin.', 503);
@@ -95,11 +111,20 @@ export async function loginCmsSession(credentials, expectedUser) {
 }
 
 export async function logoutCmsSession() {
-  try {
-    await fetch(`${CMS_BASE}/api/users/logout`, { method: 'POST', credentials: 'include' });
-  } catch {
-    // Portal çıkışı, CMS geçici olarak kapalı olsa da tamamlanır.
+  if (!cmsLogoutRequest) {
+    cmsLogoutRequest = (async () => {
+      try {
+        const current = await fetch(`${CMS_BASE}/api/users/me`, { credentials: 'include' });
+        if (!current.ok) return;
+        const session = await current.json().catch(() => ({}));
+        if (!session.user) return;
+        await fetch(`${CMS_BASE}/api/users/logout`, { method: 'POST', credentials: 'include' });
+      } catch {
+        // Portal çıkışı, CMS geçici olarak kapalı olsa da tamamlanır.
+      }
+    })().finally(() => { cmsLogoutRequest = null; });
   }
+  return cmsLogoutRequest;
 }
 
 export function getCmsAdminUrl() {

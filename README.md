@@ -26,11 +26,11 @@ Modern bir belediye web portalı projesi, **React**, **Node.js**, **OpenLayers**
 Frontend:
 ├── React 18.2          # UI Framework
 ├── OpenLayers 9.0      # Harita kütüphanesi
-├── Vite 5.0            # Build tool (hızlı geliştirme)
+├── Vite 8.2            # Build tool (hızlı geliştirme)
 └── CSS3                # Styling
 
 Backend:
-├── Node.js 16+         # Runtime
+├── Node.js 20+         # Runtime
 ├── Express 4.18        # Web framework
 ├── CORS 2.8            # Cross-origin middleware
 └── JSON                # Data format
@@ -72,6 +72,7 @@ Payload CMS, ana Vite uygulamasından bağımsız olarak `cms/` klasöründe ça
 npm --prefix cms install
 npm --prefix cms run db:start
 npm run cms:seed
+npm run cms:media:migrate
 
 # Portal + Express API + Payload CMS
 npm run dev:cms
@@ -81,9 +82,11 @@ npm run dev:cms
 - **Payload REST API**: http://localhost:3000/api
 - **Özel Yönetim Özeti**: http://localhost:5173/yonetim-paneli
 
-İlk açılışta `/admin` ekranından gerçek yönetici hesabı oluşturulur. Eser, rota, etkinlik, bildirim ve portal ayarları Payload üzerinden yönetilir. `cms:seed` komutu aynı kayıtları çoğaltmaz; `legacyId` alanıyla mevcut veriyi günceller.
+İlk yönetici hesabı herkese açık `/admin` ekranından oluşturulmaz. Güvenilir kurulum ortamında geçici olarak `AUTH_SEED_DEMO_USERS=true` ve en az 12 karakterli `DEMO_USER_PASSWORD` tanımlanıp `cms:seed` çalıştırılır; ilk giriş ve parola değişiminden sonra seed ayarı tekrar `false` yapılır. Eser, rota, etkinlik, bildirim ve portal ayarları Payload üzerinden yönetilir. `cms:seed` komutu aynı kayıtları çoğaltmaz; `legacyId` alanıyla mevcut veriyi günceller.
 
-Express yönetim API'si önce Payload'a bağlanır. CMS geçici olarak kapalıysa sunum ekranının çökmemesi için yerel örnek veri yedek olarak kullanılır. Payload doğrudan PostgreSQL adaptörünü kullanır; gerçek belediye veritabanı geldiğinde yalnızca gizli `DATABASE_URL` değeri değiştirilir ve portalın GeoJSON sözleşmesi korunur.
+Express API içerikleri Payload ve PostgreSQL'den okur; bağlantı kurulmadan içerik isteklerini hazır kabul etmez. Payload doğrudan PostgreSQL adaptörünü kullanır; gerçek belediye veritabanı geldiğinde yalnızca gizli `DATABASE_URL` değeri değiştirilir ve portalın GeoJSON sözleşmesi korunur.
+
+Eser, rota ve etkinlik görselleri Payload Medya koleksiyonuna ilişkilidir. Geliştirmede dosyalar `cms/media` klasöründe, alternatif metin, kaynak/lisans bilgileri ve içerik ilişkileri PostgreSQL'de tutulur. Belediye kurulumunda medya klasörü kalıcı depolama ve yedekleme planına dahil edilmelidir.
 
 ## 🔐 Giriş, Roller ve Token Yapısı
 
@@ -96,8 +99,14 @@ Portal kimlik doğrulaması kısa ömürlü access token ve döndürülen refres
 - Refresh token veritabanına açık biçimde değil, SHA-256 özetiyle kaydedilir ve her yenilemede değiştirilir.
 - Parolalar `scrypt` ile tuzlanarak özetlenir.
 - İstek ve yanıtlar DTO eşleyicileri üzerinden doğrulanıp güvenli alanlara dönüştürülür.
+- Yönetici ve editör hesaplarında Google Authenticator uyumlu TOTP iki adımlı doğrulama zorunludur.
+- İlk yönetim girişinde QR kod gösterilir; sonraki girişlerde 30 saniyelik 6 haneli kod doğrulanmadan access/refresh token veya Payload oturumu üretilmez.
+- TOTP anahtarı PostgreSQL'de açık metin tutulmaz; AES-256-GCM ile şifrelenir. Aynı doğrulama kodunun tekrar kullanılmasına izin verilmez.
+- İlk kurulumda sekiz tek kullanımlık kurtarma kodu oluşturulur; veritabanında yalnızca imzalı özetleri saklanır.
+- Beş hatalı 2FA denemesi hesabı beş dakika kilitler. Kurulum tamamlanınca önceki portal oturumları iptal edilir.
+- Giriş, 2FA doğrulama, kurtarma kodu ve yönetici sıfırlama olayları parola/IP saklanmadan `tkmbs_security_audit` tablosuna yazılır.
 
-`DATABASE_URL` tanımlıysa `tkmbs_portal_users` ve `tkmbs_auth_refresh_sessions` tabloları PostgreSQL üzerinde otomatik hazırlanır. PostgreSQL geliştirme sırasında kapalıysa sunumun tamamen durmaması için bellek içi örnek depo kullanılır; production ortamında veya `AUTH_REQUIRE_DATABASE=true` iken bu yedeğe izin verilmez.
+`tkmbs_portal_users` ve `tkmbs_auth_refresh_sessions` tabloları PostgreSQL üzerinde otomatik hazırlanır. Veritabanı bağlantısı yoksa API güvenli biçimde başlatılmaz. Bellek içi örnek depo yalnızca yerel testte `AUTH_ALLOW_IN_MEMORY=true` ve güçlü bir `DEMO_USER_PASSWORD` birlikte verilerek açıkça etkinleştirilebilir.
 
 Payload ile portal kimlik tabloları aynı PostgreSQL veritabanını paylaşır. Payload adaptöründe otomatik geliştirme şema itmesi kapalıdır; böylece Payload kendisine ait olmayan `tkmbs_*` tablolarını silmez. Payload şema değişiklikleri `npm run cms:migrate:create` ve `npm run cms:migrate` komutlarıyla uygulanır.
 
@@ -107,9 +116,11 @@ Geliştirme hesapları `.env` içindeki `DEMO_USER_PASSWORD` değerini kullanır
 - `editor@tkmbs.local` — içerik editörü
 - `admin@tkmbs.local` — yönetici
 
-Gerçek teslim ortamında `AUTH_SEED_DEMO_USERS=false` yapılmalı, örnek hesaplar kaldırılmalı ve güçlü bir `AUTH_ACCESS_SECRET` tanımlanmalıdır.
+Gerçek teslim ortamında `AUTH_SEED_DEMO_USERS=false` yapılmalı, örnek hesaplar kaldırılmalı ve birbirinden farklı, en az 32 karakterli `AUTH_ACCESS_SECRET`, `TWO_FACTOR_SECRET` ve `PAYLOAD_SECRET` tanımlanmalıdır.
 
-Yönetici veya editör portal giriş formunu kullandığında hesap hem portal API'sinde hem Payload'da doğrulanır. İki sistemdeki e-posta ve rol aynı değilse giriş reddedilir. Başarılı yönetim girişinde Payload kendi `HttpOnly` oturum çerezini üretir ve kullanıcı doğrudan `http://localhost:3000/admin` içerik yönetimine gönderilir. Vatandaş hesabı Payload'a gönderilmez ve portal profilinde kalır.
+Yönetici veya editör portal giriş formunu kullandığında parola ve Google Authenticator kodu doğrulanır; ardından hesap Payload'da da doğrulanır. İki sistemdeki e-posta ve rol aynı değilse giriş reddedilir. Portal API'sinin yalnızca 60 saniye geçerli imzalı 2FA kanıtı olmadan Payload'ın doğrudan giriş uç noktası oturum açmaz. Başarılı yönetim girişinde Payload kendi `HttpOnly` oturum çerezini üretir ve kullanıcı doğrudan `http://localhost:3000/admin` içerik yönetimine gönderilir. Vatandaş hesabı Payload'a gönderilmez ve portal profilinde kalır.
+
+Payload içindeki **Portal Kullanıcıları** ekranı PostgreSQL hesaplarını canlı listeler. Yalnızca yönetici rolü hesapları aktif/pasif yapabilir, 2FA kurulumunu sıfırlayabilir ve bu işlemler sırasında açık portal/Payload oturumları kapatılır.
 
 ## 📁 Proje Yapısı
 

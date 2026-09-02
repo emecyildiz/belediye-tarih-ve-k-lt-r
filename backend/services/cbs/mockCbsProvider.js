@@ -1,8 +1,4 @@
-const travelSpeeds = {
-  walking: 4.5,
-  cycling: 14,
-  driving: 35,
-};
+const DRIVING_SPEED_KMH = 35;
 
 function distanceInKm(first, second) {
   const toRadians = (value) => value * Math.PI / 180;
@@ -15,7 +11,8 @@ function distanceInKm(first, second) {
   return 6371 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
 }
 
-export function buildRoutePreview({ monuments, stopIds = [], travelMode = 'walking', visitMinutes = 25, routeId = 'preview', title = 'Rota Önizlemesi' }) {
+export function buildRoutePreview({ monuments, stopIds = [], routeId = 'preview', title = 'Rota Önizlemesi' }) {
+  const travelMode = 'driving';
   const index = new Map(monuments.map((item) => [Number(item.id), item]));
   const stops = stopIds
     .map((id) => index.get(Number(id)))
@@ -30,15 +27,13 @@ export function buildRoutePreview({ monuments, stopIds = [], travelMode = 'walki
       district: item.district,
       image: item.image,
       coordinates: item.coordinates,
-      visitMinutes,
     }));
 
   const distanceKm = stops.slice(1).reduce((total, stop, indexValue) => (
     total + distanceInKm(stops[indexValue].coordinates, stop.coordinates)
   ), 0);
-  const speed = travelSpeeds[travelMode] || travelSpeeds.walking;
-  const travelMinutes = distanceKm > 0 ? Math.round((distanceKm / speed) * 60) : 0;
-  const durationMinutes = travelMinutes + stops.length * visitMinutes;
+  const travelMinutes = distanceKm > 0 ? Math.round((distanceKm / DRIVING_SPEED_KMH) * 60) : 0;
+  const durationMinutes = travelMinutes;
   const lineCoordinates = stops.map((item) => [item.coordinates[1], item.coordinates[0]]);
 
   const features = [];

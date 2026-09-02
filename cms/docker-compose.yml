@@ -5,9 +5,9 @@ services:
     environment:
       POSTGRES_DB: tkmbs
       POSTGRES_USER: tkmbs
-      POSTGRES_PASSWORD: tkmbs_dev_password
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD cms/.env dosyasında tanımlanmalıdır}
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:

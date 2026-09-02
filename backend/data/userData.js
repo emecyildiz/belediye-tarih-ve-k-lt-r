@@ -98,8 +98,7 @@ export function saveUserRoute(payload, monuments) {
     userId: demoUserData.userId,
     title: String(payload.title).trim(),
     selectedIds,
-    travelMode: ['walking', 'cycling', 'driving'].includes(payload.travelMode) ? payload.travelMode : 'walking',
-    visitMinutes: Number(payload.visitMinutes) || 25,
+    travelMode: 'driving',
     preview: payload.preview || null,
     createdAt: new Date().toISOString(),
   };

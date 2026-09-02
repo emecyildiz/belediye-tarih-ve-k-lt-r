@@ -1,12 +1,12 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated, publicRead } from '../access'
+import { adminsOnly, authenticated, publishedOrAuthenticated } from '../access'
 
 export const CulturalRoutes: CollectionConfig = {
   slug: 'cultural-routes',
   labels: { singular: 'Kültürel Rota', plural: 'Kültürel Rotalar' },
   admin: { group: 'İçerik Yönetimi', useAsTitle: 'title', defaultColumns: ['title', 'district', 'difficulty', 'updatedAt'] },
-  access: { read: publicRead, create: authenticated, update: authenticated, delete: authenticated },
+  access: { read: publishedOrAuthenticated, create: authenticated, update: authenticated, delete: adminsOnly },
   versions: { drafts: true, maxPerDoc: 20 },
   fields: [
     { name: 'legacyId', label: 'Portal Kayıt No', type: 'number', required: true, unique: true, index: true },
@@ -30,8 +30,9 @@ export const CulturalRoutes: CollectionConfig = {
         { name: 'difficultyLabel', label: 'Zorluk Başlığı', type: 'text' },
       ],
     },
-    { name: 'travelMode', label: 'Ulaşım Türü', type: 'select', defaultValue: 'walking', options: [{ label: 'Yürüyüş', value: 'walking' }, { label: 'Bisiklet', value: 'cycling' }, { label: 'Araç', value: 'driving' }] },
-    { name: 'image', label: 'Kapak Görseli URL', type: 'text' },
+    { name: 'travelMode', label: 'Ulaşım Türü', type: 'select', defaultValue: 'driving', options: [{ label: 'Araç', value: 'driving' }], admin: { readOnly: true, description: 'Portal rotaları yalnızca araç profiliyle hesaplanır.' } },
+    { name: 'imageMedia', label: 'Kapak Görseli', type: 'upload', relationTo: 'media', admin: { description: 'Rota kartlarında ve ayrıntı sayfasında kullanılacak görsel.' } },
+    { name: 'image', label: 'Eski Kapak Görseli URL', type: 'text', admin: { hidden: true } },
     { name: 'color', label: 'Harita Rengi', type: 'text', defaultValue: '#2563eb' },
     { name: 'featured', label: 'Öne Çıkan', type: 'checkbox', defaultValue: false },
     { name: 'monuments', label: 'Rota Durakları', type: 'relationship', relationTo: 'monuments', hasMany: true, required: true, minRows: 1, admin: { description: 'Durak sırası bu listedeki sıraya göre oluşturulur.' } },

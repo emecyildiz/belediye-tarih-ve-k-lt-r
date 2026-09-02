@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../auth/useAuth';
 import api from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
 import { IconClock, IconPin, IconRoute, IconSearch } from '../components/common/Icons';
 import { buildGoogleMapsDirectionsUrl } from '../utils/googleMaps';
+import GoogleDirectionsButton from '../components/common/GoogleDirectionsButton';
 import './RouteBuilderPage.css';
 
-const modes = [{ key: 'walking', label: 'Yürüyüş', icon: '🚶' }, { key: 'cycling', label: 'Bisiklet', icon: '🚲' }, { key: 'driving', label: 'Araç', icon: '🚗' }];
 const ROUTE_DRAFT_KEY = 'tkmbs_route_builder_draft';
+const TRAVEL_MODE = 'driving';
 
 function formatMinutes(minutes = 0) {
   const hours = Math.floor(minutes / 60);
@@ -24,25 +25,31 @@ export default function RouteBuilderPage() {
   const [params] = useSearchParams();
   const sourceRoute = params.get('route');
   const sourceStops = params.get('stops');
+  const savedRouteId = params.get('saved');
   const returnTo = `${location.pathname}${location.search}`;
   const [monuments, setMonuments] = useState([]);
   const [selectedIds, setSelectedIds] = useState([]);
   const [title, setTitle] = useState('Yeni Kültür Rotası');
-  const [travelMode, setTravelMode] = useState('walking');
-  const [visitMinutes, setVisitMinutes] = useState(25);
   const [query, setQuery] = useState('');
   const [preview, setPreview] = useState(null);
   const [routingState, setRoutingState] = useState('idle');
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
+  const [persistedRouteId, setPersistedRouteId] = useState(null);
+  const [savedSignature, setSavedSignature] = useState(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [mapType, setMapType] = useState('map');
 
   useEffect(() => {
+    if (savedRouteId && authLoading) return undefined;
+    if (savedRouteId && !user) {
+      navigate(`/giris?returnTo=${encodeURIComponent(returnTo)}`, { replace: true });
+      return undefined;
+    }
     let active = true;
-    Promise.all([api.getMonuments(), sourceRoute ? api.getRoute(sourceRoute) : Promise.resolve(null)])
-      .then(([items, route]) => {
+    Promise.all([api.getMonuments(), sourceRoute ? api.getRoute(sourceRoute) : Promise.resolve(null), savedRouteId ? api.getCustomRoute(savedRouteId) : Promise.resolve(null)])
+      .then(([items, route, storedRoute]) => {
         if (!active) return;
         setMonuments(items);
         let draft = null;
@@ -54,16 +61,22 @@ export default function RouteBuilderPage() {
           // Gizli/katı tarayıcı modlarında depolama kapalı olabilir.
         }
 
-        if (draft) {
+        if (storedRoute) {
+          const storedIds = [...new Set((storedRoute.selectedIds || []).map(Number).filter(Number.isInteger))]
+            .filter((id) => items.some((item) => item.id === id));
+          const storedTitle = String(storedRoute.title || 'Kayıtlı Rotam');
+          setTitle(storedTitle);
+          setSelectedIds(storedIds);
+          setPreview(storedRoute.preview || null);
+          setPersistedRouteId(String(storedRoute.id));
+          setSavedSignature(JSON.stringify([storedTitle.trim(), storedIds]));
+        } else if (draft) {
           const draftIds = [...new Set((draft.selectedIds || []).map(Number).filter(Number.isInteger))];
           setTitle(String(draft.title || 'Yeni Kültür Rotası'));
           setSelectedIds(draftIds.filter((id) => items.some((item) => item.id === id)));
-          setTravelMode(modes.some((mode) => mode.key === draft.travelMode) ? draft.travelMode : 'walking');
-          setVisitMinutes(Number(draft.visitMinutes) || 25);
         } else if (route) {
-          setTitle(`${route.title} - Kopya`);
+          setTitle(`${route.title} - Kişisel Rotam`);
           setSelectedIds((route.stops || []).map((item) => item.monumentId));
-          setTravelMode(route.travelMode || 'walking');
         } else if (sourceStops) {
           const requestedIds = [...new Set(sourceStops.split(',').map(Number).filter(Number.isInteger))];
           setSelectedIds(requestedIds.filter((id) => items.some((item) => item.id === id)));
@@ -71,13 +84,13 @@ export default function RouteBuilderPage() {
       })
       .finally(() => active && setLoading(false));
     return () => { active = false; };
-  }, [returnTo, sourceRoute, sourceStops]);
+  }, [authLoading, navigate, returnTo, savedRouteId, sourceRoute, sourceStops, user]);
 
   useEffect(() => {
     let active = true;
     const timer = setTimeout(() => {
       setRoutingState('loading');
-      api.previewRoute({ stopIds: selectedIds, travelMode, visitMinutes: Number(visitMinutes), title })
+      api.previewRoute({ stopIds: selectedIds, travelMode: TRAVEL_MODE, title })
         .then((data) => {
           if (!active) return;
           setPreview(data);
@@ -89,11 +102,12 @@ export default function RouteBuilderPage() {
         });
     }, 180);
     return () => { active = false; clearTimeout(timer); };
-  }, [selectedIds, travelMode, visitMinutes, title]);
+  }, [selectedIds, title]);
 
   const selected = useMemo(() => selectedIds.map((id) => monuments.find((item) => item.id === id)).filter(Boolean), [selectedIds, monuments]);
-  const googleMapsUrl = useMemo(() => buildGoogleMapsDirectionsUrl(selected, travelMode), [selected, travelMode]);
-  const totalVisitMinutes = Math.max(0, Number(preview?.durationMinutes || 0) - Number(preview?.travelMinutes || 0));
+  const currentSignature = useMemo(() => JSON.stringify([title.trim(), selectedIds]), [title, selectedIds]);
+  const hasUnsavedChanges = persistedRouteId ? currentSignature !== savedSignature : selectedIds.length > 0;
+  const googleMapsUrl = useMemo(() => buildGoogleMapsDirectionsUrl(selected), [selected]);
   const candidates = useMemo(() => monuments.filter((item) => !selectedIds.includes(item.id) && item.name.toLocaleLowerCase('tr-TR').includes(query.toLocaleLowerCase('tr-TR'))), [monuments, selectedIds, query]);
   const mapGeoJSON = useMemo(() => ({
     type: 'FeatureCollection',
@@ -115,7 +129,7 @@ export default function RouteBuilderPage() {
     setSaveError('');
     if (!user) {
       try {
-        sessionStorage.setItem(ROUTE_DRAFT_KEY, JSON.stringify({ returnTo, title, selectedIds, travelMode, visitMinutes }));
+        sessionStorage.setItem(ROUTE_DRAFT_KEY, JSON.stringify({ returnTo, title, selectedIds }));
       } catch {
         // Depolama kapalı olsa da kullanıcı giriş yapıp rota sayfasına dönebilir.
       }
@@ -125,10 +139,18 @@ export default function RouteBuilderPage() {
 
     setSaving(true);
     try {
-      const result = await api.saveCustomRoute({ title, selectedIds, travelMode, visitMinutes, preview });
+      const payload = { title, selectedIds, travelMode: TRAVEL_MODE };
+      const result = persistedRouteId
+        ? await api.updateCustomRoute(persistedRouteId, payload)
+        : await api.saveCustomRoute(payload);
       if (result) {
+        setPersistedRouteId(String(result.id));
+        setSavedSignature(JSON.stringify([result.title.trim(), result.selectedIds]));
+        setTitle(result.title);
+        setSelectedIds(result.selectedIds);
+        setPreview(result.preview || preview);
         setSaved(true);
-        setTimeout(() => setSaved(false), 2200);
+        if (!persistedRouteId) navigate(`/rota-olustur?saved=${encodeURIComponent(result.id)}`, { replace: true });
       }
     } catch (error) {
       setSaveError(error?.message || 'Rota kaydedilemedi. Lütfen tekrar deneyin.');
@@ -141,22 +163,17 @@ export default function RouteBuilderPage() {
   return (
     <div className="route-builder-page">
       <nav className="route-builder-breadcrumb"><Link to="/">Ana Sayfa</Link><b>›</b><Link to="/kultur-rotalari">Kültürel Rotalar</Link><b>›</b><span>Rota Oluştur</span></nav>
-      <header className="route-builder-header"><div><span>GEZİNİ PLANLA</span><h1>Kendi Rotanı Oluştur</h1><p>Görmek istediğiniz yerleri seçin, durak sırasını belirleyin ve gezi planınızı hazırlayın.</p></div><div className="route-builder-save-area"><div className="route-builder-actions">{googleMapsUrl && <a href={googleMapsUrl} target="_blank" rel="noreferrer">Google Haritalar</a>}<button type="button" className="primary" onClick={saveRoute} disabled={!selectedIds.length || authLoading || saving}>{saving ? 'Kaydediliyor…' : saved ? 'Kaydedildi ✓' : 'Rotayı Kaydet'}</button></div>{saveError && <small className="route-builder-save-error" role="alert">{saveError}</small>}</div></header>
+      <header className="route-builder-header"><div><span>GEZİNİ PLANLA</span><h1>Kendi Rotanı Oluştur</h1><p>Görmek istediğiniz yerleri seçin, durak sırasını belirleyin ve gezi planınızı hazırlayın.</p></div><div className="route-builder-save-area"><div className="route-builder-actions"><button type="button" className="primary" onClick={saveRoute} disabled={!selectedIds.length || title.trim().length < 2 || authLoading || saving || (persistedRouteId && !hasUnsavedChanges)}>{saving ? 'Kaydediliyor…' : persistedRouteId && !hasUnsavedChanges ? 'Rotalarımda Kayıtlı ✓' : persistedRouteId ? 'Değişiklikleri Kaydet' : 'Rotalarıma Kaydet'}</button></div>{saved && !hasUnsavedChanges && <small className="route-builder-save-success">Değişiklikler hesabınıza kaydedildi.</small>}{saveError && <small className="route-builder-save-error" role="alert">{saveError}</small>}</div></header>
 
       <section className="route-builder-summary">
         <article><IconRoute size={18} /><div><small>Mesafe</small><strong>{preview?.distanceKm || 0} km</strong></div></article>
         <article><IconClock size={18} /><div><small>Yol süresi</small><strong>{formatMinutes(preview?.travelMinutes)}</strong></div></article>
-        <article><IconPin size={18} /><div><small>Ziyaret süresi</small><strong>{formatMinutes(totalVisitMinutes)}</strong></div></article>
-        <article><IconClock size={18} /><div><small>Gezi toplamı</small><strong>{formatMinutes(preview?.durationMinutes)}</strong></div></article>
         <article><IconPin size={18} /><div><small>Durak</small><strong>{selectedIds.length}</strong></div></article>
       </section>
 
       <section className="route-builder-layout">
         <aside className="route-builder-controls">
-          <label className="builder-field"><span>Rota adı</span><input value={title} onChange={(event) => setTitle(event.target.value)} /></label>
-          <div className="builder-field"><span>Ulaşım türü</span><div className="travel-mode-row">{modes.map((mode) => <button type="button" key={mode.key} className={travelMode === mode.key ? 'active' : ''} onClick={() => setTravelMode(mode.key)}><i>{mode.icon}</i>{mode.label}</button>)}</div></div>
-          <label className="builder-field"><span>Her durak için ziyaret süresi</span><select value={visitMinutes} onChange={(event) => setVisitMinutes(event.target.value)}><option value="15">15 dakika</option><option value="25">25 dakika</option><option value="40">40 dakika</option><option value="60">60 dakika</option></select></label>
-
+          <label className="builder-field"><span>Rota adı</span><input maxLength="120" value={title} onChange={(event) => { setTitle(event.target.value); setSaved(false); }} /></label>
           <div className="selected-stops"><header><div><span>SEÇİLEN DURAKLAR</span><strong>{selected.length}</strong></div><small>Sürükleme yerine oklarla sırala</small></header>{selected.length ? <ol>{selected.map((item, index) => <li key={item.id}><i>{index + 1}</i><SafeImage src={item.image} alt="" /><div><strong>{item.name}</strong><span>{item.district}</span></div><div className="stop-order-actions"><button type="button" onClick={() => moveStop(index, -1)} disabled={!index} aria-label="Yukarı taşı">↑</button><button type="button" onClick={() => moveStop(index, 1)} disabled={index === selected.length - 1} aria-label="Aşağı taşı">↓</button><button type="button" className="remove" onClick={() => toggleStop(item.id)} aria-label="Durağı kaldır">×</button></div></li>)}</ol> : <p className="builder-empty">Haritadaki işaretlerden veya aşağıdaki listeden durak ekleyin.</p>}</div>
 
           <div className="candidate-stops"><header><span>DURAK EKLE</span><label><IconSearch size={14} /><input placeholder="Eser ara…" value={query} onChange={(event) => setQuery(event.target.value)} /></label></header><div>{candidates.slice(0, 20).map((item) => <button type="button" key={item.id} onClick={() => toggleStop(item.id)}><SafeImage src={item.image} alt="" /><span><strong>{item.name}</strong><small>{item.district}</small></span><b>+</b></button>)}</div></div>
@@ -164,6 +181,7 @@ export default function RouteBuilderPage() {
 
         <div className="route-builder-map"><header><div><span>CANLI ÖNİZLEME</span><h2>Haritadan durak seç</h2></div><div className="route-builder-map-help"><small>İşaretin üzerine gelerek mekânı inceleyebilir, tıklayarak rotaya ekleyebilirsiniz.</small>{selectedIds.length >= 2 && <b className={`routing-state ${routingState}`}>{routingState === 'loading' ? 'Yol hesaplanıyor…' : routingState === 'unavailable' ? 'Yol güzergâhı alınamadı' : 'Yol güzergâhı hazır'}</b>}</div></header><OpenLayersMap geojson={mapGeoJSON} routeMode fitToRouteOnce showFeatureTooltip mapType={mapType} onMapTypeChange={setMapType} onFeatureClick={(props) => props?.monumentId && toggleStop(props.monumentId)} height="690px" /></div>
       </section>
+      <GoogleDirectionsButton href={googleMapsUrl} />
     </div>
   );
 }

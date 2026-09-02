@@ -20,6 +20,30 @@
 .login-card form > button { height: 51px; color: #fff; border: 0; border-radius: 9px; background: #082f63; font-size: 17px; font-weight: 800; cursor: pointer; }
 .login-card form > button:hover { background: #0d4d8d; }
 .login-card form > button:disabled { opacity: .66; cursor: wait; }
+.login-card form > .login-secondary-button { color: #174a78; border: 1px solid #bfd0df; background: #fff; }
+.login-card form > .login-secondary-button:hover { background: #f2f7fb; }
+.two-factor-setup { margin: 22px 0 0; display: grid; justify-items: center; gap: 12px; }
+.two-factor-setup img { width: 210px; height: 210px; padding: 8px; border: 1px solid #d5e0eb; border-radius: 12px; background: #fff; }
+.two-factor-setup div { max-width: 100%; display: grid; gap: 5px; text-align: center; }
+.two-factor-setup small { color: #60768d; font-size: 13px; }
+.two-factor-setup strong { padding: 7px 10px; color: #123e69; border-radius: 7px; background: #eef5fb; font: 700 14px/1.4 monospace; overflow-wrap: anywhere; }
+.login-card input.two-factor-code { height: 58px; text-align: center; font-size: 28px; font-weight: 800; letter-spacing: .28em; }
+.login-card form > .login-text-button { height: auto; padding: 3px; color: #1261a0; background: transparent; font-size: 14px; }
+.login-card form > .login-text-button:hover { color: #083d6e; background: transparent; text-decoration: underline; }
+.recovery-code-list { margin: 22px 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.recovery-code-list code { padding: 10px; color: #113f6b; border: 1px solid #cbd9e6; border-radius: 8px; background: #f3f8fc; text-align: center; font-size: 16px; font-weight: 800; letter-spacing: .08em; }
+.recovery-continue-button { width: 100%; min-height: 51px; padding: 10px 14px; color: #fff; border: 0; border-radius: 9px; background: #082f63; font-size: 16px; font-weight: 800; cursor: pointer; }
 .login-security-note { margin-top: 20px; display: block; color: #718096; font-size: 13px; line-height: 1.5; }
+.login-register-prompt { margin: 19px 0 0 !important; color: #526a82 !important; text-align: center; font-size: 15px !important; }
+.login-register-prompt a { color: #0d579a; font-weight: 800; text-decoration: none; }
+.login-register-prompt a:hover { text-decoration: underline; }
+.register-card { width: min(100%, 650px); padding-top: 34px; padding-bottom: 34px; }
+.register-card form { margin-top: 20px; gap: 14px; }
+.register-password-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.register-password-hint { margin-top: -6px; color: #667b90; font-size: 13px; line-height: 1.45; }
+.login-card label.register-terms { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: start; gap: 10px; color: #526a82; font-size: 14px; font-weight: 600; line-height: 1.45; cursor: pointer; }
+.login-card label.register-terms input { width: 20px; height: 20px; margin: 1px 0 0; accent-color: #0d579a; }
+.register-field-error { margin-top: -9px; color: #b4232f; font-size: 13px; font-weight: 600; }
 .auth-route-loading { min-height: 55vh; display: grid; place-items: center; color: #365b7f; font-size: 17px; font-weight: 700; }
 @media (max-width: 900px) { .login-page { grid-template-columns: 1fr; } .login-intro { padding: 34px 26px; } .login-intro h1 { font-size: 34px; } .login-intro p,.login-intro li { font-size: 16px; } .login-card { padding: 34px 24px; } }
+@media (max-width: 560px) { .register-password-grid { grid-template-columns: 1fr; } .register-intro { display: none; } .register-card { padding: 28px 20px; } }

@@ -1,6 +1,6 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated, publicRead } from '../access'
+import { adminsOnly, authenticated, publishedOrAuthenticated } from '../access'
 
 export const Monuments: CollectionConfig = {
   slug: 'monuments',
@@ -10,7 +10,7 @@ export const Monuments: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['name', 'category', 'district', 'updatedAt'],
   },
-  access: { read: publicRead, create: authenticated, update: authenticated, delete: authenticated },
+  access: { read: publishedOrAuthenticated, create: authenticated, update: authenticated, delete: adminsOnly },
   versions: { drafts: true, maxPerDoc: 20 },
   fields: [
     { name: 'legacyId', label: 'Portal Kayıt No', type: 'number', required: true, unique: true, index: true },
@@ -54,8 +54,10 @@ export const Monuments: CollectionConfig = {
         { name: 'featured', label: 'Öne Çıkan', type: 'checkbox', defaultValue: false },
       ],
     },
-    { name: 'image', label: 'Ana Görsel URL', type: 'text' },
-    { name: 'gallery', label: 'Galeri', type: 'array', fields: [{ name: 'url', label: 'Görsel URL', type: 'text', required: true }] },
+    { name: 'imageMedia', label: 'Ana Görsel', type: 'upload', relationTo: 'media', admin: { description: 'Portal kartlarında ve eser ayrıntısında kullanılacak ana görsel.' } },
+    { name: 'galleryMedia', label: 'Fotoğraf Galerisi', type: 'array', fields: [{ name: 'media', label: 'Görsel', type: 'upload', relationTo: 'media', required: true }] },
+    { name: 'image', label: 'Eski Ana Görsel URL', type: 'text', admin: { hidden: true } },
+    { name: 'gallery', label: 'Eski Galeri URL Alanları', type: 'array', admin: { hidden: true }, fields: [{ name: 'url', label: 'Görsel URL', type: 'text', required: true }] },
     {
       name: 'coordinates',
       label: 'Konum',

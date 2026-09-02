@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
 import useDragScroll from '../hooks/useDragScroll';
-import { IconArrow, IconClock, IconMap, IconPin, IconRoute } from '../components/common/Icons';
+import { IconArrow, IconClock, IconHeart, IconPin, IconRoute } from '../components/common/Icons';
 import { buildGoogleMapsDirectionsUrl } from '../utils/googleMaps';
+import GoogleDirectionsButton from '../components/common/GoogleDirectionsButton';
+import useFavoriteIds from '../hooks/useFavoriteIds';
 import './RouteDetailPage.css';
 
 function formatMinutes(minutes = 0) {
@@ -17,6 +19,7 @@ function formatMinutes(minutes = 0) {
 
 export default function RouteDetailPage() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [route, setRoute] = useState(null);
   const [relatedRoutes, setRelatedRoutes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +27,7 @@ export default function RouteDetailPage() {
   const [mapType, setMapType] = useState('map');
   const { ref: relatedListRef, dragProps: relatedDragProps } = useDragScroll('x');
   const stopScroll = useDragScroll('y');
+  const [favoriteRouteIds, toggleFavoriteRoute] = useFavoriteIds('route');
 
   useEffect(() => {
     let active = true;
@@ -49,7 +53,11 @@ export default function RouteDetailPage() {
   if (loading) return <div className="route-detail-state"><span /><strong>Rota hazırlanıyor…</strong></div>;
   if (error || !route) return <div className="route-detail-state"><strong>{error || 'Rota bulunamadı.'}</strong><Link to="/kultur-rotalari">Rotalara dön</Link></div>;
   const googleMapsUrl = buildGoogleMapsDirectionsUrl(route.stops, route.travelMode);
-  const visitDuration = Math.max(0, Number(route.durationMinutes || 0) - Number(route.travelMinutes || 0));
+  const isFavorite = favoriteRouteIds.includes(Number(route.id));
+  const toggleFavorite = async () => {
+    const result = await toggleFavoriteRoute(route.id);
+    if (result?.requiresLogin) navigate(`/giris?returnTo=${encodeURIComponent(`/kultur-rotalari/${route.slug}`)}`);
+  };
 
   return (
     <div className="route-detail-page">
@@ -57,7 +65,11 @@ export default function RouteDetailPage() {
 
       <header className="route-detail-header">
         <div><span>{route.categoryLabel || 'Kültürel Rota'}</span><h1>{route.title}</h1><p>{route.description}</p></div>
-        <div className="route-detail-header-actions">{googleMapsUrl && <a href={googleMapsUrl} target="_blank" rel="noreferrer"><IconMap size={17} /> Google Haritalar</a>}<Link className="route-detail-create" to={`/rota-olustur?route=${route.slug}`}><IconRoute size={17} /> Bu Rotayı Düzenle</Link></div>
+        <div className="route-detail-header-actions">
+          <button type="button" className={`route-detail-favorite ${isFavorite ? 'active' : ''}`} onClick={toggleFavorite} aria-pressed={isFavorite}><IconHeart size={18} /> {isFavorite ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}</button>
+          <Link className="route-detail-map-action" to={`/harita?route=${encodeURIComponent(route.slug)}`}><IconPin size={18} /> Haritada Gör</Link>
+          <Link className="route-detail-create" to={`/rota-olustur?route=${route.slug}`}><IconRoute size={18} /> Bu Rotayı Özelleştir</Link>
+        </div>
       </header>
 
       <section className="route-detail-summary">
@@ -76,8 +88,7 @@ export default function RouteDetailPage() {
           <section className="route-detail-metrics" aria-label="Rota özeti">
             <article><IconRoute size={18} /><div><small>Toplam mesafe</small><strong>{route.distanceKm} km</strong></div></article>
             <article><IconClock size={18} /><div><small>Yol süresi</small><strong>{formatMinutes(route.travelMinutes)}</strong></div></article>
-            <article><IconPin size={18} /><div><small>Duraklarda</small><strong>{formatMinutes(visitDuration)}</strong></div></article>
-            <article><IconMap size={18} /><div><small>Gezi toplamı</small><strong>{formatMinutes(route.durationMinutes)}</strong></div></article>
+            <article><IconPin size={18} /><div><small>Durak sayısı</small><strong>{route.stops?.length || 0}</strong></div></article>
           </section>
 
           <div className="related-routes-panel">
@@ -89,11 +100,12 @@ export default function RouteDetailPage() {
         <aside className="route-stop-panel">
           <header><span>GEZİ PLANI</span><h2>Rota durakları</h2></header>
           <ol ref={stopScroll.ref} {...stopScroll.dragProps} className="drag-scroll drag-scroll-y">
-            {(route.stops || []).map((stop) => <li key={stop.monumentId}><i>{stop.order}</i><SafeImage src={stop.image} alt="" /><div><strong>{stop.name}</strong><span><IconPin size={11} /> {stop.district}</span><small>Önerilen ziyaret: {stop.visitMinutes} dk</small></div><Link to={`/tarihi-eserler/${stop.slug}`} aria-label={`${stop.name} detayını aç`}><IconArrow size={14} /></Link></li>)}
+            {(route.stops || []).map((stop) => <li key={stop.monumentId}><i>{stop.order}</i><SafeImage src={stop.image} alt="" /><div><strong>{stop.name}</strong><span><IconPin size={11} /> {stop.district}</span></div><Link to={`/tarihi-eserler/${stop.slug}`} aria-label={`${stop.name} detayını aç`}><IconArrow size={14} /></Link></li>)}
           </ol>
           {!route.stops?.length && <div className="route-empty-stops">Bu rotaya henüz durak eklenmedi. Rota oluşturucudan durak ekleyebilirsiniz.</div>}
         </aside>
       </section>
+      <GoogleDirectionsButton href={googleMapsUrl} />
     </div>
   );
 }

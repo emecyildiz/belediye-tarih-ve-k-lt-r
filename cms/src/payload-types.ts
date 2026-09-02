@@ -162,7 +162,14 @@ export interface User {
  */
 export interface Media {
   id: number;
+  /**
+   * Ekran okuyucular için görseli kısa ve anlaşılır biçimde açıklayın.
+   */
   alt: string;
+  caption?: string | null;
+  credit?: string | null;
+  sourceUrl?: string | null;
+  license?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -220,6 +227,16 @@ export interface Monument {
   rating?: number | null;
   reviewCount?: number | null;
   featured?: boolean | null;
+  /**
+   * Portal kartlarında ve eser ayrıntısında kullanılacak ana görsel.
+   */
+  imageMedia?: (number | null) | Media;
+  galleryMedia?:
+    | {
+        media: number | Media;
+        id?: string | null;
+      }[]
+    | null;
   image?: string | null;
   gallery?:
     | {
@@ -265,7 +282,14 @@ export interface CulturalRoute {
   distance: string;
   difficulty: 'kolay' | 'orta' | 'zor';
   difficultyLabel?: string | null;
-  travelMode?: ('walking' | 'cycling' | 'driving') | null;
+  /**
+   * Portal rotaları yalnızca araç profiliyle hesaplanır.
+   */
+  travelMode?: 'driving' | null;
+  /**
+   * Rota kartlarında ve ayrıntı sayfasında kullanılacak görsel.
+   */
+  imageMedia?: (number | null) | Media;
   image?: string | null;
   color?: string | null;
   featured?: boolean | null;
@@ -295,6 +319,10 @@ export interface Event {
   location?: string | null;
   date: string;
   time: string;
+  /**
+   * Etkinlik kartında, takvim başlığında ve ayrıntı sayfasında kullanılır.
+   */
+  imageMedia?: (number | null) | Media;
   image?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -435,6 +463,10 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  caption?: T;
+  credit?: T;
+  sourceUrl?: T;
+  license?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -497,6 +529,13 @@ export interface MonumentsSelect<T extends boolean = true> {
   rating?: T;
   reviewCount?: T;
   featured?: T;
+  imageMedia?: T;
+  galleryMedia?:
+    | T
+    | {
+        media?: T;
+        id?: T;
+      };
   image?: T;
   gallery?:
     | T
@@ -544,6 +583,7 @@ export interface CulturalRoutesSelect<T extends boolean = true> {
   difficulty?: T;
   difficultyLabel?: T;
   travelMode?: T;
+  imageMedia?: T;
   image?: T;
   color?: T;
   featured?: T;
@@ -569,6 +609,7 @@ export interface EventsSelect<T extends boolean = true> {
   location?: T;
   date?: T;
   time?: T;
+  imageMedia?: T;
   image?: T;
   updatedAt?: T;
   createdAt?: T;

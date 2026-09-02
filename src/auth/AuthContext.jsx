@@ -1,7 +1,7 @@
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { ApiRequestError, loginCmsSession, loginSession, logoutCmsSession, logoutSession, refreshSession } from '../services/authClient';
+import { useEffect, useMemo, useState } from 'react';
+import { ApiRequestError, completeTwoFactorSession, loginCmsSession, loginSession, logoutCmsSession, logoutSession, refreshSession, registerSession } from '../services/authClient';
+import { AuthContext } from './useAuth';
 
-const AuthContext = createContext(null);
 const isContentManager = (role) => role === 'admin' || role === 'editor';
 
 export function AuthProvider({ children }) {
@@ -10,13 +10,16 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     let active = true;
-    refreshSession()
+    logoutCmsSession()
+      .catch(() => {})
+      .then(() => refreshSession())
       .then(async (session) => {
         if (isContentManager(session.user.role)) {
           await logoutSession().catch(() => {});
           if (active) setUser(null);
           return;
         }
+        await logoutCmsSession().catch(() => {});
         if (active) setUser(session.user);
       })
       .catch((error) => {
@@ -28,6 +31,23 @@ export function AuthProvider({ children }) {
     return () => { active = false; };
   }, []);
 
+  const finishLogin = async (session, credentials) => {
+    if (isContentManager(session.user.role)) {
+      try {
+        await loginCmsSession(credentials, session.user, session.cmsTwoFactorProof);
+        await logoutSession().catch(() => {});
+      } catch (error) {
+        await logoutSession();
+        throw error;
+      }
+      setUser(null);
+      return session.user;
+    }
+    await logoutCmsSession().catch(() => {});
+    setUser(session.user);
+    return session.user;
+  };
+
   const value = useMemo(() => ({
     user,
     loading,
@@ -35,19 +55,18 @@ export function AuthProvider({ children }) {
     hasRole: (...roles) => Boolean(user && roles.includes(user.role)),
     login: async (credentials) => {
       const session = await loginSession(credentials);
-      if (isContentManager(session.user.role)) {
-        try {
-          await loginCmsSession(credentials, session.user);
-          await logoutSession().catch(() => {});
-        } catch (error) {
-          await logoutSession();
-          throw error;
-        }
-        setUser(null);
-        return session.user;
-      }
+      if (session.twoFactorRequired) return session;
+      return { user: await finishLogin(session, credentials) };
+    },
+    register: async (registration) => {
+      const session = await registerSession(registration);
+      await logoutCmsSession().catch(() => {});
       setUser(session.user);
       return session.user;
+    },
+    verifyTwoFactor: async ({ challengeToken, code, credentials }) => {
+      const session = await completeTwoFactorSession(challengeToken, code);
+      return { user: await finishLogin(session, credentials), recoveryCodes: session.recoveryCodes || [] };
     },
     logout: async () => {
       await Promise.allSettled([logoutSession(), logoutCmsSession()]);
@@ -56,10 +75,4 @@ export function AuthProvider({ children }) {
   }), [loading, user]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth, AuthProvider içinde kullanılmalıdır.');
-  return context;
 }

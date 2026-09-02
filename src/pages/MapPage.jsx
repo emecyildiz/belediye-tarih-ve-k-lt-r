@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import OpenLayersMap from '../components/map/OpenLayersMap';
@@ -25,12 +25,6 @@ const categoryNames = {
   kale: 'Kale', kopru: 'Köprü', doga: 'Doğal Alan', diger: 'Tarihi Eser',
 };
 
-const travelModes = [
-  { key: 'walking', label: 'Yürüyüş' },
-  { key: 'cycling', label: 'Bisiklet' },
-  { key: 'driving', label: 'Araç' },
-];
-
 function formatRouteMinutes(minutes) {
   if (!Number.isFinite(Number(minutes))) return '—';
   const total = Number(minutes);
@@ -47,6 +41,9 @@ function getLocationCoordinate(location) {
 
 export default function MapPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const routeSlug = searchParams.get('route');
+  const savedMapRouteId = searchParams.get('savedRoute');
   const [allGeojson, setAllGeojson] = useState(null);
   const [monuments, setMonuments] = useState([]);
   const [activeLayers, setActiveLayers] = useState(() => new Set(layers.map((item) => item.key)));
@@ -58,24 +55,42 @@ export default function MapPage() {
   const [routeMode, setRouteMode] = useState(false);
   const [routeStopIds, setRouteStopIds] = useState([]);
   const [routePreview, setRoutePreview] = useState(null);
-  const [routeTravelMode, setRouteTravelMode] = useState('walking');
   const [routeStatus, setRouteStatus] = useState('idle');
+  const [viewedRoute, setViewedRoute] = useState(null);
 
   useEffect(() => {
-    Promise.all([api.getLocations(), api.getMonuments()])
-      .then(([geojson, items]) => {
+    const routeRequest = routeSlug ? api.getRoute(routeSlug) : savedMapRouteId ? api.getCustomRoute(savedMapRouteId) : Promise.resolve(null);
+    Promise.all([api.getLocations(), api.getMonuments(), routeRequest])
+      .then(([geojson, items, requestedRoute]) => {
         setAllGeojson(geojson);
         setMonuments(items || []);
+        if (requestedRoute) {
+          const displayRoute = requestedRoute.selectedIds ? {
+            ...(requestedRoute.preview || {}),
+            ...requestedRoute,
+            isCustom: true,
+            stops: requestedRoute.selectedIds.map((id, index) => {
+              const item = (items || []).find((monument) => Number(monument.id) === Number(id));
+              return item ? { ...item, monumentId: Number(item.id), order: index + 1 } : null;
+            }).filter(Boolean),
+          } : requestedRoute;
+          setViewedRoute(displayRoute);
+          setRouteMode(true);
+          setRouteStopIds((displayRoute.stops || []).map((item) => Number(item.monumentId)).filter(Number.isInteger));
+          setRoutePreview(displayRoute);
+          setRouteStatus(displayRoute?.cbs?.routingStatus === 'unavailable' ? 'unavailable' : 'ready');
+          setSelectedLocation(null);
+        }
       })
       .catch((error) => console.error('Harita verileri yüklenemedi:', error));
-  }, []);
+  }, [routeSlug, savedMapRouteId]);
 
   useEffect(() => {
-    if (!routeMode) return undefined;
+    if (!routeMode || viewedRoute) return undefined;
     let active = true;
     const timer = setTimeout(() => {
       setRouteStatus(routeStopIds.length >= 2 ? 'loading' : 'waiting');
-      api.previewRoute({ stopIds: routeStopIds, travelMode: routeTravelMode, visitMinutes: 25, title: 'Haritadan Oluşturulan Rota' })
+      api.previewRoute({ stopIds: routeStopIds, travelMode: 'driving', title: 'Haritadan Oluşturulan Rota' })
         .then((data) => {
           if (!active) return;
           setRoutePreview(data);
@@ -87,7 +102,7 @@ export default function MapPage() {
         });
     }, 220);
     return () => { active = false; clearTimeout(timer); };
-  }, [routeMode, routeStopIds, routeTravelMode]);
+  }, [routeMode, routeStopIds, viewedRoute]);
 
   const districts = useMemo(
     () => [...new Set(monuments.map((item) => item.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr')),
@@ -125,8 +140,7 @@ export default function MapPage() {
   const routeStops = useMemo(() => routeStopIds
     .map((id) => monuments.find((item) => Number(item.id) === Number(id)))
     .filter(Boolean), [routeStopIds, monuments]);
-  const routeVisitMinutes = Math.max(0, Number(routePreview?.durationMinutes || 0) - Number(routePreview?.travelMinutes || 0));
-  const googleMapsUrl = useMemo(() => buildGoogleMapsDirectionsUrl(routeStops, routeTravelMode), [routeStops, routeTravelMode]);
+  const googleMapsUrl = useMemo(() => buildGoogleMapsDirectionsUrl(routeStops), [routeStops]);
 
   const nearby = useMemo(() => {
     if (!selectedLocation) return [];
@@ -148,6 +162,11 @@ export default function MapPage() {
   const selectFeature = (properties) => {
     const featureId = Number(properties.monumentId ?? properties.id);
     if (routeMode) {
+      if (viewedRoute) {
+        const fullItem = monuments.find((item) => item.id === featureId);
+        setSelectedLocation(fullItem ? { ...fullItem, coordinate: properties.coordinate } : properties);
+        return;
+      }
       if (!Number.isInteger(featureId) || properties.type === 'route-line') return;
       setRouteStopIds((current) => current.includes(featureId)
         ? current.filter((id) => id !== featureId)
@@ -160,6 +179,7 @@ export default function MapPage() {
   };
 
   const startRouteMode = () => {
+    setViewedRoute(null);
     setRouteMode(true);
     setSelectedLocation(null);
     setFiltersOpen(false);
@@ -170,6 +190,8 @@ export default function MapPage() {
     setRouteStopIds([]);
     setRoutePreview(null);
     setRouteStatus('idle');
+    if (viewedRoute) navigate('/harita', { replace: true });
+    setViewedRoute(null);
   };
 
   const openDetailedRouteBuilder = () => {
@@ -198,6 +220,7 @@ export default function MapPage() {
             showFeatureTooltip
             showCoordinates
             routeMode={routeMode}
+            fitToRouteOnce={Boolean(viewedRoute)}
           />
         ) : <div className="map-loading">Harita yükleniyor…</div>}
       </div>
@@ -300,27 +323,26 @@ export default function MapPage() {
         )}
       </aside>
 
-      {routeMode && <section className="map-route-planner" aria-label="Haritadan rota oluşturma">
+      {routeMode && <section className={`map-route-planner ${viewedRoute ? 'route-view-only' : ''}`} aria-label={viewedRoute ? 'Seçili rota bilgisi' : 'Haritadan rota oluşturma'}>
         <div className="map-route-planner-heading">
-          <div><span>GEZİ PLANIM</span><strong>{routeStopIds.length ? `${routeStopIds.length} durak seçildi` : 'Haritadaki mekânları seçin'}</strong></div>
+          <div><span>{viewedRoute ? 'SEÇİLİ KÜLTÜREL ROTA' : 'GEZİ PLANIM'}</span><strong>{viewedRoute?.title || (routeStopIds.length ? `${routeStopIds.length} durak seçildi` : 'Haritadaki mekânları seçin')}</strong></div>
           <button type="button" onClick={closeRouteMode} aria-label="Rota oluşturmayı kapat">×</button>
         </div>
-        <div className="map-route-mode-buttons" aria-label="Ulaşım türü">
-          {travelModes.map((mode) => <button type="button" key={mode.key} className={routeTravelMode === mode.key ? 'active' : ''} onClick={() => setRouteTravelMode(mode.key)}>{mode.label}</button>)}
-        </div>
         <div className="map-route-stops">
-          {routeStops.map((stop, index) => <button type="button" key={stop.id} onClick={() => setRouteStopIds((current) => current.filter((id) => id !== stop.id))} title="Duraktan çıkar"><i>{index + 1}</i><span>{stop.name}</span><b>×</b></button>)}
+          {routeStops.map((stop, index) => viewedRoute
+            ? <span className="map-route-readonly-stop" key={stop.id}><i>{index + 1}</i><span>{stop.name}</span></span>
+            : <button type="button" key={stop.id} onClick={() => setRouteStopIds((current) => current.filter((id) => id !== stop.id))} title="Duraktan çıkar"><i>{index + 1}</i><span>{stop.name}</span><b>×</b></button>)}
           {!routeStops.length && <p>İşaretlere dokunarak veya tıklayarak ilk durağınızı ekleyin.</p>}
         </div>
         <div className="map-route-summary">
           <span><small>Mesafe</small><strong>{routePreview?.distanceKm ?? '—'} {routePreview?.distanceKm != null ? 'km' : ''}</strong></span>
           <span><small>Yol süresi</small><strong>{formatRouteMinutes(routePreview?.travelMinutes)}</strong></span>
-          <span><small>Ziyaretler</small><strong>{formatRouteMinutes(routeVisitMinutes)}</strong></span>
-          <span><small>Gezi toplamı</small><strong>{formatRouteMinutes(routePreview?.durationMinutes)}</strong></span>
           <em className={routeStatus}>{routeStatus === 'loading' ? 'Yol hesaplanıyor…' : routeStatus === 'unavailable' ? 'Yol güzergâhı alınamadı' : routeStatus === 'ready' ? 'Gerçek yol güzergâhı hazır' : 'En az iki durak seçin'}</em>
-          <button type="button" className="map-route-clear" disabled={!routeStopIds.length} onClick={() => setRouteStopIds([])}>Temizle</button>
-          {googleMapsUrl && <a className="map-route-google" href={googleMapsUrl} target="_blank" rel="noreferrer">Google Haritalar</a>}
-          <button type="button" className="map-route-continue" disabled={routeStopIds.length < 2 || routeStatus === 'loading'} onClick={openDetailedRouteBuilder}>Ayrıntılı Düzenle →</button>
+          {!viewedRoute && <button type="button" className="map-route-clear" disabled={!routeStopIds.length} onClick={() => setRouteStopIds([])}>Temizle</button>}
+          {googleMapsUrl && <a className="map-route-google" href={googleMapsUrl} target="_blank" rel="noreferrer">Google Haritalar’da Yol Tarifi</a>}
+          {viewedRoute
+            ? <button type="button" className="map-route-continue" onClick={() => navigate(viewedRoute.isCustom ? `/rota-olustur?saved=${encodeURIComponent(viewedRoute.id)}` : `/rota-olustur?route=${encodeURIComponent(viewedRoute.slug)}`)}>{viewedRoute.isCustom ? 'Rotayı Düzenle →' : 'Bu Rotayı Özelleştir →'}</button>
+            : <button type="button" className="map-route-continue" disabled={routeStopIds.length < 2 || routeStatus === 'loading'} onClick={openDetailedRouteBuilder}>Ayrıntılı Düzenle →</button>}
         </div>
       </section>}
 

@@ -46,7 +46,8 @@ test('profil tercihleri yalnızca izin verilen boolean alanları günceller', ()
 
 test('özel rota yalnızca geçerli ve tekilleştirilmiş duraklarla kaydedilir', () => {
   const before = getUserRoutes().length;
-  const route = saveUserRoute({ title: 'Test Rotası', selectedIds: [1, 1, 2, 9999], travelMode: 'walking', visitMinutes: 30 }, monuments);
+  const route = saveUserRoute({ title: 'Test Rotası', selectedIds: [1, 1, 2, 9999], travelMode: 'walking' }, monuments);
+  assert.equal(route.travelMode, 'driving');
   assert.deepEqual(route.selectedIds, [1, 2]);
   assert.equal(getUserRoutes().length, before + 1);
 });

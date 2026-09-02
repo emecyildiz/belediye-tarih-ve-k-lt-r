@@ -128,10 +128,14 @@ async function fetchAPI(endpoint) {
 }
 
 async function sendAPI(endpoint, payload) {
+  return mutateAPI(endpoint, payload, 'POST');
+}
+
+async function mutateAPI(endpoint, payload, method) {
   const res = await authenticatedFetch(endpoint, {
-    method: 'POST',
+    method,
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    ...(payload === undefined ? {} : { body: JSON.stringify(payload) }),
   });
   if (!res.ok) throw new Error(`API hatası: ${res.status}`);
   const json = await res.json();
@@ -204,7 +208,10 @@ const realApi = {
   updatePreferences: (payload) => sendAPI('/user/preferences', payload),
   toggleFavorite: (type, id) => sendAPI(`/user/favorites/${type}/${id}/toggle`, {}),
   getCustomRoutes: () => fetchAPI('/user/routes'),
+  getCustomRoute: (id) => fetchAPI(`/user/routes/${id}`),
   saveCustomRoute: (payload) => sendAPI('/user/routes', payload),
+  updateCustomRoute: (id, payload) => mutateAPI(`/user/routes/${id}`, payload, 'PATCH'),
+  deleteCustomRoute: (id) => mutateAPI(`/user/routes/${id}`, undefined, 'DELETE'),
 };
 
 // ──────────────────────────────────
@@ -366,6 +373,11 @@ const persistentUserApi = {
   getFavorites: realApi.getFavorites,
   getFavoriteItems: realApi.getFavoriteItems,
   toggleFavorite: realApi.toggleFavorite,
+  getCustomRoutes: realApi.getCustomRoutes,
+  getCustomRoute: realApi.getCustomRoute,
+  saveCustomRoute: realApi.saveCustomRoute,
+  updateCustomRoute: realApi.updateCustomRoute,
+  deleteCustomRoute: realApi.deleteCustomRoute,
 };
 
 const persistentAnalyticsApi = {

@@ -1,9 +1,3 @@
-const modeMap = {
-  walking: 'walking',
-  cycling: 'bicycling',
-  driving: 'driving',
-};
-
 function coordinateOf(stop) {
   const values = stop?.coordinates;
   if (!Array.isArray(values) || values.length < 2) return null;
@@ -12,14 +6,14 @@ function coordinateOf(stop) {
   return Number.isFinite(latitude) && Number.isFinite(longitude) ? `${latitude},${longitude}` : null;
 }
 
-export function buildGoogleMapsDirectionsUrl(stops = [], travelMode = 'walking') {
+export function buildGoogleMapsDirectionsUrl(stops = []) {
   const coordinates = stops.map(coordinateOf).filter(Boolean);
   if (coordinates.length < 2) return '';
   const params = new URLSearchParams({
     api: '1',
     origin: coordinates[0],
     destination: coordinates.at(-1),
-    travelmode: modeMap[travelMode] || modeMap.walking,
+    travelmode: 'driving',
   });
   const waypoints = coordinates.slice(1, -1);
   if (waypoints.length) params.set('waypoints', waypoints.join('|'));

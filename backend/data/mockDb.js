@@ -209,7 +209,7 @@ export function getRoute(idOrSlug) {
   const preview = buildRoutePreview({
     monuments,
     stopIds: route.monumentIds,
-    travelMode: route.travelMode || 'walking',
+    travelMode: 'driving',
     routeId: route.id,
     title: route.title,
   });
@@ -220,8 +220,7 @@ export function previewRoute(params = {}) {
   return buildRoutePreview({
     monuments,
     stopIds: params.stopIds || [],
-    travelMode: params.travelMode || 'walking',
-    visitMinutes: Number(params.visitMinutes) || 25,
+    travelMode: 'driving',
     routeId: params.routeId || 'preview',
     title: params.title || 'Özel Rota Önizlemesi',
   });

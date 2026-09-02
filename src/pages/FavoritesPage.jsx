@@ -79,6 +79,15 @@ function SettingsPanel({ preferences, setPreferences, onSave, saveStatus }) {
   return <section className="profile-subpage"><header><span>KULLANICI TERCİHLERİ</span><h2>Ayarlar</h2><p>Bildirim ve içerik önerisi tercihlerinizi yönetin.</p></header><div className="profile-settings-card">{Object.entries(preferenceLabels).map(([key, labels]) => <label key={key}><span><strong>{labels[0]}</strong><small>{labels[1]}</small></span><input type="checkbox" checked={Boolean(preferences[key])} onChange={(event) => setPreferences((current) => ({ ...current, [key]: event.target.checked }))} /><i /></label>)}<footer><small>{saveStatus === 'saved' ? 'Tercihler kaydedildi.' : 'Bildirim tercihleriniz hesabınıza kaydedilir.'}</small><button type="button" onClick={onSave} disabled={saveStatus === 'saving'}>{saveStatus === 'saving' ? 'Kaydediliyor…' : 'Ayarları Kaydet'}</button></footer></div></section>;
 }
 
+function MyRoutesPanel({ routes, monuments, onDelete }) {
+  return <section className="profile-subpage profile-my-routes"><header><span>KİŞİSEL GEZİ PLANLARI</span><h2>Rotalarım</h2><p>Oluşturduğunuz rotaları haritada açın, düzenleyin veya hesabınızdan kaldırın.</p></header><div className="profile-my-route-grid">
+    {routes.length ? routes.map((route) => {
+      const stopNames = (route.selectedIds || []).map((id) => monuments.find((item) => Number(item.id) === Number(id))?.name).filter(Boolean);
+      return <article key={route.id}><div className="profile-my-route-icon"><IconRoute size={25} /></div><div><small>KİŞİSEL ROTA</small><h3>{route.title}</h3><p><IconPin size={13} /> {stopNames.length} durak · {route.preview?.distanceKm ?? '—'} km</p><span>{stopNames.slice(0, 3).join(' → ') || 'Durak bilgisi bulunamadı'}{stopNames.length > 3 ? ` +${stopNames.length - 3}` : ''}</span></div><footer><Link to={`/harita?savedRoute=${route.id}`}>Haritada Aç</Link><Link to={`/rota-olustur?saved=${route.id}`}>Düzenle</Link><button type="button" onClick={() => onDelete(route)}>Sil</button></footer></article>;
+    }) : <div className="profile-my-routes-empty"><IconRoute size={34} /><strong>Henüz kayıtlı rotanız yok</strong><p>Haritadan durak seçerek ilk kişisel gezi rotanızı oluşturabilirsiniz.</p><Link to="/rota-olustur">Rota Oluştur</Link></div>}
+  </div></section>;
+}
+
 export default function FavoritesPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -89,11 +98,12 @@ export default function FavoritesPage() {
   const [error, setError] = useState(false);
   const [preferences, setPreferences] = useState({});
   const [saveStatus, setSaveStatus] = useState('idle');
+  const [customRoutes, setCustomRoutes] = useState([]);
 
   useEffect(() => {
     let active = true;
-    Promise.all([api.getMonuments(), api.getRoutes(), api.getEvents(), api.getFavorites(), api.getProfileOverview()])
-      .then(([monuments, routes, events, favorites, profile]) => { if (active) { setData({ monuments: monuments || [], routes: routes || [], events: events || [] }); setFavoriteIds(favorites || {}); setOverview(profile || {}); setPreferences(profile?.preferences || {}); } })
+    Promise.all([api.getMonuments(), api.getRoutes(), api.getEvents(), api.getFavorites(), api.getProfileOverview(), api.getCustomRoutes()])
+      .then(([monuments, routes, events, favorites, profile, savedRoutes]) => { if (active) { setData({ monuments: monuments || [], routes: routes || [], events: events || [] }); setFavoriteIds(favorites || {}); setOverview(profile || {}); setPreferences(profile?.preferences || {}); setCustomRoutes(savedRoutes || []); } })
       .catch(() => active && setError(true))
       .finally(() => active && setLoading(false));
     return () => { active = false; };
@@ -109,7 +119,13 @@ export default function FavoritesPage() {
   const totalFavorites = groups.monument.length + groups.route.length;
   const mapData = useMemo(() => favoriteGeoJSON(groups.monument), [groups.monument]);
   const upcomingEvents = [...groups.event].sort((a, b) => String(a.date).localeCompare(String(b.date))).slice(0, 3);
-  const activeTab = location.pathname.endsWith('/bilgiler') ? 'info' : location.pathname.endsWith('/gecmis') ? 'history' : location.pathname.endsWith('/ayarlar') ? 'settings' : 'favorites';
+  const activeTab = location.pathname.endsWith('/bilgiler') ? 'info' : location.pathname.endsWith('/gecmis') ? 'history' : location.pathname.endsWith('/ayarlar') ? 'settings' : location.pathname.endsWith('/rotalar') ? 'routes' : 'favorites';
+
+  const deleteCustomRoute = async (route) => {
+    if (!window.confirm(`“${route.title}” rotasını silmek istediğinize emin misiniz?`)) return;
+    await api.deleteCustomRoute(route.id);
+    setCustomRoutes((current) => current.filter((item) => item.id !== route.id));
+  };
 
   const removeFavorite = async (type, id) => {
     const result = await api.toggleFavorite(type, id);
@@ -135,7 +151,7 @@ export default function FavoritesPage() {
   if (error) return <div className="favorites-state error"><IconHeart size={34} /><strong>Favoriler yüklenemedi</strong><p>Lütfen veri bağlantısını kontrol edin.</p></div>;
 
   return <div className="favorites-page profile-layout-page">
-    <header className="profile-favorites-header"><div><h1>Profil</h1><p>Favorilerinizi, profil bilgilerinizi, geçmiş aktivitelerinizi ve tercihlerinizi yönetin.</p><nav aria-label="Profil bölümleri"><Link to="/profil" className={activeTab === 'favorites' ? 'active' : ''}><IconHeart size={14} /> Favorilerim</Link><Link to="/profil/bilgiler" className={activeTab === 'info' ? 'active' : ''}><IconUser size={14} /> Profil Bilgilerim</Link><Link to="/profil/gecmis" className={activeTab === 'history' ? 'active' : ''}><IconClock size={14} /> Geçmişim</Link><Link to="/profil/ayarlar" className={activeTab === 'settings' ? 'active' : ''}>⚙ Ayarlar</Link></nav></div><section className="profile-stat-cards"><article><IconHeart size={21} /><span><small>Toplam Favori</small><strong>{totalFavorites}</strong><b>İçerik</b></span></article><article><IconBookmark size={21} /><span><small>Geçmiş Ziyaret</small><strong>{overview.visitedCount || 0}</strong><b>İçerik</b></span></article></section></header>
+    <header className="profile-favorites-header"><div><h1>Profil</h1><p>Favorilerinizi, kişisel rotalarınızı, geçmiş aktivitelerinizi ve tercihlerinizi yönetin.</p><nav aria-label="Profil bölümleri"><Link to="/profil" className={activeTab === 'favorites' ? 'active' : ''}><IconHeart size={14} /> Favorilerim</Link><Link to="/profil/rotalar" className={activeTab === 'routes' ? 'active' : ''}><IconRoute size={14} /> Rotalarım</Link><Link to="/profil/bilgiler" className={activeTab === 'info' ? 'active' : ''}><IconUser size={14} /> Profil Bilgilerim</Link><Link to="/profil/gecmis" className={activeTab === 'history' ? 'active' : ''}><IconClock size={14} /> Geçmişim</Link><Link to="/profil/ayarlar" className={activeTab === 'settings' ? 'active' : ''}>⚙ Ayarlar</Link></nav></div><section className="profile-stat-cards"><article><IconHeart size={21} /><span><small>Toplam Favori</small><strong>{totalFavorites}</strong><b>İçerik</b></span></article><article><IconBookmark size={21} /><span><small>Kayıtlı Rotam</small><strong>{customRoutes.length}</strong><b>Rota</b></span></article></section></header>
 
     {activeTab === 'favorites' ? <div className="profile-favorites-grid"><main>
       <FavoriteStrip title="Favori Eserlerim" items={groups.monument} type="monument" onRemove={removeFavorite} allHref="/tarihi-eserler?favoriler=1" />
@@ -143,6 +159,6 @@ export default function FavoritesPage() {
     </main><aside className="profile-side-column"><section className="profile-chart-card"><header><div><span>AYLIK ZİYARET İSTATİSTİKLERİ</span><h2>İçerik Türüne Göre Ziyaretlerim</h2></div><small>Son 7 ay</small></header><div className="profile-chart-legend"><span><i /> Tarihi eser</span><span><i /> Kültürel rota</span><span><i /> Etkinlik</span></div><TrendChart data={overview.visitTrend} /></section>
       <section className="profile-map-card"><header><div><span>FAVORİ KONUM DAĞILIMI</span><h2>Favori Konumlarım</h2></div><Link to="/harita">Haritada Aç <IconArrow size={10} /></Link></header><div className="profile-map"><OpenLayersMap geojson={mapData} fitToData cluster height="100%" onFeatureClick={(feature) => feature?.slug && navigate(`/tarihi-eserler/${feature.slug}`)} /></div><footer>{groups.monument.slice(0, 3).map((item) => <span key={item.id}><i style={{ background: item.id % 2 ? '#1768b2' : '#c9861b' }} /> {item.name}</span>)}</footer></section>
     </aside><div className="profile-bottom-grid"><section className="profile-upcoming"><header><h2>Bekleyen Etkinliklerim</h2><Link to="/etkinlikler">Tümünü Gör <IconArrow size={10} /></Link></header><div>{upcomingEvents.length ? upcomingEvents.map((item) => <article key={item.id}><SafeImage src={getImageUrl(item.image)} alt={item.title} /><div className="profile-event-date"><strong>{new Date(`${item.date}T12:00:00`).getDate()}</strong><span>{new Intl.DateTimeFormat('tr-TR', { month: 'short' }).format(new Date(`${item.date}T12:00:00`))}</span></div><div><Link to={`/etkinlikler/${item.slug || item.id}`}>{item.title}</Link><small><IconPin size={10} /> {item.district}</small><span><IconClock size={10} /> {item.time} · {dateLabel(item.date)}</span></div></article>) : <p>Favori etkinliğiniz bulunmuyor.</p>}</div></section>
-      <section className="profile-recent"><header><h2>Son Görüntülediklerim</h2><span>Son aktiviteler</span></header><div>{(overview.recentViews || []).map((item) => <Link to={item.href} key={`${item.type}-${item.id}`}><SafeImage src={getImageUrl(item.image)} alt={item.title} /><span><strong>{item.title}</strong><small><IconPin size={9} /> {item.district}</small><time>{new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(new Date(item.viewedAt))}</time></span></Link>)}</div></section></div></div> : activeTab === 'info' ? <ProfileInfoPanel profile={overview.profile} totalFavorites={totalFavorites} visitedCount={overview.visitedCount || 0} /> : activeTab === 'history' ? <HistoryPanel overview={overview} /> : <SettingsPanel preferences={preferences} setPreferences={setPreferences} onSave={savePreferences} saveStatus={saveStatus} />}
+      <section className="profile-recent"><header><h2>Son Görüntülediklerim</h2><span>Son aktiviteler</span></header><div>{(overview.recentViews || []).map((item) => <Link to={item.href} key={`${item.type}-${item.id}`}><SafeImage src={getImageUrl(item.image)} alt={item.title} /><span><strong>{item.title}</strong><small><IconPin size={9} /> {item.district}</small><time>{new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' }).format(new Date(item.viewedAt))}</time></span></Link>)}</div></section></div></div> : activeTab === 'routes' ? <MyRoutesPanel routes={customRoutes} monuments={data.monuments} onDelete={deleteCustomRoute} /> : activeTab === 'info' ? <ProfileInfoPanel profile={overview.profile} totalFavorites={totalFavorites} visitedCount={overview.visitedCount || 0} /> : activeTab === 'history' ? <HistoryPanel overview={overview} /> : <SettingsPanel preferences={preferences} setPreferences={setPreferences} onSave={savePreferences} saveStatus={saveStatus} />}
   </div>;
 }

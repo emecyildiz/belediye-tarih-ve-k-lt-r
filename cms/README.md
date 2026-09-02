@@ -23,20 +23,35 @@ npm run seed
 npm run dev
 ```
 
-Yönetim ekranı `http://localhost:3000/admin` adresindedir. Belediye ortamında ilk gerçek yönetici hesabı arayüzden oluşturulur. Yerel örnek hesaplar yalnızca `AUTH_SEED_DEMO_USERS=true` olduğunda seed tarafından hazırlanır.
+Yönetim ekranı `http://localhost:3000/admin` adresindedir. İlk kullanıcıyı arayüzden sahipsiz biçimde oluşturma kapalıdır. Güvenilir ilk kurulumda `AUTH_SEED_DEMO_USERS=true` ve en az 12 karakterli `DEMO_USER_PASSWORD` tanımlanarak seed çalıştırılır; yönetici giriş yaptıktan ve parolayı değiştirdikten sonra seed ayarı tekrar `false` yapılır.
 
 ## Veri aktarımı
 
 `npm run seed`, kök projedeki örnek 20 eser, 20 rota, 20 etkinlik ve bildirimleri aktarır. Komut tekrar çalıştırılabilir; `legacyId` ile eşleşen kayıtlar güncellenir. Rota durakları Payload relationship alanıdır ve doğrudan tarihi eser kayıtlarına bağlıdır.
 
+Eski URL alanlarındaki yerel örnek görselleri Payload Medya koleksiyonuna taşımak için:
+
+```powershell
+npm run migrate:media
+```
+
+Bu komut kullanıcı hesaplarına veya içerik metinlerine dokunmaz. Aynı dosyayı yeniden yüklemez; yalnızca ana görsel ve galeri ilişkilerini tamamlar. Yeni içeriklerde görseller doğrudan Medya seçicisinden yüklenir. Eski URL alanları geçiş süresince gizli yedek olarak korunur.
+
 ## Ortam değişkenleri
 
 - `DATABASE_URL`: PostgreSQL bağlantı adresi
 - `PAYLOAD_SECRET`: uzun ve gizli uygulama anahtarı
+- `TWO_FACTOR_SECRET`: portal backend ile aynı, uzun ve rastgele 2FA imza/şifreleme anahtarı
 - `PAYLOAD_PUBLIC_SERVER_URL`: CMS'in dış adresi
 - `PORTAL_ORIGIN`: Payload API'sine erişecek portal adresi
 
-`.env`, yüklenen medya ve derleme çıktıları Git'e alınmaz. Örnek Docker parolası yalnızca yerel geliştirme içindir; belediye ortamında güçlü bir parola ve kurumun bağlantı adresi kullanılmalıdır.
+`.env`, yüklenen medya ve derleme çıktıları Git'e alınmaz. Medya dosyasının kendisi geliştirmede `cms/media`, açıklama, kaynak, lisans ve içerik ilişkileri PostgreSQL içinde tutulur. Belediye ortamında bu klasör kalıcı disk/nesne depolama ile yedeklenmelidir. Örnek Docker parolası yalnızca yerel geliştirme içindir; belediye ortamında güçlü bir parola ve kurumun bağlantı adresi kullanılmalıdır.
+
+## İki adımlı doğrulama
+
+Yönetici ve editörler `http://localhost:5173/giris` sayfasından giriş yapar. İlk girişte Google Authenticator kurulum QR kodu gösterilir. Sonraki girişlerde 6 haneli TOTP kodu doğrulanmadan portal tokenı ve Payload oturumu açılmaz. Payload'ın doğrudan `/admin/login` isteği kısa ömürlü, imzalı 2FA kanıtı olmadan reddedilir.
+
+Kurulum sonunda sekiz tek kullanımlık kurtarma kodu yalnızca bir kez gösterilir. Beş hatalı doğrulama hesabı beş dakika kilitler. Payload menüsündeki **Portal Kullanıcıları** ekranından hesap durumu ve 2FA bilgisi izlenebilir; yönetici 2FA'yı sıfırladığında portal ve Payload oturumları da iptal edilir.
 
 ## Üretim veritabanı
 

@@ -1,12 +1,12 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated, publicRead } from '../access'
+import { activeNotificationOrAuthenticated, adminsOnly, authenticated } from '../access'
 
 export const Notifications: CollectionConfig = {
   slug: 'notifications',
   labels: { singular: 'Bildirim', plural: 'Bildirimler' },
   admin: { group: 'İletişim', useAsTitle: 'title', defaultColumns: ['title', 'type', 'publishedAt', 'active'] },
-  access: { read: publicRead, create: authenticated, update: authenticated, delete: authenticated },
+  access: { read: activeNotificationOrAuthenticated, create: authenticated, update: authenticated, delete: adminsOnly },
   fields: [
     { name: 'title', label: 'Başlık', type: 'text', required: true },
     { name: 'message', label: 'Bildirim Metni', type: 'textarea', required: true },

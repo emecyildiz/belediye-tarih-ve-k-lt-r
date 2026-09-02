@@ -10,6 +10,19 @@ test('Payload eser kaydı portal ve GeoJSON sözleşmesine dönüştürülür', 
   assert.deepEqual(monumentsToGeoJSON([monument]).features[0].geometry.coordinates, [36.1, 36.2]);
 });
 
+test('Payload medya ilişkisini eski URL alanından öncelikli kullanır', () => {
+  const monument = normalizePayloadMonument({
+    legacyId: 8,
+    image: '/eski.jpg',
+    imageMedia: { url: '/api/media/file/ana.jpg', sizes: { card: { url: '/api/media/file/ana-720x480.jpg' } } },
+    galleryMedia: [{ media: { url: '/api/media/file/galeri.jpg' } }],
+    gallery: [{ url: '/eski-galeri.jpg' }],
+    coordinates: { latitude: 36.2, longitude: 36.1 },
+  });
+  assert.equal(monument.image, 'http://localhost:3000/api/media/file/ana-720x480.jpg');
+  assert.deepEqual(monument.images, ['http://localhost:3000/api/media/file/galeri.jpg']);
+});
+
 test('Payload rota ilişkileri portalın durak kimliklerine dönüştürülür', () => {
   const route = normalizePayloadRoute({ legacyId: 2, monuments: [{ legacyId: 7 }, { legacyId: 9 }] });
   assert.deepEqual(route.monumentIds, [7, 9]);

@@ -4,7 +4,7 @@ import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import CategoryMarkerIcon from '../components/map/CategoryMarkerIcon';
 import useFavoriteIds from '../hooks/useFavoriteIds';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../auth/useAuth';
 import { IconArrow, IconFilter, IconHeart, IconMonument, IconPin } from '../components/common/Icons';
 import './MonumentsPage.css';
 

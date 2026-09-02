@@ -1,12 +1,7 @@
-const PUBLIC_PROFILE_BASE_URLS = {
-  driving: 'https://routing.openstreetmap.de/routed-car',
-  cycling: 'https://routing.openstreetmap.de/routed-bike',
-  walking: 'https://routing.openstreetmap.de/routed-foot',
-};
+const PUBLIC_DRIVING_BASE_URL = 'https://routing.openstreetmap.de/routed-car';
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_CACHE_MS = 5 * 60 * 1000;
 const MAX_CACHE_ENTRIES = 200;
-const ESTIMATED_SPEED_KMH = { walking: 4.5, cycling: 14 };
 const PUBLIC_REQUEST_INTERVAL_MS = 1_050;
 
 const routeCache = new Map();
@@ -25,20 +20,9 @@ function positiveNumber(value, fallback) {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-function profileFor(travelMode) {
-  const configured = {
-    driving: process.env.OSRM_PROFILE_DRIVING,
-    cycling: process.env.OSRM_PROFILE_CYCLING,
-    walking: process.env.OSRM_PROFILE_WALKING,
-  };
-  // router.project-osrm.org herkese açık örnek sunucusu araç profiliyle hazırlanır.
-  // Yaya/bisiklet profilleri belediyenin kendi OSRM sunucusu devreye alındığında env ile seçilebilir.
-  return configured[travelMode] || 'driving';
-}
-
-function routingTarget(travelMode, explicitBaseUrl) {
+function routingTarget(explicitBaseUrl) {
   if (explicitBaseUrl || process.env.OSRM_BASE_URL) {
-    const routingProfile = profileFor(travelMode);
+    const routingProfile = process.env.OSRM_PROFILE_DRIVING || 'driving';
     return {
       baseUrl: explicitBaseUrl || process.env.OSRM_BASE_URL,
       apiProfile: routingProfile,
@@ -48,11 +32,11 @@ function routingTarget(travelMode, explicitBaseUrl) {
   }
 
   return {
-    baseUrl: PUBLIC_PROFILE_BASE_URLS[travelMode] || PUBLIC_PROFILE_BASE_URLS.driving,
+    baseUrl: PUBLIC_DRIVING_BASE_URL,
     // routing.openstreetmap.de profili alt alan adında seçer; OSRM yolundaki
     // profil bölümü bu sunucularda yine "driving" olarak kalır.
     apiProfile: 'driving',
-    routingProfile: travelMode,
+    routingProfile: 'driving',
     isPublicFallback: true,
   };
 }
@@ -74,8 +58,8 @@ function validCoordinatePair(value) {
     && Number.isFinite(Number(value[1]));
 }
 
-function cacheKey(profile, travelMode, stops) {
-  return `${profile}:${travelMode}:${stops.map((stop) => stop.coordinates.map((value) => Number(value).toFixed(6)).join(',')).join(';')}`;
+function cacheKey(profile, stops) {
+  return `${profile}:${stops.map((stop) => stop.coordinates.map((value) => Number(value).toFixed(6)).join(',')).join(';')}`;
 }
 
 function readCache(key, cacheMs) {
@@ -94,7 +78,7 @@ function writeCache(key, value) {
 
 export async function requestOsrmRoute({
   stops,
-  travelMode = 'walking',
+  travelMode: _travelMode,
   fetchImpl = globalThis.fetch,
   baseUrl,
   timeoutMs = positiveNumber(process.env.ROUTING_REQUEST_TIMEOUT_MS, DEFAULT_TIMEOUT_MS),
@@ -110,8 +94,9 @@ export async function requestOsrmRoute({
     throw new RoutingProviderError('Sunucuda yol servisine bağlanacak ağ istemcisi bulunamadı.');
   }
 
-  const target = routingTarget(travelMode, baseUrl);
-  const key = cacheKey(`${target.baseUrl}:${target.routingProfile}`, travelMode, stops);
+  const travelMode = 'driving';
+  const target = routingTarget(baseUrl);
+  const key = cacheKey(`${target.baseUrl}:${target.routingProfile}`, stops);
   const cached = readCache(key, cacheMs);
   if (cached) return { ...cached, cached: true };
 
@@ -146,10 +131,7 @@ export async function requestOsrmRoute({
 
     const distanceKm = Number(route.distance || 0) / 1000;
     const serviceTravelMinutes = Math.max(1, Math.round(Number(route.duration || 0) / 60));
-    const estimatedSpeed = ESTIMATED_SPEED_KMH[travelMode];
-    const travelMinutes = target.routingProfile === travelMode || !estimatedSpeed
-      ? serviceTravelMinutes
-      : Math.max(1, Math.round((distanceKm / estimatedSpeed) * 60));
+    const travelMinutes = serviceTravelMinutes;
     const value = {
       geometry: route.geometry,
       distanceKm: Number(distanceKm.toFixed(2)),
@@ -170,7 +152,7 @@ export async function requestOsrmRoute({
       dataSource: 'OpenStreetMap yol ağı',
       routingProfile: target.routingProfile,
       requestedTravelMode: travelMode,
-      durationMethod: target.routingProfile === travelMode || !estimatedSpeed ? 'routing-profile' : 'distance-speed-estimate',
+      durationMethod: 'routing-profile',
       cached: false,
     };
     writeCache(key, value);

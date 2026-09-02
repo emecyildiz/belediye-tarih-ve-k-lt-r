@@ -18,6 +18,9 @@ const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
 export default buildConfig({
+  bodyParser: {
+    limits: { fileSize: 10 * 1024 * 1024, files: 1, fields: 100 },
+  },
   admin: {
     user: Users.slug,
     meta: {
@@ -28,11 +31,15 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     components: {
-      beforeNavLinks: ['/components/ReportsNavLink'],
+      beforeNavLinks: ['/components/PortalUsersNavLink', '/components/ReportsNavLink'],
       views: {
         reports: {
           Component: '/components/ReportsView',
           path: '/raporlar',
+        },
+        portalUsers: {
+          Component: '/components/PortalUsersView',
+          path: '/portal-kullanicilari',
         },
       },
     },

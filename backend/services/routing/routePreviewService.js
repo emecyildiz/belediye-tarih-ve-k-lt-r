@@ -14,9 +14,9 @@ function pointFeatures(stops, routeId) {
 }
 
 export async function buildRoadRoutePreview(options, dependencies = {}) {
-  const base = buildRoutePreview(options);
+  const normalizedOptions = { ...options, travelMode: 'driving' };
+  const base = buildRoutePreview(normalizedOptions);
   const { stops, routeId, title, travelMode } = base;
-  const visitMinutes = Number(options.visitMinutes) || 25;
   const providerMetadata = routingProviderMetadata();
 
   if (stops.length < 2) {
@@ -24,7 +24,7 @@ export async function buildRoadRoutePreview(options, dependencies = {}) {
       ...base,
       distanceKm: 0,
       travelMinutes: 0,
-      durationMinutes: stops.length * visitMinutes,
+      durationMinutes: 0,
       geometry: null,
       geojson: { type: 'FeatureCollection', features: pointFeatures(stops, routeId) },
       cbs: {
@@ -48,7 +48,7 @@ export async function buildRoadRoutePreview(options, dependencies = {}) {
       ...base,
       distanceKm: roadRoute.distanceKm,
       travelMinutes: roadRoute.travelMinutes,
-      durationMinutes: roadRoute.travelMinutes + stops.length * visitMinutes,
+      durationMinutes: roadRoute.travelMinutes,
       geometry: roadRoute.geometry,
       legs: roadRoute.legs,
       snappedWaypoints: roadRoute.snappedWaypoints,
@@ -72,7 +72,7 @@ export async function buildRoadRoutePreview(options, dependencies = {}) {
       ...base,
       distanceKm: null,
       travelMinutes: null,
-      durationMinutes: stops.length * visitMinutes,
+      durationMinutes: null,
       geometry: null,
       geojson: { type: 'FeatureCollection', features: pointFeatures(stops, routeId) },
       cbs: {

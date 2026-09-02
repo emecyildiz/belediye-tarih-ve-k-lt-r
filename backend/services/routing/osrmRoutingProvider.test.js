@@ -34,7 +34,8 @@ test('OSRM yanıtını yol geometrisi ve ölçülere dönüştürür', async () 
 
   assert.match(requestedUrl, /\/route\/v1\/driving\/36\.1605,36\.2021;36\.17,36\.208/);
   assert.equal(result.distanceKm, 1.83);
-  assert.equal(result.travelMinutes, 24);
+  assert.equal(result.travelMinutes, 15);
+  assert.equal(result.requestedTravelMode, 'driving');
   assert.equal(result.geometry.coordinates.length, 3);
 });
 
@@ -46,7 +47,7 @@ test('geçersiz servis yanıtını kontrollü hataya dönüştürür', async () 
   );
 });
 
-test('geçici açık servis ulaşım türünü ayrı yol profiline gönderir', async () => {
+test('eski ulaşım türü gönderilse de açık araç servisini kullanır', async () => {
   clearRoutingCache();
   const originalBaseUrl = process.env.OSRM_BASE_URL;
   delete process.env.OSRM_BASE_URL;
@@ -72,8 +73,8 @@ test('geçici açık servis ulaşım türünü ayrı yol profiline gönderir', a
         };
       },
     });
-    assert.match(requestedUrl, /^https:\/\/routing\.openstreetmap\.de\/routed-bike\/route\/v1\/driving\//);
-    assert.equal(result.routingProfile, 'cycling');
+    assert.match(requestedUrl, /^https:\/\/routing\.openstreetmap\.de\/routed-car\/route\/v1\/driving\//);
+    assert.equal(result.routingProfile, 'driving');
     assert.equal(result.travelMinutes, 6);
     assert.equal(result.durationMethod, 'routing-profile');
   } finally {

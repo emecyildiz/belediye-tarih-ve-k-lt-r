@@ -1,0 +1,6 @@
+.tkmbs-users-nav { margin: 0 0 12px; padding: 0 8px; }
+.tkmbs-users-nav__group { display: block; margin: 0 8px 7px; color: var(--theme-elevation-500); font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; }
+.tkmbs-users-nav a,.tkmbs-users-nav a span { font-size: 12px !important; line-height: 18px !important; font-weight: 400 !important; }
+.tkmbs-users-nav a { min-height: 38px; padding: 8px 10px; display: flex; align-items: center; gap: 10px; color: var(--theme-elevation-800); border-radius: 6px; text-decoration: none; }
+.tkmbs-users-nav a:hover,.tkmbs-users-nav a.is-active { color: var(--theme-text); background: var(--theme-elevation-100); }
+.tkmbs-users-nav svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }

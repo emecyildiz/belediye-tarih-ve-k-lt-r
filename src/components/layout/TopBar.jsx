@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { useAuth } from '../../auth/AuthContext';
+import { useAuth } from '../../auth/useAuth';
 import { getCmsAdminUrl } from '../../services/authClient';
 import { IconBell, IconSearch, IconUser } from '../common/Icons';
 import './TopBar.css';
@@ -18,7 +18,7 @@ export default function TopBar() {
   const { user, logout } = useAuth();
 
   useEffect(() => {
-    if (!user) {
+    if (!user || user.role !== 'citizen') {
       setNotifications([]);
       setUnreadCount(0);
       return undefined;

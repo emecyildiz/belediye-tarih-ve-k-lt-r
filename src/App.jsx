@@ -15,6 +15,7 @@ import NotificationsPage from './pages/NotificationsPage';
 import AboutPage from './pages/AboutPage';
 import SearchResultsPage from './pages/SearchResultsPage';
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
 import ProtectedRoute from './auth/ProtectedRoute';
 import { AuthProvider } from './auth/AuthContext';
 import api from './services/api';
@@ -90,6 +91,7 @@ function App() {
           <Route path="/hakkinda" element={<AboutPage />} />
           <Route path="/arama" element={<SearchResultsPage />} />
           <Route path="/giris" element={<LoginPage />} />
+          <Route path="/kayit-ol" element={<RegisterPage />} />
           <Route path="/yetkisiz" element={<div className="auth-route-loading">Bu sayfayı görüntüleme yetkiniz bulunmuyor.</div>} />
           <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

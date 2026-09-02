@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "server": "node backend-server.js",
+    "auth:migrate-2fa-secret": "node backend/auth/migrateTwoFactorSecrets.js",
     "dev:full": "concurrently \"npm run server\" \"npm run dev\"",
     "dev:cms": "concurrently \"npm run server\" \"npm run dev\" \"npm --prefix cms run dev\"",
     "cms:dev": "npm --prefix cms run dev",
@@ -18,6 +19,7 @@
     "cms:migrate": "npm --prefix cms run migrate",
     "cms:migrate:create": "npm --prefix cms run migrate:create",
     "cms:seed": "npm --prefix cms run seed",
+    "cms:media:migrate": "npm --prefix cms run migrate:media",
     "cms:types": "npm --prefix cms run generate:types",
     "routing:build": "docker compose -f routing/docker-compose.yml build",
     "routing:start": "docker compose -f routing/docker-compose.yml up -d",
@@ -32,8 +34,10 @@
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^4.18.2",
+    "helmet": "^8.3.0",
     "ol": "^9.0.0",
     "pg": "^8.23.0",
+    "qrcode": "^1.5.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.18.2"
@@ -42,14 +46,14 @@
     "@eslint/js": "^9.39.5",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",
-    "@vitejs/plugin-react": "^4.2.1",
+    "@vitejs/plugin-react": "^6.1.1",
     "concurrently": "^8.2.2",
     "eslint": "^9.39.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.5",
     "globals": "^17.11.0",
-    "vite": "^5.0.8"
+    "vite": "^8.2.2"
   },
   "engines": {
     "node": ">=16.0.0",

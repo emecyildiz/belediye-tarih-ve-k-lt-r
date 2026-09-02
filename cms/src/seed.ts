@@ -1,4 +1,5 @@
 import { config as loadEnv } from 'dotenv'
+import { fileURLToPath } from 'node:url'
 import { getPayload } from 'payload'
 
 import { events } from '../../backend/data/events.js'
@@ -12,8 +13,33 @@ loadEnv({ path: new URL('../.env', import.meta.url) })
 const { default: config } = await import('./payload.config')
 const payload = await getPayload({ config })
 
-if (process.env.AUTH_SEED_DEMO_USERS !== 'false') {
-  const demoPassword = process.env.DEMO_USER_PASSWORD || 'Belediye2026!'
+const mediaIdByUrl = new Map<string, number | string | null>()
+
+async function ensureMedia(imageUrl: unknown, alt: string) {
+  const url = String(imageUrl || '')
+  if (!url.startsWith('/assets/')) return null
+  if (mediaIdByUrl.has(url)) return mediaIdByUrl.get(url) || null
+
+  const filename = url.split('/').pop() as string
+  const existing = await payload.find({ collection: 'media', where: { filename: { equals: filename } }, limit: 1, overrideAccess: true })
+  if (existing.docs[0]) {
+    mediaIdByUrl.set(url, existing.docs[0].id)
+    return existing.docs[0].id
+  }
+
+  const saved = await payload.create({
+    collection: 'media',
+    data: { alt, credit: 'TKMBS örnek içerik arşivi', license: 'Sunum ve geliştirme kullanımı' },
+    filePath: fileURLToPath(new URL(`../../public${url}`, import.meta.url)),
+    overrideAccess: true,
+  })
+  mediaIdByUrl.set(url, saved.id)
+  return saved.id
+}
+
+if (process.env.AUTH_SEED_DEMO_USERS === 'true') {
+  const demoPassword = process.env.DEMO_USER_PASSWORD
+  if (!demoPassword || demoPassword.length < 12) throw new Error('Demo yöneticileri için en az 12 karakterli DEMO_USER_PASSWORD zorunludur.')
   const demoManagers = [
     { email: 'admin@tkmbs.local', name: 'Sistem Yöneticisi', role: 'admin' as const },
     { email: 'editor@tkmbs.local', name: 'İçerik Editörü', role: 'editor' as const },
@@ -54,6 +80,12 @@ async function upsertByLegacyId(collection: 'monuments' | 'cultural-routes' | 'e
 const monumentIdMap = new Map<number, number | string>()
 
 for (const item of monuments) {
+  const imageMedia = await ensureMedia(item.image, item.name)
+  const galleryMedia = []
+  for (const [index, url] of (item.images || []).entries()) {
+    const media = await ensureMedia(url, `${item.name} - ${index + 1}`)
+    if (media) galleryMedia.push({ media })
+  }
   const saved = await upsertByLegacyId('monuments', item.id, {
     legacyId: item.id,
     name: item.name,
@@ -77,7 +109,9 @@ for (const item of monuments) {
     reviewCount: item.reviewCount,
     featured: item.id <= 6,
     image: item.image,
+    imageMedia,
     gallery: (item.images || []).map((url: string) => ({ url })),
+    galleryMedia,
     coordinates: { latitude: item.coordinates[0], longitude: item.coordinates[1] },
     highlights: (item.highlights || []).map((text: string) => ({ text })),
     timeline: (item.timeline || []).map((entry: { year: string; text: string }) => entry),
@@ -87,6 +121,7 @@ for (const item of monuments) {
 }
 
 for (const item of culturalRoutes) {
+  const imageMedia = await ensureMedia(item.image, item.title)
   await upsertByLegacyId('cultural-routes', item.id, {
     legacyId: item.id,
     title: item.title,
@@ -99,8 +134,9 @@ for (const item of culturalRoutes) {
     distance: item.distance,
     difficulty: item.difficulty,
     difficultyLabel: item.difficultyLabel,
-    travelMode: 'travelMode' in item ? item.travelMode : 'walking',
+    travelMode: 'driving',
     image: item.image,
+    imageMedia,
     color: item.color,
     featured: item.id <= 6,
     monuments: item.monumentIds.map((id: number) => monumentIdMap.get(id)).filter(Boolean),
@@ -109,6 +145,7 @@ for (const item of culturalRoutes) {
 }
 
 for (const item of events) {
+  const imageMedia = await ensureMedia(item.image, item.title)
   await upsertByLegacyId('events', item.id, {
     legacyId: item.id,
     title: item.title,
@@ -122,6 +159,7 @@ for (const item of events) {
     date: new Date(`${item.date}T12:00:00+03:00`).toISOString(),
     time: item.time,
     image: item.image,
+    imageMedia,
     featured: Boolean(item.featured),
     _status: 'published',
   })

@@ -6,6 +6,15 @@
 .tkmbs-report__status { display:flex; align-items:center; gap:8px; flex:none; padding:10px 13px; border:1px solid rgba(255,255,255,.25); border-radius:999px; background:rgba(255,255,255,.1); font-size:13px; font-weight:700; }
 .tkmbs-report__status i,.tkmbs-report__integrity i { width:9px; height:9px; border-radius:50%; background:#34d399; box-shadow:0 0 0 4px rgba(52,211,153,.13); }
 .tkmbs-report__status.is-warning i,.tkmbs-report__integrity i.warning { background:#f59e0b; box-shadow:0 0 0 4px rgba(245,158,11,.14); }
+.tkmbs-report__filters { display:flex; align-items:flex-end; gap:12px; margin:14px 0; padding:14px 16px; border:1px solid var(--theme-elevation-150); border-radius:14px; background:var(--theme-elevation-0); box-shadow:0 5px 16px rgba(15,38,67,.05); }
+.tkmbs-report__filters label { display:grid; gap:5px; min-width:150px; }
+.tkmbs-report__filters label span { color:var(--theme-elevation-600); font-size:12px; font-weight:700; }
+.tkmbs-report__filters input,.tkmbs-report__filters select { min-height:40px; padding:8px 11px; border:1px solid var(--theme-elevation-200); border-radius:8px; color:var(--theme-text); background:var(--theme-input-bg); font:inherit; }
+.tkmbs-report__filters button,.tkmbs-report__filters>a,.tkmbs-report__panel header>a { display:inline-flex; align-items:center; justify-content:center; min-height:40px; padding:8px 14px; border:0; border-radius:8px; color:#fff; background:#0b4b85; font-size:12px; font-weight:750; text-decoration:none; cursor:pointer; }
+.tkmbs-report__filters>a { margin-left:auto; color:#0b4b85; border:1px solid #9fc3e5; background:#eef7ff; }
+.tkmbs-report__panel header>a { min-height:32px; padding:6px 10px; color:#0b4b85; border:1px solid #bdd5ea; background:#eef7ff; }
+.tkmbs-report__exports { display:flex; align-items:center; gap:6px; }
+.tkmbs-report__exports a { display:inline-flex; align-items:center; justify-content:center; min-height:32px; padding:6px 10px; border:1px solid #bdd5ea; border-radius:8px; color:#0b4b85; background:#eef7ff; font-size:12px; font-weight:750; text-decoration:none; }
 .tkmbs-report__metrics { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:12px; margin:14px 0; }
 .tkmbs-report__metrics article,.tkmbs-report__panel { border:1px solid var(--theme-elevation-150); border-radius:14px; background:var(--theme-elevation-0); box-shadow:0 5px 16px rgba(15,38,67,.05); }
 .tkmbs-report__metrics article { min-width:0; padding:16px; }
@@ -14,6 +23,7 @@
 .tkmbs-report__metrics small { color:var(--theme-elevation-550); font-size:11px; }
 .tkmbs-report__grid { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(320px,.85fr); gap:14px; }
 .tkmbs-report__footer-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px; }
+.tkmbs-report__footer-grid--single { grid-template-columns:1fr; }
 .tkmbs-report__panel { padding:19px; }
 .tkmbs-report__panel>header { display:flex; justify-content:space-between; gap:16px; margin-bottom:15px; }
 .tkmbs-report__panel header h2 { margin:0; color:#0b315d; font-size:18px; }
@@ -42,4 +52,5 @@
 .tkmbs-report__integrity p strong { margin-left:auto; color:#0b4b85; }
 .tkmbs-report__empty { align-self:center; width:100%; color:var(--theme-elevation-500); text-align:center; font-size:13px; }
 @media(max-width:1200px){.tkmbs-report__metrics{grid-template-columns:repeat(3,1fr)}.tkmbs-report__grid{grid-template-columns:1fr}.tkmbs-report__chart{min-height:190px}}
-@media(max-width:700px){.tkmbs-report__header{flex-direction:column}.tkmbs-report__metrics{grid-template-columns:repeat(2,1fr)}.tkmbs-report__footer-grid{grid-template-columns:1fr}.tkmbs-report__chart{overflow-x:auto}.tkmbs-report__bar{flex:0 0 34px}.tkmbs-report__inventory{grid-template-columns:1fr}}
+@media(max-width:900px){.tkmbs-report__filters{align-items:stretch;flex-wrap:wrap}.tkmbs-report__filters label{flex:1 1 180px}.tkmbs-report__filters>a{margin-left:0}}
+@media(max-width:700px){.tkmbs-report__header{flex-direction:column}.tkmbs-report__metrics{grid-template-columns:repeat(2,1fr)}.tkmbs-report__footer-grid{grid-template-columns:1fr}.tkmbs-report__chart{overflow-x:auto}.tkmbs-report__bar{flex:0 0 34px}.tkmbs-report__inventory{grid-template-columns:1fr}.tkmbs-report__filters button,.tkmbs-report__filters>a{flex:1 1 100%}}

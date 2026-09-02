@@ -1,12 +1,12 @@
 import type { CollectionConfig } from 'payload'
 
-import { authenticated, publicRead } from '../access'
+import { adminsOnly, authenticated, publishedOrAuthenticated } from '../access'
 
 export const Events: CollectionConfig = {
   slug: 'events',
   labels: { singular: 'Etkinlik', plural: 'Etkinlikler' },
   admin: { group: 'İçerik Yönetimi', useAsTitle: 'title', defaultColumns: ['title', 'date', 'district', 'featured'] },
-  access: { read: publicRead, create: authenticated, update: authenticated, delete: authenticated },
+  access: { read: publishedOrAuthenticated, create: authenticated, update: authenticated, delete: adminsOnly },
   versions: { drafts: true, maxPerDoc: 20 },
   fields: [
     { name: 'legacyId', label: 'Portal Kayıt No', type: 'number', required: true, unique: true, index: true },
@@ -36,6 +36,7 @@ export const Events: CollectionConfig = {
         { name: 'time', label: 'Saat', type: 'text', required: true },
       ],
     },
-    { name: 'image', label: 'Etkinlik Görseli URL', type: 'text' },
+    { name: 'imageMedia', label: 'Etkinlik Görseli', type: 'upload', relationTo: 'media', admin: { description: 'Etkinlik kartında, takvim başlığında ve ayrıntı sayfasında kullanılır.' } },
+    { name: 'image', label: 'Eski Etkinlik Görseli URL', type: 'text', admin: { hidden: true } },
   ],
 }

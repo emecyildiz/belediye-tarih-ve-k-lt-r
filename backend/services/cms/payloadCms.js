@@ -71,16 +71,20 @@ function dateParts(value) {
 
 function mediaUrl(value) {
   if (!value) return '';
-  return typeof value === 'string' ? value : value.url || '';
+  if (typeof value === 'string') return value;
+  const resolved = value.sizes?.card?.url || value.url || '';
+  return resolved.startsWith('/') ? `${getCmsUrl()}${resolved}` : resolved;
 }
 
 export function normalizePayloadMonument(doc) {
+  const mediaGallery = (doc.galleryMedia || []).map((item) => mediaUrl(item.media)).filter(Boolean);
+  const legacyGallery = (doc.gallery || []).map((item) => mediaUrl(item.url)).filter(Boolean);
   return {
     ...doc,
     id: Number(doc.legacyId),
     route: doc.routeLabel || '',
-    image: mediaUrl(doc.image),
-    images: (doc.gallery || []).map((item) => mediaUrl(item)).filter(Boolean),
+    image: mediaUrl(doc.imageMedia) || mediaUrl(doc.image),
+    images: mediaGallery.length ? mediaGallery : legacyGallery,
     highlights: (doc.highlights || []).map((item) => item.text).filter(Boolean),
     coordinates: [Number(doc.coordinates?.latitude), Number(doc.coordinates?.longitude)],
   };
@@ -88,11 +92,11 @@ export function normalizePayloadMonument(doc) {
 
 export function normalizePayloadRoute(doc) {
   const monumentIds = (doc.monuments || []).map((item) => Number(typeof item === 'object' ? item.legacyId : item)).filter(Number.isFinite);
-  return { ...doc, id: Number(doc.legacyId), image: mediaUrl(doc.image), monumentIds, stops: monumentIds.length };
+  return { ...doc, id: Number(doc.legacyId), image: mediaUrl(doc.imageMedia) || mediaUrl(doc.image), monumentIds, stops: monumentIds.length };
 }
 
 export function normalizePayloadEvent(doc) {
-  return { ...doc, id: Number(doc.legacyId), image: mediaUrl(doc.image), ...dateParts(doc.date) };
+  return { ...doc, id: Number(doc.legacyId), image: mediaUrl(doc.imageMedia) || mediaUrl(doc.image), ...dateParts(doc.date) };
 }
 
 function notificationType(doc) {
@@ -142,9 +146,9 @@ function buildActivity(monuments, routes, events) {
 
 export async function getPayloadSnapshot() {
   const [monumentDocs, routeDocs, eventDocs, notificationDocs, siteSettings] = await Promise.all([
-    fetchCollection('monuments'),
+    fetchCollection('monuments', { depth: 1 }),
     fetchCollection('cultural-routes', { depth: 1 }),
-    fetchCollection('events'),
+    fetchCollection('events', { depth: 1 }),
     fetchCollection('notifications', { sort: '-publishedAt' }),
     fetchGlobal('site-settings'),
   ]);

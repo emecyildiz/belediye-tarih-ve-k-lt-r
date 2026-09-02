@@ -13,7 +13,8 @@ export function routingProviderMetadata() {
 }
 
 export function requestConfiguredRoute(options) {
+  const drivingOptions = { ...options, travelMode: 'driving' };
   return configuredRoutingProvider() === 'osrm'
-    ? requestOsrmRoute(options)
-    : requestGraphHopperRoute(options);
+    ? requestOsrmRoute(drivingOptions)
+    : requestGraphHopperRoute(drivingOptions);
 }

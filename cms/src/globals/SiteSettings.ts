@@ -1,12 +1,12 @@
 import type { GlobalConfig } from 'payload'
 
-import { authenticated, publicRead } from '../access'
+import { adminsOnly, publicRead } from '../access'
 
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
   label: 'Portal Ayarları',
   admin: { group: 'Genel Ayarlar' },
-  access: { read: publicRead, update: authenticated },
+  access: { read: publicRead, update: adminsOnly },
   fields: [
     { name: 'portalName', label: 'Portal Adı', type: 'text', required: true, defaultValue: 'Tarihi ve Kültürel Miras Bilgi Sistemi' },
     { name: 'municipalityName', label: 'Kurum Adı', type: 'text', required: true, defaultValue: 'Hatay Büyükşehir Belediyesi' },

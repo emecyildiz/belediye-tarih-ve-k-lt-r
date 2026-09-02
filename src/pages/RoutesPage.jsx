@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api, { getImageUrl } from '../services/api';
 import SafeImage from '../components/common/SafeImage';
 import useFavoriteIds from '../hooks/useFavoriteIds';
-import { useAuth } from '../auth/AuthContext';
+import { useAuth } from '../auth/useAuth';
 import { IconArrow, IconClock, IconFilter, IconHeart, IconPin, IconRoute } from '../components/common/Icons';
 import './RoutesPage.css';
 
