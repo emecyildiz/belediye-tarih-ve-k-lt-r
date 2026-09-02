@@ -1,5 +1,6 @@
 .login-page { min-height: calc(100dvh - 185px); display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(360px, .72fr); overflow: hidden; border: 1px solid #d8e2ed; border-radius: 16px; background: #fff; box-shadow: 0 14px 40px rgb(12 42 75 / 9%); }
-.login-intro { position: relative; isolation: isolate; padding: clamp(42px, 6vw, 88px); display: flex; flex-direction: column; justify-content: center; color: #fff; background: linear-gradient(135deg, rgb(3 32 70 / 94%), rgb(8 67 119 / 78%)), url('/assets/monuments/habib-neccar-main.jpg') center/cover no-repeat; }
+.login-intro { position: relative; isolation: isolate; overflow: hidden; padding: clamp(42px, 6vw, 88px); display: flex; flex-direction: column; justify-content: center; color: #fff; background: linear-gradient(135deg, #072f61, #185d91); }
+.login-intro::before { position: absolute; z-index: -1; inset: clamp(34px, 5vw, 72px); content: ''; background: url('/assets/image6.png') center/contain no-repeat; filter: brightness(0) invert(1); opacity: .14; }
 .login-intro::after { position: absolute; z-index: -1; right: 28px; bottom: 28px; width: 110px; height: 4px; content: ''; border-radius: 999px; background: linear-gradient(90deg, #eeb348, rgb(238 179 72 / 8%)); }
 .login-intro > span,.login-card > span { color: #eeb348; font-size: 14px; font-weight: 800; letter-spacing: .13em; }
 .login-intro h1 { max-width: 690px; margin: 18px 0 16px; font-size: clamp(34px, 4vw, 58px); line-height: 1.05; }
