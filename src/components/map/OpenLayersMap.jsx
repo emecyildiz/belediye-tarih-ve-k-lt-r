@@ -129,6 +129,7 @@ export default function OpenLayersMap({
   heatmap = false,
   fitToData = false,
   fitToRouteOnce = false,
+  focusCoordinate = null,
   showCoordinates = false,
   height = '100%',
 }) {
@@ -321,6 +322,18 @@ export default function OpenLayersMap({
       satelliteLayerRef.current.setVisible(mapType === 'satellite');
     }
   }, [mapType]);
+
+  useEffect(() => {
+    const latitude = Number(focusCoordinate?.latitude);
+    const longitude = Number(focusCoordinate?.longitude);
+    const view = mapRef.current?.getView();
+    if (!view || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+    view.animate({
+      center: fromLonLat([longitude, latitude]),
+      zoom: Math.max(Number(view.getZoom()) || DEFAULT_ZOOM, 16),
+      duration: 420,
+    });
+  }, [focusCoordinate?.latitude, focusCoordinate?.longitude]);
 
   const zoom = (delta) => {
     const view = mapRef.current?.getView();

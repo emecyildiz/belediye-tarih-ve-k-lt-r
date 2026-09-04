@@ -44,6 +44,7 @@ export default function MapPage() {
   const [searchParams] = useSearchParams();
   const routeSlug = searchParams.get('route');
   const savedMapRouteId = searchParams.get('savedRoute');
+  const locationReference = searchParams.get('location');
   const [allGeojson, setAllGeojson] = useState(null);
   const [monuments, setMonuments] = useState([]);
   const [activeLayers, setActiveLayers] = useState(() => new Set(layers.map((item) => item.key)));
@@ -80,10 +81,19 @@ export default function MapPage() {
           setRoutePreview(displayRoute);
           setRouteStatus(displayRoute?.cbs?.routingStatus === 'unavailable' ? 'unavailable' : 'ready');
           setSelectedLocation(null);
+        } else if (locationReference) {
+          const requestedLocation = (items || []).find((item) => (
+            String(item.slug) === locationReference || String(item.id) === locationReference
+          ));
+          if (requestedLocation) {
+            setActiveLayers((current) => new Set(current).add(requestedLocation.category));
+            setDistrict('tumu');
+            setSelectedLocation(requestedLocation);
+          }
         }
       })
       .catch((error) => console.error('Harita verileri yüklenemedi:', error));
-  }, [routeSlug, savedMapRouteId]);
+  }, [routeSlug, savedMapRouteId, locationReference]);
 
   useEffect(() => {
     if (!routeMode || viewedRoute) return undefined;
@@ -221,6 +231,7 @@ export default function MapPage() {
             showCoordinates
             routeMode={routeMode}
             fitToRouteOnce={Boolean(viewedRoute)}
+            focusCoordinate={locationReference ? selectedCoordinate : null}
           />
         ) : <div className="map-loading">Harita yükleniyor…</div>}
       </div>
