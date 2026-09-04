@@ -1748,7 +1748,7 @@ Get-NetTCPConnection -LocalPort 3000,5000,5173,5432,8989 -ErrorAction SilentlyCo
 11. **Rapor analitiği anonim ziyaret ölçümüdür.** Resmî istatistik metodolojisi kurum tarafından onaylanmalıdır.
 12. **Demo kullanıcılar production'a taşınmamalıdır.** Seed kontrollü ve geçici olmalıdır.
 13. **Yük testi yapılmadan kesin kapasite verilmemelidir.** 20 örnek kayıt işlev testidir, kapasite testi değildir.
-14. **OneDrive build cache sorunları oluşturabilir.** Geliştirme çalışma kopyası yerel diskte tutulmalıdır.
+14. **OneDrive build cache sorunları oluşturabilir.** CMS komutları bu nedenle Webpack'e sabitlenmiş ve Webpack disk cache'i kapatılmıştır. En güvenli çalışma düzeni yine de geliştirme kopyasını OneDrive dışındaki yerel diskte tutmaktır.
 
 > [İçindekilere dön](#icindekiler)
 

@@ -258,7 +258,7 @@ npm --prefix cms run test:int
 npm --prefix cms run build
 ```
 
-OneDrive altında `Bulut dosya sağlayıcısı çalışmıyor` veya Turbopack `.next` önbellek hatası görülürse projeyi OneDrive dışındaki yerel bir geliştirme dizinine taşımak en güvenli çözümdür. `cms/.next` yalnızca yeniden üretilebilir önbellektir; servisler kapalıyken temizlenip yeniden oluşturulabilir.
+CMS geliştirme ve üretim derleme komutları, OneDrive'ın Turbopack persistence veritabanını bozmasını önlemek için Webpack kullanır. Webpack disk önbelleği de kapalıdır; böylece bozuk cache veritabanı ve snapshot dosyası kullanılmaz. Buna rağmen `Bulut dosya sağlayıcısı çalışmıyor` hatası görülürse projeyi OneDrive dışındaki yerel bir geliştirme dizinine taşımak en güvenli çözümdür. `cms/.next` yalnızca yeniden üretilebilir çıktıdır; servisler kapalıyken temizlenip yeniden oluşturulabilir.
 
 <a id="guvenlik-notlari"></a>
 ## Güvenlik notları

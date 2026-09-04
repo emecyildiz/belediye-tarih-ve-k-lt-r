@@ -17,6 +17,10 @@ const nextConfig: NextConfig = {
     ],
   },
   webpack: (webpackConfig) => {
+    // OneDrive, Next/Webpack disk önbelleğini zaman zaman bozabiliyor.
+    // Disk cache'i kullanmayarak kalıcı önbellek ve snapshot hatalarını önlüyoruz.
+    webpackConfig.cache = false
+
     webpackConfig.resolve.extensionAlias = {
       '.cjs': ['.cts', '.cjs'],
       '.js': ['.ts', '.tsx', '.js', '.jsx'],
