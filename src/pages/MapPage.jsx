@@ -274,11 +274,6 @@ export default function MapPage() {
 
   const toggleFavorite = () => selectedLocation && toggleFavoriteId(selectedLocation.id);
 
-  const resetFilters = () => {
-    setActiveLayers(new Set(layers.map((item) => item.key)));
-    setDistrict('tumu');
-  };
-
   const selectedCoordinate = getLocationCoordinate(selectedEvent || selectedLocation);
   const closeDetails = () => {
     setSelectedLocation(null);
@@ -321,7 +316,6 @@ export default function MapPage() {
         <section className="map-control-section">
           <div className="map-control-heading">
             <div><h2>Katmanlar</h2><span>{filteredGeojson?.features.length || 0} kayıt gösteriliyor</span></div>
-            <button type="button" onClick={() => setActiveLayers(new Set(layers.map((item) => item.key)))}>Tümünü seç</button>
           </div>
           <div className="map-content-switch" aria-label="Haritada gösterilecek içerik">
             <button type="button" className={contentFilter === 'all' ? 'active' : ''} onClick={() => showContent('all')}>Tümü</button>
@@ -353,7 +347,6 @@ export default function MapPage() {
               {districts.map((item) => <option value={item} key={item}>{item}</option>)}
             </select>
           </label>
-          <button type="button" className="map-reset-button" onClick={resetFilters}>Filtreleri Temizle</button>
         </section>
       </aside>
 

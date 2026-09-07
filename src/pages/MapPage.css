@@ -84,16 +84,6 @@
   color: var(--text-muted);
   font-size: 11px;
 }
-.map-control-heading button {
-  padding: 3px 0;
-  color: #31577f;
-  border: 0;
-  background: transparent;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.map-control-heading button:hover { color: var(--navy); text-decoration: underline; }
 .map-content-switch {
   margin: 8px 0 4px;
   padding: 3px;
@@ -162,19 +152,6 @@
   font-size: 12px;
   font-weight: 600;
 }
-.map-reset-button {
-  width: 100%;
-  height: 35px;
-  margin-top: 10px;
-  color: #173b68;
-  border: 1px solid #cbd6e3;
-  border-radius: 6px;
-  background: #fff;
-  font-size: 12px;
-  font-weight: 650;
-  cursor: pointer;
-}
-.map-reset-button:hover { background:#f3f6fa; }
 .heritage-map-page .map-type-toggle { left: 322px; }
 .map-legend-card {
   position: absolute;
