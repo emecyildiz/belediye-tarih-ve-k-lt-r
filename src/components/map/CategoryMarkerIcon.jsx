@@ -7,6 +7,7 @@ const paths = {
   kopru: <path d="M4 21h24M6 21v-5c5-9 15-9 20 0v5M10 19c2-6 10-6 12 0" />,
   doga: <path d="M7 21c12 1 17-7 16-17-10 1-17 5-16 17zM8 20c4-6 8-9 13-13M14 15v9" />,
   diger: <path d="M16 3l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" />,
+  event: <path d="M7 7h18v17H7zM11 4v6M21 4v6M7 12h18M12 16h2M18 16h2M12 20h2M18 20h2" />,
 };
 
 export default function CategoryMarkerIcon({ category = 'diger', color = '#64748b', size = 30 }) {

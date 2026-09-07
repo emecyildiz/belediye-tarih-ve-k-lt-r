@@ -18,7 +18,10 @@ const layers = [
   { key: 'kale', label: 'Kaleler ve Surlar', color: '#64748b' },
   { key: 'doga', label: 'Doğal Güzellikler', color: '#16a34a' },
   { key: 'diger', label: 'Diğer Tarihi Eserler', color: '#94a3b8' },
+  { key: 'event', label: 'Etkinlikler', color: '#dc3355' },
 ];
+
+const placeLayerKeys = layers.filter((item) => item.key !== 'event').map((item) => item.key);
 
 const categoryNames = {
   camii: 'Cami', kilise: 'Kilise', muze: 'Müze', han: 'Han',
@@ -40,6 +43,26 @@ function getLocationCoordinate(location) {
   return Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude } : null;
 }
 
+function eventToFeature(event) {
+  const coordinate = getLocationCoordinate(event);
+  if (!coordinate) return null;
+  return {
+    type: 'Feature',
+    id: `event-${event.id}`,
+    properties: {
+      id: `event-${event.id}`,
+      eventId: event.id,
+      name: event.title,
+      category: 'event',
+      categoryLabel: event.categoryLabel || 'Etkinlik',
+      district: event.district,
+      image: event.image,
+      type: 'event',
+    },
+    geometry: { type: 'Point', coordinates: [coordinate.longitude, coordinate.latitude] },
+  };
+}
+
 export default function MapPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -49,6 +72,7 @@ export default function MapPage() {
   const eventReference = searchParams.get('event');
   const [allGeojson, setAllGeojson] = useState(null);
   const [monuments, setMonuments] = useState([]);
+  const [events, setEvents] = useState([]);
   const [activeLayers, setActiveLayers] = useState(() => new Set(layers.map((item) => item.key)));
   const [district, setDistrict] = useState('tumu');
   const [selectedLocation, setSelectedLocation] = useState(null);
@@ -65,10 +89,16 @@ export default function MapPage() {
   useEffect(() => {
     const routeRequest = routeSlug ? api.getRoute(routeSlug) : savedMapRouteId ? api.getCustomRoute(savedMapRouteId) : Promise.resolve(null);
     const eventRequest = eventReference ? api.getEvent(eventReference) : Promise.resolve(null);
-    Promise.all([api.getLocations(), api.getMonuments(), routeRequest, eventRequest])
-      .then(([geojson, items, requestedRoute, requestedEvent]) => {
-        setAllGeojson(geojson);
+    Promise.all([api.getLocations(), api.getMonuments(), api.getEvents(), routeRequest, eventRequest])
+      .then(([geojson, items, eventItems, requestedRoute, requestedEvent]) => {
+        const mappedEvents = eventItems || [];
+        const eventFeatures = mappedEvents.map(eventToFeature).filter(Boolean);
+        setAllGeojson({
+          type: 'FeatureCollection',
+          features: [...(geojson?.features || []), ...eventFeatures],
+        });
         setMonuments(items || []);
+        setEvents(mappedEvents);
         if (requestedRoute) {
           const displayRoute = requestedRoute.selectedIds ? {
             ...(requestedRoute.preview || {}),
@@ -97,6 +127,7 @@ export default function MapPage() {
             setSelectedEvent(null);
           }
         } else if (requestedEvent) {
+          setActiveLayers((current) => new Set(current).add('event'));
           setDistrict('tumu');
           setSelectedLocation(null);
           setSelectedEvent(requestedEvent);
@@ -125,14 +156,27 @@ export default function MapPage() {
   }, [routeMode, routeStopIds, viewedRoute]);
 
   const districts = useMemo(
-    () => [...new Set(monuments.map((item) => item.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr')),
-    [monuments],
+    () => [...new Set([...monuments, ...events].map((item) => item.district).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr')),
+    [monuments, events],
   );
 
   const layerCounts = useMemo(() => monuments.reduce((counts, item) => {
     counts[item.category] = (counts[item.category] || 0) + 1;
     return counts;
-  }, {}), [monuments]);
+  }, { event: events.length }), [monuments, events]);
+
+  const allPlacesSelected = placeLayerKeys.every((key) => activeLayers.has(key));
+  const contentFilter = activeLayers.size === 1 && activeLayers.has('event')
+    ? 'events'
+    : (!activeLayers.has('event') && activeLayers.size === placeLayerKeys.length && allPlacesSelected
+      ? 'places'
+      : (activeLayers.has('event') && activeLayers.size === layers.length && allPlacesSelected ? 'all' : 'custom'));
+
+  const showContent = (type) => {
+    if (type === 'events') setActiveLayers(new Set(['event']));
+    else if (type === 'places') setActiveLayers(new Set(placeLayerKeys));
+    else setActiveLayers(new Set(layers.map((item) => item.key)));
+  };
 
   const filteredGeojson = useMemo(() => {
     if (!allGeojson) return null;
@@ -151,30 +195,12 @@ export default function MapPage() {
     if (routeMode) {
       const selected = new Set(routeStopIds.map(Number));
       features = [
-        ...features.filter((feature) => !selected.has(Number(feature.properties?.id))),
+        ...features.filter((feature) => feature.properties?.category !== 'event' && !selected.has(Number(feature.properties?.id))),
         ...(routePreview?.geojson?.features || []),
       ];
     }
-    const coordinate = getLocationCoordinate(selectedEvent);
-    if (selectedEvent && coordinate && !routeMode) {
-      features = [...features, {
-        type: 'Feature',
-        id: `event-${selectedEvent.id}`,
-        properties: {
-          id: `event-${selectedEvent.id}`,
-          eventId: selectedEvent.id,
-          name: selectedEvent.title,
-          category: 'event',
-          categoryLabel: selectedEvent.categoryLabel || 'Etkinlik',
-          district: selectedEvent.district,
-          image: selectedEvent.image,
-          type: 'event',
-        },
-        geometry: { type: 'Point', coordinates: [coordinate.longitude, coordinate.latitude] },
-      }];
-    }
     return { type: 'FeatureCollection', features };
-  }, [filteredGeojson, routeMode, routeStopIds, routePreview, selectedEvent]);
+  }, [filteredGeojson, routeMode, routeStopIds, routePreview]);
 
   const routeStops = useMemo(() => routeStopIds
     .map((id) => monuments.find((item) => Number(item.id) === Number(id)))
@@ -200,7 +226,9 @@ export default function MapPage() {
 
   const selectFeature = (properties) => {
     if (properties.type === 'event' || properties.eventId) {
+      const fullEvent = events.find((item) => Number(item.id) === Number(properties.eventId));
       setSelectedLocation(null);
+      setSelectedEvent(fullEvent || selectedEvent);
       return;
     }
     const featureId = Number(properties.monumentId ?? properties.id);
@@ -294,6 +322,11 @@ export default function MapPage() {
           <div className="map-control-heading">
             <div><h2>Katmanlar</h2><span>{filteredGeojson?.features.length || 0} kayıt gösteriliyor</span></div>
             <button type="button" onClick={() => setActiveLayers(new Set(layers.map((item) => item.key)))}>Tümünü seç</button>
+          </div>
+          <div className="map-content-switch" aria-label="Haritada gösterilecek içerik">
+            <button type="button" className={contentFilter === 'all' ? 'active' : ''} onClick={() => showContent('all')}>Tümü</button>
+            <button type="button" className={contentFilter === 'places' ? 'active' : ''} onClick={() => showContent('places')}>Mekânlar</button>
+            <button type="button" className={contentFilter === 'events' ? 'active' : ''} onClick={() => showContent('events')}>Etkinlikler</button>
           </div>
           <div className="map-layer-list">
             {layers.map((layer) => (

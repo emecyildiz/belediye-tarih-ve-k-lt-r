@@ -94,6 +94,28 @@
   cursor: pointer;
 }
 .map-control-heading button:hover { color: var(--navy); text-decoration: underline; }
+.map-content-switch {
+  margin: 8px 0 4px;
+  padding: 3px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  border: 1px solid #dce5ee;
+  border-radius: 7px;
+  background: #f3f6f9;
+}
+.map-content-switch button {
+  min-height: 31px;
+  padding: 0 5px;
+  color: #51647a;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.map-content-switch button.active { color: #fff; background: #0b4f91; box-shadow: 0 2px 6px rgb(13 55 98 / 18%); }
 .map-layer-list { margin-top: 4px; display: grid; grid-template-columns: 1fr; gap: 0; }
 .map-layer-list label {
   position: relative;
