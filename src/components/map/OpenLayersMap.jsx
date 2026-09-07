@@ -21,7 +21,7 @@ const DEFAULT_ZOOM = 11;
 const markerStyleCache = new globalThis.Map();
 const CATEGORY_LABELS = {
   camii: 'Cami', kilise: 'Kilise', muze: 'Müze', han: 'Han',
-  kale: 'Kale', kopru: 'Köprü', doga: 'Doğal Alan', diger: 'Tarihi Eser',
+  kale: 'Kale', kopru: 'Köprü', doga: 'Doğal Alan', diger: 'Tarihi Eser', event: 'Etkinlik',
 };
 
 function coordinateDetails(feature) {
@@ -44,6 +44,7 @@ function getCategorySymbol(category) {
     kopru: '<path d="M8 27h24M10 27v-5c5-9 15-9 20 0v5M14 25c2-6 10-6 12 0"/>',
     doga: '<path d="M12 27c12 1 17-7 16-17-10 1-17 5-16 17zM13 26c4-6 8-9 13-13M19 20v10"/>',
     diger: '<path d="M20 9l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/>',
+    event: '<path d="M11 14h18v16H11zM15 10v7M25 10v7M11 19h18M16 23h2M22 23h2M16 27h2M22 27h2"/>',
   };
   return symbols[category] || symbols.diger;
 }

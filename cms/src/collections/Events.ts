@@ -30,6 +30,16 @@ export const Events: CollectionConfig = {
       ],
     },
     {
+      name: 'coordinates',
+      label: 'Harita Konumu',
+      type: 'group',
+      admin: { description: 'Etkinliğin haritada gösterileceği sayısal enlem ve boylam değerleri.' },
+      fields: [
+        { name: 'latitude', label: 'Enlem', type: 'number', required: true, min: -90, max: 90 },
+        { name: 'longitude', label: 'Boylam', type: 'number', required: true, min: -180, max: 180 },
+      ],
+    },
+    {
       type: 'row',
       fields: [
         { name: 'date', label: 'Tarih', type: 'date', required: true, index: true, admin: { date: { pickerAppearance: 'dayOnly', displayFormat: 'dd.MM.yyyy' } } },

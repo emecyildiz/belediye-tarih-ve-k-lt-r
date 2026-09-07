@@ -156,6 +156,7 @@ for (const item of events) {
     location: item.location,
     district: item.district,
     venue: item.venue,
+    coordinates: { latitude: item.coordinates[0], longitude: item.coordinates[1] },
     date: new Date(`${item.date}T12:00:00+03:00`).toISOString(),
     time: item.time,
     image: item.image,

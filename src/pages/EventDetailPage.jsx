@@ -66,8 +66,10 @@ export default function EventDetailPage() {
   }, [slug]);
 
   const geojson = useMemo(() => {
-    if (!Array.isArray(event?.coordinates)) return null;
-    return { type: 'FeatureCollection', features: [{ type: 'Feature', id: event.id, properties: { id: event.id, name: event.title, category: event.category }, geometry: { type: 'Point', coordinates: [event.coordinates[1], event.coordinates[0]] } }] };
+    const latitude = Array.isArray(event?.coordinates) ? Number(event.coordinates[0]) : Number(event?.coordinates?.latitude);
+    const longitude = Array.isArray(event?.coordinates) ? Number(event.coordinates[1]) : Number(event?.coordinates?.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    return { type: 'FeatureCollection', features: [{ type: 'Feature', id: event.id, properties: { id: event.id, name: event.title, category: 'event', categoryLabel: event.categoryLabel, district: event.district, image: event.image }, geometry: { type: 'Point', coordinates: [longitude, latitude] } }] };
   }, [event]);
 
   const favorite = Boolean(event && favoriteIds.includes(event.id));
@@ -119,7 +121,7 @@ export default function EventDetailPage() {
         <aside className="event-detail-sidebar">
           <section className="event-schedule-card"><div className="event-schedule-date"><strong>{date.day}</strong><span>{date.month}</span></div><div><span>{date.weekday}</span><h2>{date.full}</h2><p><IconClock size={14} /> {event.time || 'Saat açıklanacak'} – {displayEndTime}</p></div><button type="button" onClick={downloadCalendar}><IconCalendar size={15} /> Takvime Ekle</button></section>
           <section className="event-facts-card"><h2>Etkinlik Bilgileri</h2><div><DetailIcon name="ticket" /><span><small>Katılım</small><strong>{event.entryFee || 'Bilgi açıklanacak'}</strong></span></div><div><DetailIcon name="users" /><span><small>Kontenjan / Hedef Kitle</small><strong>{event.capacity ? `${event.capacity} kişi` : 'Kontenjan bilgisi yok'} · {event.audience || 'Tüm yaş grupları'}</strong></span></div><div><DetailIcon name="accessibility" /><span><small>Erişilebilirlik</small><strong>{event.accessibility || 'Bilgi açıklanacak'}</strong></span></div></section>
-          <section className="event-location-card"><header><div><span>KONUM</span><h2>{event.venue}</h2></div><IconPin size={18} /></header><p>{event.address}</p>{geojson && <div><OpenLayersMap geojson={geojson} showControls={false} height="100%" /></div>}<Link to="/harita">Haritada Görüntüle <DetailIcon name="external" size={14} /></Link></section>
+          <section className="event-location-card"><header><div><span>KONUM</span><h2>{event.venue}</h2></div><IconPin size={18} /></header><p>{event.address}</p>{geojson && <div><OpenLayersMap geojson={geojson} showControls={false} height="100%" /></div>}<Link to={`/harita?event=${encodeURIComponent(event.slug || event.id)}`}>Haritada Görüntüle <DetailIcon name="external" size={14} /></Link></section>
           <section className="event-organizer-card"><h2>Organizatör</h2><div><DetailIcon name="building" size={20} /><strong>{event.organizer || 'Hatay Büyükşehir Belediyesi'}</strong></div><p><DetailIcon name="phone" size={14} /> {event.contactPhone || 'İletişim bilgisi açıklanacak'}{event.contactEmail && <><span>·</span>{event.contactEmail}</>}</p></section>
         </aside>
       </div>

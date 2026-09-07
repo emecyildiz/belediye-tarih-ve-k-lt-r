@@ -6,6 +6,7 @@ import * as migration_20260828_160000_harden_two_factor from './20260828_160000_
 import * as migration_20260828_180000_add_content_media from './20260828_180000_add_content_media'
 import * as migration_20260828_210000_vehicle_only_routes from './20260828_210000_vehicle_only_routes'
 import * as migration_20260831_120000_add_user_routes from './20260831_120000_add_user_routes'
+import * as migration_20260907_120000_add_event_coordinates from './20260907_120000_add_event_coordinates'
 
 export const migrations = [
   {
@@ -47,5 +48,10 @@ export const migrations = [
     up: migration_20260831_120000_add_user_routes.up,
     down: migration_20260831_120000_add_user_routes.down,
     name: '20260831_120000_add_user_routes',
+  },
+  {
+    up: migration_20260907_120000_add_event_coordinates.up,
+    down: migration_20260907_120000_add_event_coordinates.down,
+    name: '20260907_120000_add_event_coordinates',
   },
 ]

@@ -30,10 +30,16 @@ test('Payload rota ilişkileri portalın durak kimliklerine dönüştürülür',
 });
 
 test('Payload etkinlik tarihi portal takvim biçimini korur', () => {
-  const event = normalizePayloadEvent({ legacyId: 4, date: '2026-09-03T09:00:00.000Z' });
+  const event = normalizePayloadEvent({ legacyId: 4, date: '2026-09-03T09:00:00.000Z', coordinates: { latitude: 36.2088, longitude: 36.1595 } });
   assert.equal(event.id, 4);
   assert.equal(event.date, '2026-09-03');
   assert.ok(event.dateLabel.includes('2026'));
+  assert.deepEqual(event.coordinates, [36.2088, 36.1595]);
+});
+
+test('Payload etkinliği geçersiz koordinatları portala taşımaz', () => {
+  const event = normalizePayloadEvent({ legacyId: 5, date: '2026-09-04', coordinates: { latitude: null, longitude: '' } });
+  assert.equal(event.coordinates, undefined);
 });
 
 test('Payload bildirim bağlantısı portal bildirim türüne dönüştürülür', () => {

@@ -317,6 +317,13 @@ export interface Event {
   district: string;
   venue: string;
   location?: string | null;
+  /**
+   * Etkinliğin haritada gösterileceği sayısal enlem ve boylam değerleri.
+   */
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
   date: string;
   time: string;
   /**
@@ -607,6 +614,12 @@ export interface EventsSelect<T extends boolean = true> {
   district?: T;
   venue?: T;
   location?: T;
+  coordinates?:
+    | T
+    | {
+        latitude?: T;
+        longitude?: T;
+      };
   date?: T;
   time?: T;
   imageMedia?: T;

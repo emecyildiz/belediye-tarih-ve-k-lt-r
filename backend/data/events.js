@@ -123,7 +123,37 @@ function formatEventDate(date) {
   };
 }
 
-export const events = [...baseEvents, ...generatedEvents].map((event) => ({ ...event, ...formatEventDate(event.date) }));
+const venueCoordinates = {
+  'Payas Kalesi': [36.7567, 36.2234],
+  'Hatay Arkeoloji Müzesi': [36.2045, 36.1612],
+  'Arkeoloji Müzesi': [36.2045, 36.1612],
+  'Konferans Salonu': [36.2045, 36.1612],
+  'Habib-i Neccar Meydanı': [36.2065, 36.1578],
+  'St. Pierre Kilisesi': [36.2088, 36.1595],
+  'Uzun Çarşı': [36.2055, 36.1588],
+  'Hatay Kültür Merkezi': [36.2021, 36.1605],
+  'Titus Tüneli': [36.1667, 36.0833],
+  'Kültür Evi': [36.1735, 36.1386],
+  'Expo Alanı': [36.165, 36.136],
+  'Karaağaç Sahili': [36.413, 35.8903],
+  'Belediye Konferans Salonu': [36.2, 36.16],
+  'Atatürk Caddesi': [36.2028, 36.157],
+  'Payas Sokullu Külliyesi': [36.7545, 36.2212],
+  'Harbiye Şelaleleri': [36.132, 36.147],
+  'Kent Meydanı': [36.2692, 36.5672],
+  'İskenderun Sahili': [36.5872, 36.1735],
+};
+
+const districtCoordinates = {
+  Antakya: [36.2021, 36.1605], Payas: [36.7563, 36.2146], Samandağ: [36.0847, 35.9771],
+  Defne: [36.1735, 36.1386], Arsuz: [36.413, 35.8903], Reyhanlı: [36.2692, 36.5672], İskenderun: [36.5872, 36.1735],
+};
+
+export const events = [...baseEvents, ...generatedEvents].map((event) => ({
+  ...event,
+  coordinates: event.coordinates || venueCoordinates[event.venue] || districtCoordinates[event.district] || districtCoordinates.Antakya,
+  ...formatEventDate(event.date),
+}));
 
 export const eventCategoryCounts = events.reduce(
   (acc, event) => {

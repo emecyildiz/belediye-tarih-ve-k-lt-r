@@ -6,7 +6,7 @@ import OpenLayersMap from '../components/map/OpenLayersMap';
 import useFavoriteIds from '../hooks/useFavoriteIds';
 import CategoryMarkerIcon from '../components/map/CategoryMarkerIcon';
 import { buildGoogleMapsDirectionsUrl } from '../utils/googleMaps';
-import { IconHeart, IconPin, IconRoute } from '../components/common/Icons';
+import { IconCalendar, IconClock, IconHeart, IconPin, IconRoute } from '../components/common/Icons';
 import './MapPage.css';
 
 const layers = [
@@ -34,9 +34,10 @@ function formatRouteMinutes(minutes) {
 }
 
 function getLocationCoordinate(location) {
-  if (location?.coordinate) return location.coordinate;
-  if (!Array.isArray(location?.coordinates) || location.coordinates.length !== 2) return null;
-  return { latitude: Number(location.coordinates[0]), longitude: Number(location.coordinates[1]) };
+  const source = location?.coordinate || location?.coordinates;
+  const latitude = Array.isArray(source) ? Number(source[0]) : Number(source?.latitude);
+  const longitude = Array.isArray(source) ? Number(source[1]) : Number(source?.longitude);
+  return Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude } : null;
 }
 
 export default function MapPage() {
@@ -45,11 +46,13 @@ export default function MapPage() {
   const routeSlug = searchParams.get('route');
   const savedMapRouteId = searchParams.get('savedRoute');
   const locationReference = searchParams.get('location');
+  const eventReference = searchParams.get('event');
   const [allGeojson, setAllGeojson] = useState(null);
   const [monuments, setMonuments] = useState([]);
   const [activeLayers, setActiveLayers] = useState(() => new Set(layers.map((item) => item.key)));
   const [district, setDistrict] = useState('tumu');
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [mapType, setMapType] = useState('map');
   const [favorites, toggleFavoriteId] = useFavoriteIds('monument');
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -61,8 +64,9 @@ export default function MapPage() {
 
   useEffect(() => {
     const routeRequest = routeSlug ? api.getRoute(routeSlug) : savedMapRouteId ? api.getCustomRoute(savedMapRouteId) : Promise.resolve(null);
-    Promise.all([api.getLocations(), api.getMonuments(), routeRequest])
-      .then(([geojson, items, requestedRoute]) => {
+    const eventRequest = eventReference ? api.getEvent(eventReference) : Promise.resolve(null);
+    Promise.all([api.getLocations(), api.getMonuments(), routeRequest, eventRequest])
+      .then(([geojson, items, requestedRoute, requestedEvent]) => {
         setAllGeojson(geojson);
         setMonuments(items || []);
         if (requestedRoute) {
@@ -81,6 +85,7 @@ export default function MapPage() {
           setRoutePreview(displayRoute);
           setRouteStatus(displayRoute?.cbs?.routingStatus === 'unavailable' ? 'unavailable' : 'ready');
           setSelectedLocation(null);
+          setSelectedEvent(null);
         } else if (locationReference) {
           const requestedLocation = (items || []).find((item) => (
             String(item.slug) === locationReference || String(item.id) === locationReference
@@ -89,11 +94,16 @@ export default function MapPage() {
             setActiveLayers((current) => new Set(current).add(requestedLocation.category));
             setDistrict('tumu');
             setSelectedLocation(requestedLocation);
+            setSelectedEvent(null);
           }
+        } else if (requestedEvent) {
+          setDistrict('tumu');
+          setSelectedLocation(null);
+          setSelectedEvent(requestedEvent);
         }
       })
       .catch((error) => console.error('Harita verileri yüklenemedi:', error));
-  }, [routeSlug, savedMapRouteId, locationReference]);
+  }, [routeSlug, savedMapRouteId, locationReference, eventReference]);
 
   useEffect(() => {
     if (!routeMode || viewedRoute) return undefined;
@@ -136,16 +146,35 @@ export default function MapPage() {
   }, [allGeojson, activeLayers, district]);
 
   const mapGeojson = useMemo(() => {
-    if (!filteredGeojson || !routeMode) return filteredGeojson;
-    const selected = new Set(routeStopIds.map(Number));
-    return {
-      type: 'FeatureCollection',
-      features: [
-        ...filteredGeojson.features.filter((feature) => !selected.has(Number(feature.properties?.id))),
+    if (!filteredGeojson) return null;
+    let features = filteredGeojson.features;
+    if (routeMode) {
+      const selected = new Set(routeStopIds.map(Number));
+      features = [
+        ...features.filter((feature) => !selected.has(Number(feature.properties?.id))),
         ...(routePreview?.geojson?.features || []),
-      ],
-    };
-  }, [filteredGeojson, routeMode, routeStopIds, routePreview]);
+      ];
+    }
+    const coordinate = getLocationCoordinate(selectedEvent);
+    if (selectedEvent && coordinate && !routeMode) {
+      features = [...features, {
+        type: 'Feature',
+        id: `event-${selectedEvent.id}`,
+        properties: {
+          id: `event-${selectedEvent.id}`,
+          eventId: selectedEvent.id,
+          name: selectedEvent.title,
+          category: 'event',
+          categoryLabel: selectedEvent.categoryLabel || 'Etkinlik',
+          district: selectedEvent.district,
+          image: selectedEvent.image,
+          type: 'event',
+        },
+        geometry: { type: 'Point', coordinates: [coordinate.longitude, coordinate.latitude] },
+      }];
+    }
+    return { type: 'FeatureCollection', features };
+  }, [filteredGeojson, routeMode, routeStopIds, routePreview, selectedEvent]);
 
   const routeStops = useMemo(() => routeStopIds
     .map((id) => monuments.find((item) => Number(item.id) === Number(id)))
@@ -170,6 +199,10 @@ export default function MapPage() {
   };
 
   const selectFeature = (properties) => {
+    if (properties.type === 'event' || properties.eventId) {
+      setSelectedLocation(null);
+      return;
+    }
     const featureId = Number(properties.monumentId ?? properties.id);
     if (routeMode) {
       if (viewedRoute) {
@@ -185,6 +218,7 @@ export default function MapPage() {
       return;
     }
     const fullItem = monuments.find((item) => item.id === featureId);
+    setSelectedEvent(null);
     setSelectedLocation(fullItem ? { ...fullItem, coordinate: properties.coordinate } : properties);
   };
 
@@ -192,6 +226,7 @@ export default function MapPage() {
     setViewedRoute(null);
     setRouteMode(true);
     setSelectedLocation(null);
+    setSelectedEvent(null);
     setFiltersOpen(false);
   };
 
@@ -216,7 +251,11 @@ export default function MapPage() {
     setDistrict('tumu');
   };
 
-  const selectedCoordinate = getLocationCoordinate(selectedLocation);
+  const selectedCoordinate = getLocationCoordinate(selectedEvent || selectedLocation);
+  const closeDetails = () => {
+    setSelectedLocation(null);
+    setSelectedEvent(null);
+  };
 
   return (
     <div className={`heritage-map-page ${routeMode ? 'route-planning' : ''}`}>
@@ -231,7 +270,7 @@ export default function MapPage() {
             showCoordinates
             routeMode={routeMode}
             fitToRouteOnce={Boolean(viewedRoute)}
-            focusCoordinate={locationReference ? selectedCoordinate : null}
+            focusCoordinate={(locationReference || eventReference) ? selectedCoordinate : null}
           />
         ) : <div className="map-loading">Harita yükleniyor…</div>}
       </div>
@@ -285,19 +324,47 @@ export default function MapPage() {
         </section>
       </aside>
 
-      <section className={'map-legend-card ' + (selectedLocation || routeMode ? 'detail-visible' : '')}>
+      <section className={'map-legend-card ' + (selectedLocation || selectedEvent || routeMode ? 'detail-visible' : '')}>
         <strong>Gösterim</strong>
         {layers.map((layer) => (
           <span key={layer.key}><CategoryMarkerIcon category={layer.key} color={layer.color} size={17} />{layer.label}</span>
         ))}
       </section>
 
-      <aside className={'map-detail-panel ' + (selectedLocation ? 'open' : '')}>
+      <aside className={'map-detail-panel ' + (selectedLocation || selectedEvent ? 'open' : '')}>
+        {selectedEvent && (
+          <>
+            <div className="map-detail-top">
+              <button type="button" onClick={closeDetails}>← Geri</button>
+              <button type="button" className="map-detail-close" onClick={closeDetails} aria-label="Detayı kapat">×</button>
+            </div>
+            <SafeImage className="map-detail-image" src={selectedEvent.image} alt={selectedEvent.title} />
+            <div className="map-detail-title map-event-detail-title">
+              <h2>{selectedEvent.title}</h2>
+              <span>Etkinlik</span>
+            </div>
+            <p className="map-detail-location"><IconPin size={14} /> {selectedEvent.venue} · {selectedEvent.district}</p>
+            {selectedCoordinate && <div className="map-detail-coordinates" aria-label="Etkinlik konum koordinatları">
+              <span><small>Enlem</small><strong>{selectedCoordinate.latitude.toFixed(6)}</strong></span>
+              <span><small>Boylam</small><strong>{selectedCoordinate.longitude.toFixed(6)}</strong></span>
+            </div>}
+            <div className="map-detail-meta map-event-detail-meta">
+              <span><small><IconCalendar size={13} /> Tarih</small><strong>{selectedEvent.dateLabel || selectedEvent.date}</strong></span>
+              <span><small><IconClock size={13} /> Saat</small><strong>{selectedEvent.time || 'Açıklanacak'}</strong></span>
+            </div>
+            <p className="map-detail-description">{selectedEvent.description}</p>
+            <div className="map-detail-actions">
+              <button type="button" className="primary" onClick={() => navigate(`/etkinlikler/${selectedEvent.slug || selectedEvent.id}`)}>
+                <IconCalendar size={16} /> Etkinlik Ayrıntıları
+              </button>
+            </div>
+          </>
+        )}
         {selectedLocation && (
           <>
             <div className="map-detail-top">
-              <button type="button" onClick={() => setSelectedLocation(null)}>← Geri</button>
-              <button type="button" className="map-detail-close" onClick={() => setSelectedLocation(null)} aria-label="Detayı kapat">×</button>
+              <button type="button" onClick={closeDetails}>← Geri</button>
+              <button type="button" className="map-detail-close" onClick={closeDetails} aria-label="Detayı kapat">×</button>
             </div>
             <SafeImage className="map-detail-image" src={selectedLocation.image} alt={selectedLocation.name} />
             <div className="map-detail-title">

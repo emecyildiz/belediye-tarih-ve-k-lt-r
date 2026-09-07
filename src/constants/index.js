@@ -109,4 +109,5 @@ export const CATEGORY_COLORS = {
   muze: '#ea580c',
   doga: '#16a34a',
   diger: '#94a3b8',
+  event: '#dc3355',
 };

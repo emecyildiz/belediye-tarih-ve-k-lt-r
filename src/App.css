@@ -42,20 +42,21 @@ img { display: block; max-width: 100%; }
 
 .page-load-more {
   width: fit-content;
-  margin: 18px auto 5px;
-  padding: 5px 2px;
+  min-height: 42px;
+  margin: 22px auto 7px;
+  padding: 9px 6px;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
   color: #07356d;
   border: 0;
   border-bottom: 1px solid transparent;
   background: transparent;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   transition: color .2s ease, border-color .2s ease;
 }
-.page-load-more::after { content: '↓'; font-size: 13px; line-height: 1; transition: transform .2s ease; }
+.page-load-more::after { content: '↓'; font-size: 18px; line-height: 1; transition: transform .2s ease; }
 .page-load-more:hover:not(:disabled) { color: #1768b4; border-bottom-color: currentColor; }
 .page-load-more:hover:not(:disabled)::after { transform: translateY(2px); }
 .page-load-more:focus-visible { outline: 2px solid rgb(23 104 180 / 28%); outline-offset: 4px; border-radius: 2px; }

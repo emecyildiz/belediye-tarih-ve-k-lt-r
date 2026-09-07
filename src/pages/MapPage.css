@@ -238,6 +238,7 @@
   font-weight: 650;
   white-space: nowrap;
 }
+.map-event-detail-title > span { color: #9f2d42; background: #fff0f2; }
 .map-detail-location {
   margin: 7px 0 0;
   display: flex;
@@ -273,6 +274,7 @@
 .map-detail-meta > span:last-child { border-right: 0; }
 .map-detail-meta small, .map-detail-meta strong { display: block; }
 .map-detail-meta small { color: #68788d; font-size: 11px; }
+.map-event-detail-meta small { display: flex; align-items: center; gap: 4px; }
 .map-detail-meta strong { margin-top: 3px; color: var(--navy-deep); font-size: 12px; }
 .map-detail-description {
   margin: 12px 0;

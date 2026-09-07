@@ -96,7 +96,17 @@ export function normalizePayloadRoute(doc) {
 }
 
 export function normalizePayloadEvent(doc) {
-  return { ...doc, id: Number(doc.legacyId), image: mediaUrl(doc.imageMedia) || mediaUrl(doc.image), ...dateParts(doc.date) };
+  const rawLatitude = doc.coordinates?.latitude;
+  const rawLongitude = doc.coordinates?.longitude;
+  const latitude = rawLatitude === null || rawLatitude === undefined || rawLatitude === '' ? Number.NaN : Number(rawLatitude);
+  const longitude = rawLongitude === null || rawLongitude === undefined || rawLongitude === '' ? Number.NaN : Number(rawLongitude);
+  return {
+    ...doc,
+    id: Number(doc.legacyId),
+    image: mediaUrl(doc.imageMedia) || mediaUrl(doc.image),
+    coordinates: Number.isFinite(latitude) && Number.isFinite(longitude) ? [latitude, longitude] : undefined,
+    ...dateParts(doc.date),
+  };
 }
 
 function notificationType(doc) {
