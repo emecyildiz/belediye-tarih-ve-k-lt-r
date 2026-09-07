@@ -49,7 +49,7 @@ function getCategorySymbol(category) {
   return symbols[category] || symbols.diger;
 }
 
-function createMarkerStyle(category, color) {
+function createMarkerStyle(category, color, focused = false) {
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="48" viewBox="0 0 40 48">'
     + '<path d="M20 1C9.5 1 2 8.7 2 18.5 2 31 20 47 20 47s18-16 18-28.5C38 8.7 30.5 1 20 1z" fill="' + color + '" stroke="#fff" stroke-width="2"/>'
     + '<circle cx="20" cy="19" r="14" fill="#fff" opacity=".14"/>'
@@ -59,8 +59,9 @@ function createMarkerStyle(category, color) {
     image: new Icon({
       src: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
       anchor: [0.5, 1],
-      scale: 0.92,
+      scale: focused ? 1.28 : 0.92,
     }),
+    zIndex: focused ? 20 : 1,
   });
 }
 
@@ -71,6 +72,7 @@ function getPinStyle(feature, clustered = false) {
   const size = feature.get('features')?.length;
   const category = props?.category || 'diger';
   const color = CATEGORY_COLORS[category] || '#64748b';
+  const focused = Boolean(props?.focused);
 
   if (clustered && size > 1) {
     return new Style({
@@ -87,10 +89,11 @@ function getPinStyle(feature, clustered = false) {
     });
   }
 
-  if (!markerStyleCache.has(category)) {
-    markerStyleCache.set(category, createMarkerStyle(category, color));
+  const cacheKey = `${category}-${focused ? 'focused' : 'normal'}`;
+  if (!markerStyleCache.has(cacheKey)) {
+    markerStyleCache.set(cacheKey, createMarkerStyle(category, color, focused));
   }
-  return markerStyleCache.get(category);
+  return markerStyleCache.get(cacheKey);
 }
 
 function getRouteStyle(feature) {

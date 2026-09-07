@@ -173,9 +173,13 @@ export default function MapPage() {
       : (activeLayers.has('event') && activeLayers.size === layers.length && allPlacesSelected ? 'all' : 'custom'));
 
   const showContent = (type) => {
-    if (type === 'events') setActiveLayers(new Set(['event']));
-    else if (type === 'places') setActiveLayers(new Set(placeLayerKeys));
-    else setActiveLayers(new Set(layers.map((item) => item.key)));
+    if (type === 'events') {
+      setActiveLayers(new Set(['event']));
+      setSelectedLocation(null);
+    } else if (type === 'places') {
+      setActiveLayers(new Set(placeLayerKeys));
+      setSelectedEvent(null);
+    } else setActiveLayers(new Set(layers.map((item) => item.key)));
   };
 
   const filteredGeojson = useMemo(() => {
@@ -199,8 +203,20 @@ export default function MapPage() {
         ...(routePreview?.geojson?.features || []),
       ];
     }
+    if (!routeMode) {
+      features = features.map((feature) => {
+        const properties = feature.properties || {};
+        const isEvent = properties.type === 'event' || properties.eventId;
+        const focused = isEvent
+          ? Boolean(selectedEvent && Number(properties.eventId) === Number(selectedEvent.id))
+          : Boolean(selectedLocation && Number(properties.id) === Number(selectedLocation.id));
+        return properties.focused === focused
+          ? feature
+          : { ...feature, properties: { ...properties, focused } };
+      });
+    }
     return { type: 'FeatureCollection', features };
-  }, [filteredGeojson, routeMode, routeStopIds, routePreview]);
+  }, [filteredGeojson, routeMode, routeStopIds, routePreview, selectedEvent, selectedLocation]);
 
   const routeStops = useMemo(() => routeStopIds
     .map((id) => monuments.find((item) => Number(item.id) === Number(id)))
@@ -216,12 +232,22 @@ export default function MapPage() {
   }, [monuments, selectedLocation]);
 
   const toggleLayer = (key) => {
+    const disabling = activeLayers.has(key);
+    if (disabling && key === 'event') setSelectedEvent(null);
+    if (disabling && selectedLocation?.category === key) setSelectedLocation(null);
     setActiveLayers((current) => {
       const next = new Set(current);
       if (next.has(key)) next.delete(key);
       else next.add(key);
       return next;
     });
+  };
+
+  const changeDistrict = (value) => {
+    setDistrict(value);
+    if (value === 'tumu') return;
+    if (selectedEvent && selectedEvent.district !== value) setSelectedEvent(null);
+    if (selectedLocation && selectedLocation.district !== value) setSelectedLocation(null);
   };
 
   const selectFeature = (properties) => {
@@ -342,7 +368,7 @@ export default function MapPage() {
           <h2>Filtrele</h2>
           <label className="map-field">
             <span>İlçe</span>
-            <select value={district} onChange={(event) => setDistrict(event.target.value)}>
+            <select value={district} onChange={(event) => changeDistrict(event.target.value)}>
               <option value="tumu">Tüm İlçeler</option>
               {districts.map((item) => <option value={item} key={item}>{item}</option>)}
             </select>
