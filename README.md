@@ -1,39 +1,166 @@
-# TKMBS — Tarihi ve Kültürel Miras Bilgi Sistemi
+<div align="center">
 
-Hatay Büyükşehir Belediyesi için geliştirilen TKMBS; tarihi eserleri, kültürel rotaları, etkinlikleri ve konum tabanlı bilgileri halk arayüzünde sunan; içerik yönetimini Payload CMS üzerinden gerçekleştiren bir web uygulamasıdır.
+# TKMBS
 
-> Projenin mimarisi, bütün klasörleri, API uçları, veri modeli, roller, güvenlik, harita/rota sistemi, canlı kurulum ve teslim adımları için [Ayrıntılı Proje ve Devir-Teslim Raporu](./DETAYLI_PROJE_RAPORU.md) esas alınmalıdır.
+### Historical and Cultural Heritage Information System
 
-## İçindekiler
+[![Deploy public demo to GitHub Pages](https://github.com/emecyildiz/belediye-tarih-ve-k-lt-r/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/emecyildiz/belediye-tarih-ve-k-lt-r/actions/workflows/deploy-pages.yml)
 
-- [Temel bileşenler](#temel-bilesenler)
-- [GitHub deposunda bulunmayan dosyalar](#github-deposunda-bulunmayan-dosyalar)
-- [Gereksinimler](#gereksinimler)
-- [İlk kurulum](#ilk-kurulum)
-- [Projeyi çalıştırma](#projeyi-calistirma)
-- [Projeyi kapatma](#projeyi-kapatma)
-- [Uygulama adresleri](#uygulama-adresleri)
-- [Veri hazırlama](#veri-hazirlama)
-- [Test ve derleme](#test-ve-derleme)
-- [Güvenlik notları](#guvenlik-notlari)
-- [Teslim kontrol listesi](#teslim-kontrol-listesi)
+[Canlı Demo / Live Demo](https://emecyildiz.github.io/belediye-tarih-ve-k-lt-r/) · [Türkçe](#turkce) · [English](#english)
 
-<a id="temel-bilesenler"></a>
-## Temel bileşenler
+</div>
+
+---
+
+<a id="turkce"></a>
+
+## Türkçe
+
+### Proje hakkında
+
+TKMBS, **2026 yaz stajı** kapsamında Hatay'ın tarihi eserlerini, kültürel rotalarını, etkinliklerini ve konum tabanlı kültür verilerini tek bir arayüzde sunmak amacıyla geliştirilmiş bir web uygulaması prototipidir.
+
+Proje; halkın kültürel mirası harita üzerinden keşfedebilmesi, tarihi eser ve etkinlik ayrıntılarını inceleyebilmesi, gezi rotaları oluşturabilmesi ve içerik yöneticilerinin verileri merkezi bir panelden yönetebilmesi düşüncesiyle hazırlanmıştır.
+
+> **Portföy bildirimi:** Bu depo güncel ve resmî bir Hatay Büyükşehir Belediyesi hizmeti değildir. Yaz stajında hazırlanan bağımsız bir eğitim/portföy çalışmasıdır. GitHub Pages sürümündeki içerikler örnek veridir; resmî envanter veya güncel ziyaret/yol bilgisi olarak kullanılmamalıdır.
+
+### Canlı demo
+
+**[GitHub Pages üzerinde demoyu aç](https://emecyildiz.github.io/belediye-tarih-ve-k-lt-r/)**
+
+GitHub Pages yalnızca statik dosya barındırdığı için canlı demo, uygulamanın **örnek verili tanıtım sürümüdür**:
+
+- Tarihi eser, rota, etkinlik, harita, arama ve hakkında sayfaları çalışır.
+- OpenLayers haritası ve çevrimiçi temel harita karoları kullanılabilir.
+- Hava durumu, servis erişilebildiğinde Open-Meteo üzerinden alınır.
+- PostgreSQL, Express, Payload CMS ve GraphHopper GitHub Pages üzerinde çalışmaz.
+- Giriş, kayıt, kalıcı favoriler, bildirim durumu, yönetim paneli ve sunucu tabanlı rota hesabı devre dışıdır.
+- Tam sistem yerel veya sunucu kurulumunda aşağıdaki servislerle çalıştırılabilir.
+
+### Öne çıkan özellikler
+
+- Tarihi eser, kültürel rota ve etkinlik listeleri
+- Ayrıntı sayfaları, galeri ve yakın içerik önerileri
+- OpenLayers tabanlı katmanlı ve filtrelenebilir harita
+- GeoJSON nokta ve rota geometrileri
+- Harita üzerinde koordinat gösterimi ve içerik kartları
+- Kültürel rota görüntüleme ve kişisel rota taslağı oluşturma
+- Google Haritalar'a yol tarifi aktarımı
+- Arama, filtreleme, sayfalama ve mobil uyum
+- Vatandaş hesabı, favoriler, bildirimler ve kaydedilen rotalar
+- Payload CMS içerik yönetimi, kullanıcı yönetimi ve raporlama
+- Kısa ömürlü access token, yenilenen refresh oturumu, roller ve TOTP 2FA
+- PostgreSQL kalıcılığı ve GraphHopper araç rotası
+
+### Kullanılan teknolojiler
 
 | Katman | Teknoloji | Görev |
 |---|---|---|
-| Halk portalı | React 18 + Vite | Eser, rota, etkinlik, harita, profil ve kullanıcı ekranları |
-| Harita | OpenLayers 9 + GeoJSON | Harita katmanları, semboller, kümeler, koordinatlar ve rota geometrileri |
-| Portal API | Node.js + Express | DTO, kimlik doğrulama, favori, bildirim, kişisel rota ve içerik API'leri |
-| İçerik yönetimi | Payload CMS 3 + Next.js | Tarihi eser, kültürel rota, etkinlik, medya, bildirim, kullanıcı ve rapor yönetimi |
-| Veritabanı | PostgreSQL 16 | CMS içeriği, kullanıcılar, oturumlar, favoriler, bildirim durumları ve analitik |
-| Rota motoru | GraphHopper 11 | Yerel OpenStreetMap verisi üzerinde araç yolu hesaplama |
+| Halk portalı | React 18, Vite, React Router | Kullanıcı arayüzü ve sayfa yönlendirmeleri |
+| Harita | OpenLayers 9, GeoJSON | Harita katmanları, işaretçiler, kümeler ve rota geometrisi |
+| Portal API | Node.js, Express | DTO, kimlik doğrulama, kullanıcı işlemleri ve servis birleştirme |
+| İçerik yönetimi | Payload CMS 3, Next.js | Eser, rota, etkinlik, medya, kullanıcı ve rapor yönetimi |
+| Veritabanı | PostgreSQL 16 | İçerik, kullanıcı, oturum, favori, bildirim ve analitik kayıtları |
+| Rota motoru | GraphHopper 11 | Yerel OpenStreetMap verisiyle araç yolu hesaplama |
 | Hava durumu | Open-Meteo | Antakya için güncel hava bilgisi |
+| Yayın | GitHub Actions, GitHub Pages | Statik portföy demosunun otomatik dağıtımı |
 
-Yerel geliştirmede kullanılan varsayılan servisler:
+### Mimari
 
-| Servis | Adres/port |
+```text
+React/Vite portalı
+      |
+      | /api
+      v
+Express portal API'si
+      |----------------> Payload REST API ----------> PostgreSQL
+      |----------------> Auth/veri repository ------> PostgreSQL
+      |----------------> GraphHopper ---------------> Hatay OSM/PBF
+      `----------------> Open-Meteo
+
+Yönetici / editör
+      `----------------> Payload yönetim paneli
+```
+
+Temel sorumluluklar:
+
+- React doğrudan veritabanına bağlanmaz.
+- Express, Payload içeriğini portalın kullandığı DTO biçimine dönüştürür.
+- Payload içerik ve yönetim işlemlerini üstlenir.
+- PostgreSQL kalıcı kullanıcı ve içerik verilerini saklar.
+- OpenLayers haritayı gösterir; yol hesabını GraphHopper yapar.
+- Hazır kültürel rota durakları CMS verisidir; GraphHopper yalnız duraklar arasındaki araç yolunu hesaplar.
+
+### Klasör yapısı
+
+```text
+belediye-portal/
+├── .github/workflows/          GitHub Pages dağıtım iş akışı
+├── src/                        React halk portalı
+│   ├── auth/                   Oturum ve korumalı sayfalar
+│   ├── components/             Ortak, harita ve yerleşim bileşenleri
+│   ├── config/                 Çalışma modu ve statik asset yardımcıları
+│   ├── hooks/                  Favori ve sürükleyerek kaydırma hook'ları
+│   ├── pages/                  Portal sayfaları
+│   └── services/               API ve auth istemcileri
+├── backend/                    Auth, veri, CMS, CBS ve rota servisleri
+├── backend-server.js           Express giriş noktası
+├── cms/                        Payload CMS / Next.js uygulaması
+├── routing/                    GraphHopper Docker yapılandırması
+├── public/                     Görseller ve statik dosyalar
+└── DETAYLI_PROJE_RAPORU.md     Ayrıntılı teknik devir belgesi
+```
+
+### Yerel tam sistemi çalıştırma
+
+#### Gereksinimler
+
+- Node.js 20.19+ veya 22.12+ güncel LTS
+- npm
+- PostgreSQL 16 veya Docker Desktop
+- Docker Compose
+- GraphHopper için `routing/data/hatay.osm.pbf`
+
+#### Kurulum
+
+```powershell
+git clone https://github.com/emecyildiz/belediye-tarih-ve-k-lt-r.git
+cd belediye-tarih-ve-k-lt-r
+npm ci
+npm --prefix cms ci
+Copy-Item .env.example .env
+Copy-Item cms/.env.example cms/.env
+```
+
+Örnek `.env` değerleri production parolası değildir. Gerçek secret, parola, kullanıcı verisi ve veritabanı yedeği Git'e gönderilmemelidir.
+
+#### Başlatma sırası
+
+Her komutu proje kökünde, ayrı terminalde çalıştırın:
+
+```powershell
+# 1. PostgreSQL
+npm run cms:db:start
+
+# İlk kurulumda migration
+npm run cms:migrate
+
+# 2. GraphHopper
+npm run routing:start
+
+# 3. Payload CMS
+npm run cms:dev
+
+# 4. Express API
+npm run server
+
+# 5. React portalı
+npm run dev
+```
+
+Yerel adresler:
+
+| Servis | Adres |
 |---|---|
 | React portalı | `http://localhost:5173` |
 | Express API | `http://localhost:5000` |
@@ -41,266 +168,266 @@ Yerel geliştirmede kullanılan varsayılan servisler:
 | PostgreSQL | `127.0.0.1:5432` |
 | GraphHopper | `127.0.0.1:8989` |
 
-<a id="github-deposunda-bulunmayan-dosyalar"></a>
-## GitHub deposunda bulunmayan dosyalar
-
-GitHub deposunun tamamı indirilmelidir; ancak aşağıdaki güvenlik, boyut veya çalışma zamanı verileri bilerek Git'e eklenmez:
-
-| Dosya/veri | Neden Git'te değil? | Teslim/kurulum yöntemi |
-|---|---|---|
-| Kök `.env` | Parola ve gizli anahtar içerir | `.env.example` kopyalanır ve kuruma özel değerlerle doldurulur |
-| `cms/.env` | Payload ve PostgreSQL sırlarını içerir | `cms/.env.example` kopyalanır ve doldurulur |
-| `routing/data/hatay.osm.pbf` | Büyük OpenStreetMap yol verisidir | Ayrı dosya olarak bu konuma yerleştirilir |
-| `cms/media/` | Payload'a yüklenen görsellerdir | Medya yedeğinden veya kalıcı nesne depolamasından geri yüklenir |
-| PostgreSQL içeriği | Çalışma zamanı ve kurum verisidir | SQL/özel-format yedekten geri yüklenir veya seed/migration çalıştırılır |
-| `node_modules/` | Yeniden kurulabilir bağımlılıklardır | `npm install` komutlarıyla oluşturulur |
-| `dist/`, `cms/.next/` | Yeniden üretilebilir derleme çıktılarıdır | Build sırasında otomatik oluşturulur |
-| `routing/graph-cache/` | PBF'den üretilen rota grafiğidir | GraphHopper ilk açılışında yeniden oluşturur |
-
-Bu ek dosyalar olmadan beklenen davranış:
-
-- `.env` dosyaları olmadan güvenli kimlik ve servis bağlantıları kurulamaz.
-- PostgreSQL olmadan Payload ve kalıcı portal kullanıcı işlemleri çalışmaz.
-- Hatay PBF/GraphHopper olmadan yol ağı rotası hesaplanamaz; portal yanıltıcı kuş uçuşu rota çizmez.
-- `cms/media` olmadan veritabanındaki medya kayıtları bulunsa bile yerel görseller eksik görünebilir.
-- İnternet olmadan mevcut OSM/Esri temel harita karoları ve Open-Meteo hava verisi alınamaz. PBF dosyası yalnızca çevrimdışı rota hesabı sağlar; çevrimdışı temel harita sağlamaz.
-
-<a id="gereksinimler"></a>
-## Gereksinimler
-
-- Git
-- Node.js 20 veya üzeri
-- npm
-- Docker Desktop ve Docker Compose
-- PBF ve GraphHopper önbelleği için yeterli disk alanı
-- İlk bağımlılık kurulumu, çevrimiçi harita ve hava durumu için internet bağlantısı
-
-Windows'ta Docker kullanan servislerden önce Docker Desktop tamamen açılmış olmalıdır.
-
-<a id="ilk-kurulum"></a>
-## İlk kurulum
-
-### 1. Depoyu indirin
-
-```powershell
-git clone https://github.com/emecyildiz/belediye-tarih-ve-k-lt-r.git
-cd belediye-tarih-ve-k-lt-r
-```
-
-Private depo kullanılıyorsa teslim alan kişinin GitHub hesabına erişim yetkisi verilmelidir.
-
-### 2. Bağımlılıkları kurun
-
-Bu komutların ikisi de proje kökünde çalıştırılır:
-
-```powershell
-npm install
-npm --prefix cms install
-```
-
-### 3. Ortam dosyalarını hazırlayın
-
-```powershell
-Copy-Item .env.example .env
-Copy-Item cms/.env.example cms/.env
-```
-
-Kopyalanan dosyalardaki örnek değerler production parolası değildir. En az şu değerler kuruma özel hazırlanmalıdır:
-
-- PostgreSQL kullanıcı adı, parola ve bağlantı adresi
-- `PAYLOAD_SECRET`
-- `AUTH_ACCESS_SECRET`
-- `TWO_FACTOR_SECRET`
-- İzin verilen portal/CMS origin adresleri
-
-`PAYLOAD_SECRET`, `AUTH_ACCESS_SECRET` ve `TWO_FACTOR_SECRET` birbirinden farklı, rastgele ve en az 32 karakter olmalıdır. Refresh token ayrıca imzalanan bir JWT değildir; rastgele üretilir ve veritabanında yalnız özeti saklanır. Gerçek değerleri Git'e göndermeyin.
-
-### 4. Hatay rota verisini ekleyin
-
-GraphHopper'ın beklediği dosya:
-
-```text
-routing/data/hatay.osm.pbf
-```
-
-Dosya adı veya yolu değiştirilirse `routing/config.yml` ve ilgili ortam ayarı birlikte güncellenmelidir. İlk GraphHopper açılışı yol grafiğini oluşturduğu için normalden uzun sürebilir.
-
-<a id="projeyi-calistirma"></a>
-## Projeyi çalıştırma
-
-Bütün komutlar, aksi özellikle belirtilmedikçe, depo kökünde çalıştırılır.
-
-### Önerilen başlatma sırası
-
-#### Terminal 1 — PostgreSQL
-
-```powershell
-npm run cms:db:start
-```
-
-#### Terminal 2 — GraphHopper
-
-```powershell
-npm run routing:start
-```
-
-İlk açılışta `routing:logs` ile grafiğin hazır olduğu kontrol edilebilir:
-
-```powershell
-npm run routing:logs
-```
-
-#### Terminal 3 — Payload CMS
-
-```powershell
-npm run cms:dev
-```
-
-Terminalde `Ready` mesajı görülmeden sonraki servise geçilmemesi önerilir.
-
-#### Terminal 4 — Express API
-
-```powershell
-npm run server
-```
-
-Sağlık kontrolü:
-
-```powershell
-Invoke-RestMethod http://localhost:5000/api/health
-```
-
-#### Terminal 5 — React portalı
-
-```powershell
-npm run dev
-```
-
-### Birleşik geliştirme komutu
-
-PostgreSQL ve GraphHopper hazır olduktan sonra portal, API ve CMS birlikte de başlatılabilir:
-
-```powershell
-npm run dev:cms
-```
-
-Ayrı terminaller hata kaynağını ve servis loglarını takip etmeyi kolaylaştırdığı için teslim/test sırasında önerilen yöntemdir.
-
-<a id="projeyi-kapatma"></a>
-## Projeyi kapatma
-
-Önce `npm run dev`, `npm run server` ve `npm run cms:dev` çalışan terminallerin her birinde `Ctrl+C` kullanın. Ardından proje kökünde:
+Kapatmak için Node terminallerinde `Ctrl+C`, ardından:
 
 ```powershell
 npm run routing:stop
 npm run cms:db:stop
 ```
 
-<a id="uygulama-adresleri"></a>
-## Uygulama adresleri
-
-- Halk portalı: [http://localhost:5173](http://localhost:5173)
-- Payload yönetim paneli: [http://localhost:3000/admin](http://localhost:3000/admin)
-- Payload REST API: [http://localhost:3000/api](http://localhost:3000/api)
-- Express sağlık kontrolü: [http://localhost:5000/api/health](http://localhost:5000/api/health)
-- GraphHopper bilgi uç noktası: [http://localhost:8989/info](http://localhost:8989/info)
-
-Yönetici ve editör hesapları portalın `/giris` ekranında parola ve Google Authenticator doğrulamasını tamamladıktan sonra Payload'a yönlendirilir. Vatandaş hesapları Payload'a erişemez.
-
-<a id="veri-hazirlama"></a>
-## Veri hazırlama
-
-### Migration
-
-PostgreSQL başladıktan sonra:
-
-```powershell
-npm run cms:migrate
-```
-
-### Örnek içerik
-
-Yalnız geliştirme veya kontrollü sunum ortamında `.env` ayarları hazırlandıktan sonra:
-
-```powershell
-npm run cms:seed
-```
-
-Demo kullanıcı ve parola ayarları production ortamında kapatılmalı ve örnek hesaplar kaldırılmalıdır.
-
-### Eski görselleri Payload medyasına aktarma
-
-```powershell
-npm run cms:media:migrate
-```
-
-Gerçek belediye verileri geldiğinde eser, rota, etkinlik, bildirim ve portal içerikleri Payload koleksiyonlarına aktarılmalıdır. Portalın beklediği alanlar ve GeoJSON sözleşmesi [ayrıntılı raporda](./DETAYLI_PROJE_RAPORU.md) açıklanmıştır.
-
-<a id="test-ve-derleme"></a>
-## Test ve derleme
-
-### Portal ve backend
+### Test ve derleme
 
 ```powershell
 npm run test:data
 npm run test:routing
 npm run lint
 npm run build
-```
 
-### Payload CMS
-
-PostgreSQL açıkken:
-
-```powershell
 npm --prefix cms run lint
 npm --prefix cms run test:int
 npm --prefix cms run build
 ```
 
-CMS geliştirme ve üretim derleme komutları, OneDrive'ın Turbopack persistence veritabanını bozmasını önlemek için Webpack kullanır. Webpack disk önbelleği de kapalıdır; böylece bozuk cache veritabanı ve snapshot dosyası kullanılmaz. Buna rağmen `Bulut dosya sağlayıcısı çalışmıyor` hatası görülürse projeyi OneDrive dışındaki yerel bir geliştirme dizinine taşımak en güvenli çözümdür. `cms/.next` yalnızca yeniden üretilebilir çıktıdır; servisler kapalıyken temizlenip yeniden oluşturulabilir.
+GitHub Pages ile aynı statik demoyu yerelde üretmek için:
 
-<a id="guvenlik-notlari"></a>
-## Güvenlik notları
+```powershell
+$env:VITE_STATIC_DEMO='true'
+$env:VITE_BASE_PATH='/belediye-tarih-ve-k-lt-r/'
+npm run build
+Remove-Item Env:VITE_STATIC_DEMO
+Remove-Item Env:VITE_BASE_PATH
+```
 
-- `.env`, `cms/.env`, veritabanı yedeği, recovery kodları ve gerçek kullanıcı verileri Git'e gönderilmez.
-- Access token süresi 2 dakika; döndürülen refresh oturumu süresi 14 gündür.
-- Refresh token `HttpOnly` çerezde tutulur ve veritabanına açık biçimde kaydedilmez.
-- Yönetici ve editör için Google Authenticator uyumlu TOTP iki adımlı doğrulama zorunludur.
-- Payload rol/yetki kuralları içerik silme ve yönetim işlemlerini sınırlar.
-- Veritabanı yoksa backend sessizce bellek içi demo veritabanına düşmez.
-- Production'da HTTPS, reverse proxy, güvenli çerezler, merkezi log, yedekleme ve kurumun parola politikasına uygun secret yönetimi kurulmalıdır.
-- Private GitHub deposu secret saklama alanı değildir.
+### GitHub Pages dağıtımı
 
-<a id="teslim-kontrol-listesi"></a>
-## Teslim kontrol listesi
+`.github/workflows/deploy-pages.yml` iş akışı her `main` push'unda:
 
-- [ ] GitHub deposuna erişim teslim alan kişiye verildi.
-- [ ] Depo klonlandı ve iki bağımlılık kurulumu tamamlandı.
-- [ ] Kök `.env` güvenli kanaldan hazırlandı.
-- [ ] `cms/.env` güvenli kanaldan hazırlandı.
-- [ ] PostgreSQL veritabanı/backup teslim edildi veya migration ve seed planlandı.
-- [ ] `cms/media` yedeği veya production medya depolaması teslim edildi.
-- [ ] `routing/data/hatay.osm.pbf` ayrıca teslim edildi.
-- [ ] PostgreSQL, GraphHopper, Payload, Express ve React servisleri sırayla doğrulandı.
-- [ ] Yönetici 2FA kurulumu ve recovery kodu teslim prosedürü tamamlandı.
-- [ ] Portal ve CMS test/build komutları çalıştırıldı.
-- [ ] Alan adı, HTTPS, reverse proxy, yedekleme ve log planı kurum tarafından belirlendi.
-- [ ] [Ayrıntılı Proje ve Devir-Teslim Raporu](./DETAYLI_PROJE_RAPORU.md) teslim alan teknik kişi tarafından incelendi.
+1. Node.js ortamını hazırlar.
+2. `npm ci` çalıştırır.
+3. Portalı statik demo modunda ve doğru depo alt yoluyla derler.
+4. `dist/` çıktısını Pages artifact'i olarak yükler.
+5. Artifact'i `github-pages` ortamına dağıtır.
 
-## Ana teknik belge
+Repo ayarlarında yalnızca **Settings → Pages → Build and deployment → Source → GitHub Actions** seçilmelidir. İlk başarılı dağıtımın ardından site `https://emecyildiz.github.io/belediye-tarih-ve-k-lt-r/` adresinde açılır.
 
-Bu README hızlı kurulum ve teslim özeti sağlar. Aşağıdaki konuların ayrıntıları için ana belgeyi kullanın:
+### Güvenlik ve veri notları
 
-- Tüm klasör ve önemli dosyaların görevleri
-- Sayfalar ve React route yapısı
-- Express ve Payload API uç noktaları
-- Payload koleksiyonları ve PostgreSQL tabloları
-- Token, refresh, rol ve iki adımlı doğrulama akışları
-- OpenLayers, GeoJSON, koordinat sistemi ve harita sembolleri
-- GraphHopper, OSM/PBF ve Google Haritalar aktarımı
-- Raporlama ve analitik veri bütünlüğü
-- Ortam değişkenlerinin tam listesi
-- Canlı kurulum, yedekleme, sorun giderme ve bilinen sınırlamalar
+- `.env`, `cms/.env`, gerçek parolalar, tokenlar ve kullanıcı verileri repoya eklenmez.
+- Public demo gerçek backend veya yönetici hesabı içermez.
+- Demo kayıtları resmî belediye/CBS verisi değildir.
+- Belediye LDAP/Active Directory entegrasyonu uygulanmamıştır.
+- LDAP entegrasyonu için kurum ağı, test hesabı, AD grup-rol eşlemesi ve güvenilir sertifika zinciri gerekir.
+- Production ortamında HTTPS, güvenli çerez, ağ kısıtı, yedekleme ve merkezi log kurulmalıdır.
 
-➡️ [DETAYLI_PROJE_RAPORU.md dosyasını aç](./DETAYLI_PROJE_RAPORU.md)
+### Ayrıntılı dokümantasyon
+
+- [Ayrıntılı Proje ve Devir-Teslim Raporu](./DETAYLI_PROJE_RAPORU.md)
+- [Payload CMS rehberi](./cms/README.md)
+- [GraphHopper rehberi](./routing/README.md)
+- [CBS sağlayıcı sözleşmesi](./backend/services/cbs/README.md)
+- [Görsel kaynakları](./public/assets/monuments/SOURCES.txt)
+
+[Başa dön](#tkmbs) · [English](#english)
+
+---
+
+<a id="english"></a>
+
+## English
+
+### About the project
+
+TKMBS is a web application prototype created during a **2026 summer internship** to present Hatay's historical monuments, cultural routes, events, and location-based heritage information in a single interface.
+
+The project was designed to let visitors explore cultural heritage on a map, inspect detailed monument and event pages, create trip drafts, and allow authorized editors to manage content from a central administration interface.
+
+> **Portfolio notice:** This repository is not a current or official Hatay Metropolitan Municipality service. It is an independent educational and portfolio project developed during a summer internship. The GitHub Pages deployment uses sample data and must not be treated as an official inventory or as current visitor/road information.
+
+### Live demo
+
+**[Open the GitHub Pages demo](https://emecyildiz.github.io/belediye-tarih-ve-k-lt-r/)**
+
+GitHub Pages hosts static files only, so the public deployment is a **sample-data showcase**:
+
+- Monument, route, event, map, search, and about pages are available.
+- The OpenLayers map and online base-map tiles can be viewed.
+- Weather data is fetched from Open-Meteo when the service is reachable.
+- PostgreSQL, Express, Payload CMS, and GraphHopper do not run on GitHub Pages.
+- Authentication, registration, persistent favorites, notification state, administration, and server-side routing are disabled.
+- The complete system can still be run locally or deployed to an application server.
+
+### Highlights
+
+- Historical monument, cultural route, and event catalogs
+- Detail pages, galleries, and nearby-content suggestions
+- Layered and filterable OpenLayers map
+- GeoJSON point and route geometries
+- Coordinate display and contextual map cards
+- Cultural route display and custom trip drafting
+- Google Maps directions export
+- Search, filters, pagination, responsive layouts, and drag scrolling
+- Citizen accounts, favorites, notifications, and saved routes
+- Payload CMS content management, user administration, and reporting
+- Short-lived access tokens, rotating refresh sessions, roles, and TOTP 2FA
+- PostgreSQL persistence and GraphHopper road routing
+
+### Technology stack
+
+| Layer | Technology | Responsibility |
+|---|---|---|
+| Public portal | React 18, Vite, React Router | User interface and client-side navigation |
+| Mapping | OpenLayers 9, GeoJSON | Layers, markers, clusters, coordinates, and route geometry |
+| Portal API | Node.js, Express | DTOs, authentication, user operations, and service orchestration |
+| Content management | Payload CMS 3, Next.js | Monument, route, event, media, user, and report management |
+| Database | PostgreSQL 16 | Content, users, sessions, favorites, notifications, and analytics |
+| Routing engine | GraphHopper 11 | Driving routes calculated from local OpenStreetMap data |
+| Weather | Open-Meteo | Current weather for Antakya |
+| Publishing | GitHub Actions, GitHub Pages | Automated deployment of the static portfolio demo |
+
+### Architecture
+
+```text
+React/Vite portal
+      |
+      | /api
+      v
+Express portal API
+      |----------------> Payload REST API ----------> PostgreSQL
+      |----------------> Auth/data repository ------> PostgreSQL
+      |----------------> GraphHopper ---------------> Hatay OSM/PBF
+      `----------------> Open-Meteo
+
+Administrator / editor
+      `----------------> Payload Admin Panel
+```
+
+Key boundaries:
+
+- React never connects directly to PostgreSQL.
+- Express converts Payload records into portal-specific DTOs.
+- Payload owns content authoring and administration.
+- PostgreSQL stores persistent content and user state.
+- OpenLayers renders maps; GraphHopper calculates road routes.
+- Curated cultural-route stops are CMS content, while GraphHopper calculates only the driving geometry between stops.
+
+### Repository structure
+
+```text
+belediye-portal/
+├── .github/workflows/          GitHub Pages deployment workflow
+├── src/                        React public portal
+│   ├── auth/                   Session state and protected routes
+│   ├── components/             Shared, map, and layout components
+│   ├── config/                 Runtime mode and public asset helpers
+│   ├── hooks/                  Favorites and drag-scroll hooks
+│   ├── pages/                  Portal pages
+│   └── services/               API and authentication clients
+├── backend/                    Auth, data, CMS, GIS, and routing services
+├── backend-server.js           Express entry point
+├── cms/                        Payload CMS / Next.js application
+├── routing/                    GraphHopper Docker configuration
+├── public/                     Images and static assets
+└── DETAYLI_PROJE_RAPORU.md     Detailed Turkish handover document
+```
+
+### Running the complete system locally
+
+#### Requirements
+
+- Node.js 20.19+ or a current LTS release at least 22.12
+- npm
+- PostgreSQL 16 or Docker Desktop
+- Docker Compose
+- `routing/data/hatay.osm.pbf` for GraphHopper
+
+#### Installation
+
+```powershell
+git clone https://github.com/emecyildiz/belediye-tarih-ve-k-lt-r.git
+cd belediye-tarih-ve-k-lt-r
+npm ci
+npm --prefix cms ci
+Copy-Item .env.example .env
+Copy-Item cms/.env.example cms/.env
+```
+
+The example environment values are not production credentials. Never commit real secrets, passwords, user data, or database backups.
+
+#### Startup order
+
+Run each command from the repository root in a separate terminal:
+
+```powershell
+# 1. PostgreSQL
+npm run cms:db:start
+
+# First installation only
+npm run cms:migrate
+
+# 2. GraphHopper
+npm run routing:start
+
+# 3. Payload CMS
+npm run cms:dev
+
+# 4. Express API
+npm run server
+
+# 5. React portal
+npm run dev
+```
+
+Local endpoints:
+
+| Service | URL |
+|---|---|
+| React portal | `http://localhost:5173` |
+| Express API | `http://localhost:5000` |
+| Payload Admin | `http://localhost:3000/admin` |
+| PostgreSQL | `127.0.0.1:5432` |
+| GraphHopper | `127.0.0.1:8989` |
+
+Stop the Node processes with `Ctrl+C`, then run:
+
+```powershell
+npm run routing:stop
+npm run cms:db:stop
+```
+
+### Tests and builds
+
+```powershell
+npm run test:data
+npm run test:routing
+npm run lint
+npm run build
+
+npm --prefix cms run lint
+npm --prefix cms run test:int
+npm --prefix cms run build
+```
+
+### GitHub Pages deployment
+
+The `.github/workflows/deploy-pages.yml` workflow runs for every push to `main`. It installs the frontend dependencies, builds the application in static showcase mode with the correct repository base path, uploads `dist/` as a Pages artifact, and deploys it to the `github-pages` environment.
+
+In the repository, select **Settings → Pages → Build and deployment → Source → GitHub Actions**. After the first successful run, the demo is available at `https://emecyildiz.github.io/belediye-tarih-ve-k-lt-r/`.
+
+### Security and data notes
+
+- `.env`, `cms/.env`, real passwords, tokens, user records, and backups are excluded from Git.
+- The public demo contains no live backend or administrator account.
+- Sample records are not official municipal or GIS data.
+- The planned municipal LDAP/Active Directory integration has not been implemented.
+- A real LDAP rollout requires municipal network access, a test account, AD group-to-role mapping, and a trusted certificate chain.
+- A production deployment requires HTTPS, secure cookies, network restrictions, backups, and centralized logging.
+
+### Further documentation
+
+- [Detailed project and handover report — Turkish](./DETAYLI_PROJE_RAPORU.md)
+- [Payload CMS guide — Turkish](./cms/README.md)
+- [GraphHopper guide — Turkish](./routing/README.md)
+- [GIS provider contract — Turkish](./backend/services/cbs/README.md)
+- [Image sources](./public/assets/monuments/SOURCES.txt)
+
+[Back to top](#tkmbs) · [Türkçe](#turkce)

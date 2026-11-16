@@ -1,7 +1,7 @@
 {
   "name": "belediye-portal",
   "version": "1.0.0",
-  "description": "Belediye Web Portalı - GeoJSON haritası ve yönetim sistemi",
+  "description": "TKMBS - Hatay tarihi ve kültürel miras bilgi sistemi",
   "private": true,
   "type": "module",
   "scripts": {
@@ -56,7 +56,7 @@
     "vite": "^8.2.2"
   },
   "engines": {
-    "node": ">=16.0.0",
+    "node": "^20.19.0 || >=22.12.0",
     "npm": ">=8.0.0"
   }
 }

@@ -172,7 +172,7 @@ flowchart LR
 - En az 8 GB RAM; GraphHopper için tercihen 16 GB
 - GraphHopper ilk veri içe aktarımı için yeterli boş disk alanı
 
-> **Not:** Kök `package.json` içinde tarihsel olarak daha düşük Node sürümü yazsa da Vite 8 ve Next.js 16 nedeniyle teslim ortamında Node.js 20.19+ kullanılmalıdır.
+> **Not:** Kök `package.json`, Vite 8 gereksinimiyle uyumlu olarak Node.js 20.19+ veya 22.12+ sürümünü zorunlu kılar.
 
 > [İçindekilere dön](#icindekiler)
 
@@ -1456,6 +1456,8 @@ Mevcut limiter tek Node sürecinin belleğindedir. Birden fazla backend instance
 - Yedekleri şifreleyin ve geri yükleme testi yapın.
 - SAST, DAST ve bağımlılık taramasını CI'a ekleyin.
 - KVKK veri saklama/aydınlatma sürelerini hukuk birimiyle belirleyin.
+- Planlanan LDAP/Active Directory entegrasyonunu ancak kurum ağı, sınırlandırılmış test hesabı, AD grup-rol eşlemesi ve güvenilir CA sertifika zinciri sağlandıktan sonra devreye alın.
+- LDAP kullanılırken personel parolasını saklamayın veya loglamayın; başarılı dizin doğrulamasını tek başına yönetici yetkisi saymayın.
 
 ### 24.4 Secret değişimi
 
@@ -1741,7 +1743,7 @@ Get-NetTCPConnection -LocalPort 3000,5000,5173,5432,8989 -ErrorAction SilentlyCo
 4. **In-memory rate limit tek instance içindir.** Çoklu production instance için Redis gerekir.
 5. **Örnek içerik gerçek envanter değildir.** Belediye veri doğrulaması olmadan resmî kaynak sayılmamalıdır.
 6. **Eski özel yönetim paneli kaynakları korunur fakat aktif değildir.** Yönetim Payload üzerinden yapılır.
-7. **Eski belgeler güncel olmayabilir.** `QUICK_START.md`, `SETUP_GUIDE.md`, `PROJECT_SUMMARY.md` projenin ilk sürümünden parçalar içerebilir. Teknik kararlar için bu `DETAYLI_PROJE_RAPORU.md` ve güncel kod esas alınmalıdır.
+7. **Dokümantasyon sadeleştirilmiştir.** İlk prototipten kalan ve güncel mimariyle çelişen rehberler kaldırılmıştır. Günlük başlangıç için kök `README.md`, teknik kararlar için bu `DETAYLI_PROJE_RAPORU.md` ve güncel kod esas alınmalıdır.
 8. **Medya dosyaları Git'te değildir.** Production storage ve yedekleme ayrıca tasarlanmalıdır.
 9. **Uydu görünümü Esri'ye bağlıdır.** Kurum kullanım/lisans koşullarını doğrulamalıdır.
 10. **Canlı hava üçüncü taraf servistir.** Kritik belediye uyarı sistemi yerine kullanılmamalıdır.
@@ -1749,6 +1751,7 @@ Get-NetTCPConnection -LocalPort 3000,5000,5173,5432,8989 -ErrorAction SilentlyCo
 12. **Demo kullanıcılar production'a taşınmamalıdır.** Seed kontrollü ve geçici olmalıdır.
 13. **Yük testi yapılmadan kesin kapasite verilmemelidir.** 20 örnek kayıt işlev testidir, kapasite testi değildir.
 14. **OneDrive build cache sorunları oluşturabilir.** CMS komutları bu nedenle Webpack'e sabitlenmiş ve Webpack disk cache'i kapatılmıştır. En güvenli çalışma düzeni yine de geliştirme kopyasını OneDrive dışındaki yerel diskte tutmaktır.
+15. **LDAP/Active Directory henüz uygulanmamıştır.** Mevcut personel girişi PostgreSQL ve TOTP ile çalışır. LDAP kabul testi belediye ağı/VPN erişimi, kurum test hesabı, grup-rol eşlemesi, sunucu DNS adları ve doğrulanabilir CA sertifika zinciri olmadan tamamlanamaz.
 
 > [İçindekilere dön](#icindekiler)
 
@@ -1834,7 +1837,7 @@ Production/main değişiklikleri kurumun review ve CI süreciyle birleştirilmel
 
 ### 31.1 Kaynak kod
 
-- [ ] GitHub private repo erişimi teslim alan kuruma verildi.
+- [ ] Kaynak depo erişimi, public portföy yayını ile kurum verilerinin ayrımı gözetilerek ilgili kişilere verildi.
 - [ ] Son commit hash'i teslim tutanağına yazıldı.
 - [ ] Çalışan branch/tag belirtildi.
 - [ ] `.env` ve secret'ların Git'te olmadığı doğrulandı.

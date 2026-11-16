@@ -13,16 +13,17 @@ const USE_MOCK_DB = import.meta.env.VITE_USE_MOCK_DB === 'true';
 
 import { authenticatedFetch } from './authClient';
 import { requestWithTransientRetry } from './apiRetry';
+import { publicAsset, resolvePublicUrl, STATIC_DEMO } from '../config/runtime';
 
 // Default placeholder resim - fotoğraf yoksa bu gösterilir
-export const DEFAULT_IMAGE = '/assets/default-placeholder.svg';
+export const DEFAULT_IMAGE = publicAsset('assets/default-placeholder.svg');
 
 /**
  * Fotoğraf URL'sini kontrol eder.
  * Varsa URL'yi döndürür, yoksa default placeholder gösterir.
  */
 export function getImageUrl(url) {
-  if (url && url.trim() !== '') return url;
+  if (url && url.trim() !== '') return resolvePublicUrl(url);
   return DEFAULT_IMAGE;
 }
 
@@ -384,8 +385,17 @@ const persistentAnalyticsApi = {
   trackPageView: realApi.trackPageView,
 };
 
+const staticDemoApi = {
+  ...mockApi,
+  trackPageView: async () => ({ recorded: false, mode: 'static-demo' }),
+};
+
 // ──────────────────────────────────
 // EXPORT - İçerik kaynağını seçer, kullanıcı durumunu daima gerçek API'de tutar
 // ──────────────────────────────────
-export const api = USE_MOCK_DB ? { ...mockApi, ...persistentNotificationApi, ...persistentUserApi, ...persistentAnalyticsApi } : realApi;
+export const api = STATIC_DEMO
+  ? staticDemoApi
+  : USE_MOCK_DB
+    ? { ...mockApi, ...persistentNotificationApi, ...persistentUserApi, ...persistentAnalyticsApi }
+    : realApi;
 export default api;

@@ -6,6 +6,7 @@ import {
   IconMonument, IconPin, IconRoute,
 } from '../components/common/Icons';
 import './AboutPage.css';
+import { getImageUrl } from '../services/api';
 
 const iconMap = {
   monument: IconMonument,
@@ -48,7 +49,7 @@ export default function AboutPage() {
 
   return (
     <div className="about-page">
-      <section className="about-hero" style={{ '--about-hero-image': `url("${content.hero.backgroundImage}")` }}>
+      <section className="about-hero" style={{ '--about-hero-image': `url("${getImageUrl(content.hero.backgroundImage)}")` }}>
         <div className="about-hero-copy">
           <span className="about-eyebrow"><IconInfo size={14} /> {content.hero.eyebrow}</span>
           <h1>{content.hero.title} <em>{content.hero.emphasis}</em></h1>

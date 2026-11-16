@@ -4,6 +4,7 @@ import { useAuth } from '../auth/useAuth';
 import { ApiRequestError } from '../services/authClient';
 import { IconUser } from '../components/common/Icons';
 import './LoginPage.css';
+import { publicAsset } from '../config/runtime';
 
 const initialForm = {
   name: '',
@@ -44,7 +45,7 @@ export default function RegisterPage() {
     }
   };
 
-  return <div className="login-page register-page">
+  return <div className="login-page register-page" style={{ '--login-brand-image': `url("${publicAsset('assets/image6.png')}")` }}>
     <section className="login-intro register-intro">
       <span>TKMBS</span>
       <h1>Hatay'ı kendi rotanızla keşfedin</h1>

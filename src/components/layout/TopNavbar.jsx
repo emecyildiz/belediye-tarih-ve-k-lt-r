@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { NAV_ITEMS } from '../../constants';
 import { NavIcon, IconSearch, IconUser, IconSun } from '../common/Icons';
+import { publicAsset } from '../../config/runtime';
 
 export default function TopNavbar() {
   const { pathname } = useLocation();
@@ -8,7 +9,7 @@ export default function TopNavbar() {
   return (
     <header className="top-navbar">
       <Link to="/" className="navbar-brand" style={{ textDecoration: 'none', color: 'inherit' }}>
-        <img src="/assets/image6.png" alt="HBB" className="navbar-logo" />
+        <img src={publicAsset('assets/image6.png')} alt="HBB" className="navbar-logo" />
         <div className="navbar-brand-text">
           <strong>TKMBS</strong>
           <span>Tarihi ve Kültürel Miras Bilgi Sistemi</span>

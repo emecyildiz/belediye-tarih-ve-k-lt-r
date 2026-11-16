@@ -5,6 +5,7 @@ import { ApiRequestError } from '../services/authClient';
 import { getCmsAdminUrl } from '../services/authClient';
 import { IconUser } from '../components/common/Icons';
 import './LoginPage.css';
+import { publicAsset } from '../config/runtime';
 
 const isContentManager = (role) => role === 'admin' || role === 'editor';
 
@@ -87,7 +88,7 @@ export default function LoginPage() {
     }
   };
 
-  return <div className="login-page">
+  return <div className="login-page" style={{ '--login-brand-image': `url("${publicAsset('assets/image6.png')}")` }}>
     <section className="login-intro">
       <span>TKMBS</span>
       <h1>Hatay'ın kültürel mirasına kişisel erişim</h1>

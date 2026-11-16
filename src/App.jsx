@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { BrowserRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter, HashRouter, Navigate, Routes, Route, useLocation } from 'react-router-dom';
 import AppLayout from './components/layout/AppLayout';
 import HomePage from './pages/HomePage';
 import MapPage from './pages/MapPage';
@@ -19,6 +19,7 @@ import RegisterPage from './pages/RegisterPage';
 import ProtectedRoute from './auth/ProtectedRoute';
 import { AuthProvider } from './auth/AuthContext';
 import api from './services/api';
+import { STATIC_DEMO } from './config/runtime';
 import './App.css';
 
 function ScrollToTop() {
@@ -69,8 +70,10 @@ function PageAnalyticsTracker() {
 }
 
 function App() {
+  const Router = STATIC_DEMO ? HashRouter : BrowserRouter;
+
   return (
-    <BrowserRouter>
+    <Router>
       <AuthProvider>
         <ScrollToTop />
         <PageAnalyticsTracker />
@@ -97,7 +100,7 @@ function App() {
           </Routes>
         </AppLayout>
       </AuthProvider>
-    </BrowserRouter>
+    </Router>
   );
 }
 

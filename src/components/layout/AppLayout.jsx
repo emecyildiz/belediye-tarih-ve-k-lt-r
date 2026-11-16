@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
+import { publicAsset, STATIC_DEMO } from '../../config/runtime';
 import './AppLayout.css';
 
 export default function AppLayout({ children }) {
@@ -31,7 +32,7 @@ export default function AppLayout({ children }) {
   return (
     <div className={`app-shell ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       <div className="app-brand">
-        <img src="/assets/image6.png" alt="Hatay Büyükşehir Belediyesi" />
+        <img src={publicAsset('assets/image6.png')} alt="Hatay Büyükşehir Belediyesi" />
       </div>
       <Sidebar open={menuOpen} collapsed={sidebarCollapsed} onExpand={expandSidebar} onNavigate={handleSidebarNavigate} />
       <button
@@ -53,6 +54,7 @@ export default function AppLayout({ children }) {
       )}
       <div className="app-main">
         <TopBar />
+        {STATIC_DEMO && <div className="static-demo-notice" role="status"><strong>Tanıtım sürümü</strong><span>GitHub Pages üzerinde yalnızca örnek içerikler gösterilir; hesap, kalıcı favori, yönetim ve sunucu tabanlı rota özellikleri devre dışıdır.</span></div>}
         <main className="app-content">{children}</main>
         <footer className="app-footer">
           © 2026 Hatay Büyükşehir Belediyesi · Tarihi ve Kültürel Miras Bilgi Sistemi

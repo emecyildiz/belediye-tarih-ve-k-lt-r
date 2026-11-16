@@ -1,11 +1,12 @@
 import { SocialIcons } from '../common/Icons';
+import { publicAsset } from '../../config/runtime';
 
 export default function Footer({ variant = 'default' }) {
   return (
     <footer className={`site-footer ${variant}`}>
       <div className="footer-inner">
         <div className="footer-brand">
-          <img src="/assets/image6.png" alt="HBB" />
+          <img src={publicAsset('assets/image6.png')} alt="HBB" />
           <div>
             <strong>Hatay Büyükşehir Belediyesi</strong>
             <p>© 2026 TKMBS - Tarihi ve Kültürel Miras Bilgi Sistemi</p>
